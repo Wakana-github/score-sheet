@@ -5,20 +5,20 @@ import { useRouter } from 'next/navigation';
 
 // ScoreRecordの型定義 (score-sheet/page.tsx と同じである必要があります)
 interface ScoreRecord {
-  id: string; // ユニークなID (例: タイムスタンプ)
-  gameTitle: string; // score.title に対応
+  id: string; // unique ID
+  gameTitle: string; // 
   playerNames: string[];
-  scoreItemNames: string[]; // 表示には使われていませんが、型として含めます
-  scores: number[][]; // scoresはnumberの二次元配列
+  scoreItemNames: string[]; 
+  scores: number[][]; 
   numPlayers: number;
   numScoreItems: number;
-  createdAt: string; // score.savedAt に対応
+  createdAt: string; // score.savedAt 
 }
 
-// 無料版の最大保存件数 (score-sheetと同じ値に設定)
+// Max record numbers for Free version (same as score-sheet)
 const MAX_FREE_RECORDS = 3;
 
-export default function RecordsPage() { // ファイル名とエクスポート名を RecordsPage に変更
+export default function RecordsPage() { 
   const router = useRouter();
   const [records, setRecords] = useState<ScoreRecord[]>([]); // savedScores を records に変更し、型を ScoreRecord[] に
   const [loading, setLoading] = useState(true);

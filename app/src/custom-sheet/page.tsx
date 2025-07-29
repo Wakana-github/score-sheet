@@ -93,7 +93,7 @@ export default function CustomSheetPage() {
     const finalRows = scoreItemsCount! + 1;
     const finalColumns = playersCount!;
 
-    router.push(`/score-sheet?name=${encodeURIComponent(finalGameName)}&rows=${finalRows}&columns=${finalColumns}`);
+    router.push(`./score-sheet?name=${encodeURIComponent(finalGameName)}&rows=${finalRows}&columns=${finalColumns}`);
   };
 
   const handleReturnToHome = () => {
@@ -107,7 +107,7 @@ export default function CustomSheetPage() {
           <p className="text-xl pt-2 ">Create Your Own</p>
           <h1 className="text-4xl font-bold">Custom Sheet</h1>
 
-          {/* ゲーム名入力欄 */}
+          {/* Game name */}
           <div className="mt-3">
             <label htmlFor="gameName" className="text-2xl block">
               Game Name:{" "}
@@ -127,10 +127,10 @@ export default function CustomSheetPage() {
             )}
           </div>
 
-          {/* 行数・列数入力欄を横並びにするFlexboxコンテナ */}
+          {/* flex container for rows and coulmns */}
           <div className="flex justify-center items-center space-x-4 mb-2">
             {" "}
-            {/* スコア項目数入力欄 */}
+            {/* number of score items */}
             <div className="flex flex-col items-center">
               <label htmlFor="scoreItemsCount" className="text-2xl">
                 Score Items: 
@@ -149,7 +149,7 @@ export default function CustomSheetPage() {
               )}
             </div>
 
-            {/* プレイヤー人数入力欄 */}
+            {/* number of players*/}
             <div className="flex flex-col items-center mt-1">
               <label htmlFor="playersCount" className="text-2xl">
                 Players: 
@@ -169,7 +169,7 @@ export default function CustomSheetPage() {
             </div>
           </div>
 
-          {/* このシートを使うボタン */}
+          {/* Use this sheet button  */}
           <button
             onClick={handleUseThisSheet}
             className="dark_green font-bold py-2 px-6 rounded-lg text-2xl mt-3 w-[100%] max-w-xs"
@@ -177,7 +177,7 @@ export default function CustomSheetPage() {
             Use This Sheet
           </button>
 
-          {/* Return to Homeボタン */}
+          {/* Return to Home button */}
           <div
             onClick={handleReturnToHome}
             className=" py-1 px-2 rounded-lg text-xl mt-2 w-50 flex justify-self-start"

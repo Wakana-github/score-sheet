@@ -5,6 +5,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { RiDeleteBinLine } from 'react-icons/ri';
 
+//End point URL for API
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/scores'; 
+
 // ScoreRecord interface (must match score-sheet/page.tsx)
 interface ScoreRecord {
   id: string; // Unique ID (e.g., timestamp)

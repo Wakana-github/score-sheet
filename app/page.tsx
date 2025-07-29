@@ -16,7 +16,7 @@ interface GameData {
 
 export default function Home() {
   const [games, setGames] = useState<GameData[]>([]);
-  // 初期値をnullに設定
+  // ret default as null
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
   const router = useRouter();
 
@@ -26,37 +26,35 @@ export default function Home() {
       .then((response) => response.json())
       .then((data: GameData[]) => {
         setGames(data);
-        // 初期選択は行わない
       })
       .catch((error) => console.error('Error loading game data:', error));
   }, []); // [] <- render once
 
-  // ドロップダウン選択時のハンドラー
+  // handle game titles
   const handleGameChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
-    // valueが空文字列の場合はnullをセットし、それ以外は数値に変換
+    // set selected game ID. set null when the value is empty.
     setSelectedGameId(value === '' ? null : Number(value));
   };
 
-  // 「スコアシートへ」ボタンクリック時のハンドラー
+  // Go To Score Sheet button handler
   const handleGoToScoreSheet = () => {
     if (selectedGameId !== null) {
-      router.push(`/score-sheet?gameId=${selectedGameId}`);
+      router.push(`./src//score-sheet?gameId=${selectedGameId}`);
     }
   };
 
-  // 「カスタムシートへ」ボタンクリック時のハンドラー
+  // Go To Custom sheet handler
   const handleGoToCustomSheet = () => {
-    // カスタム設定ページへのパスを指定
-    router.push('/custom-sheet'); // 例: /custom-sheet というパスに遷移
+    router.push('./src/custom-sheet'); // render custom-sheet 
   };
 
-   // ③ My Record ボタンのクリックハンドラを追加
+   // My Record button handler
   const handleViewRecords = () => {
-    router.push('/records'); // records ページへ遷移
+    router.push('./src/records'); // render my record page
   };
 
-  // データ読み込み中はローディング表示
+  // while loading data
   if (games.length === 0) {
     return (
       <main className="flex items-center justify-center h-screen">
@@ -81,7 +79,7 @@ export default function Home() {
               id="game"
               name="gamelist"
               form="gameform"
-              value={selectedGameId === null ? '' : selectedGameId} // nullの場合は空文字列を設定
+              value={selectedGameId === null ? '' : selectedGameId} // set null when the game hass not selected
               onChange={handleGameChange}
               className="normal_font p-2
               rounded-md
@@ -92,7 +90,7 @@ export default function Home() {
               ring-0
               shadow-none"
             >
-              {/* 「Choose the game」のvalueを空文字列にする */}
+              {/* reset the selected game value */}
               <option value="">Choose the game</option>
              {sortedGames.map((game) => (
                 <option key={game.id} value={game.id}>
@@ -102,15 +100,14 @@ export default function Home() {
             </select>
           </div>
 
-          {/* カスタムシート/スコアシートへボタン */}
+          {/* Custom sheet/Score sheet button */}
           <button
-            // selectedGameIdがnullの場合はhandleGoToCustomSheet、それ以外はhandleGoToScoreSheetを呼び出す
+            // call handleGoToCustomSheet when selectedGameId = null、otherwise call handleGoToScoreSheet
             onClick={selectedGameId === null ? handleGoToCustomSheet : handleGoToScoreSheet}
-            // ボタンのスタイルと有効/無効の状態は、常にクリック可能にするためdisabledを削除
             className="dark_green py-2 my-2 w-64"
           >
             <span className="text-3xl">
-              {/* selectedGameIdがnullの場合は「Custom Sheet」、それ以外は「Go to the Score Sheet」を表示 */}
+              {/* display Custom Sheet when selectedGameId = nul、otherwise display Go to the Score Sheet */}
               {selectedGameId === null ? 'Custom Sheet' : 'Go to the Score Sheet'}
             </span>
           </button>
