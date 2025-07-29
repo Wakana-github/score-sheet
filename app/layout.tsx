@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Delicious_Handrawn } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -10,6 +10,13 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const deliciousHandrawn = Delicious_Handrawn({
+  weight: '400', // Delicious Handrawnは通常、単一の太さ（400）のみ提供されます
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-delicious-handrawn', // CSS変数名を指定
 });
 
 export const metadata: Metadata = {
@@ -25,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={` ${geistMono.variable} ${deliciousHandrawn.variable} antialiased`}
       >
         {children}
       </body>

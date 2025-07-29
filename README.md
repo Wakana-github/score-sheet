@@ -1,3 +1,15 @@
+# Score Sheet Spp
+## Introduction
+Do you a pencel? Did you runout or perhaps lost the score sheet for boadgames?
+This app is designed to record and calculate final score for boadgames. Simply chose a game you're playing or enter numbers of colums and rows nessesary for scoring of your
+
+
+
+## Tech stack
+Next.js
+Tailwind CSS
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

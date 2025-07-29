@@ -1,0 +1,64 @@
+[
+  {
+    "id": 1,
+    "title": "Pandemic",
+    "column": 4,
+    "row": 3,
+    "notes": "As a cooperative game, a simple sheet to record victory/defeat status, number of outbreaks, and eradicated diseases for up to 4 players.",
+    "score_items": [
+      "Game Result (Win/Loss)",
+      "Outbreaks",
+      "Eradicated Diseases"
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Patchwork",
+    "column": 2,
+    "row": 4,
+    "notes": "A 2-player game. A sheet to record factors like empty spaces (negative points) and button count (positive points) to calculate the final score.",
+    "score_items": [
+      "Buttons Collected",
+      "Empty Spaces (x -2)",
+      "7x7 Bonus",
+      "Final Score"
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Wind the Film",
+    "column": 4,
+    "row": 7,
+    "notes": "A solo/co-op game. Score is based on photo quality, film usage, and other objectives for up to 4 players.",
+    "score_items": [
+      "💧",
+      "❤️",
+      "⬡ ",
+      "⭐ ",
+      "🌙",
+      "⭕",
+      "◆"
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Splendor",
+    "column": 4,
+    "row": 1,
+    "notes": "A simple sheet to record each player's prestige points (victory points) for up to 4 players.",
+    "score_items": [
+      "Prestige Points"
+    ]
+  },
+  {
+    "id": 5,
+    "title": "Geister",
+    "column": 2,
+    "row": 2,
+    "notes": "A 2-player abstract game. A simple sheet to record the win/loss count for each player across multiple matches.",
+    "score_items": [
+      "Wins",
+      "Losses"
+    ]
+  }
+]

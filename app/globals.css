@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --dark_green: rgba(157, 179, 32, 0.6);
+  --table_green: rgba(73, 83, 12, 0.8);
 }
 
 @theme inline {
@@ -22,5 +25,63 @@
 body {
   background: var(--background);
   color: var(--foreground);
+  background-size: cover;   
+  background-image:url("/paper_bg.jpg");
+  background-repeat: no-repeat;    
+  background-attachment: fixed;
+  background-repeat: no-repeat;    /* 画像の繰り返しをしない */
+  background-attachment: fixed;
+  
+  font-family: var(--font-delicious-handrawn), Arial, Helvetica, sans-serif;
+}
+
+.normal_font{
   font-family: Arial, Helvetica, sans-serif;
+}
+
+
+.dark_green{
+  background-color: var(--dark_green);
+}
+.table_green{
+  background-color: var(--table_green);
+}
+/* .first-color{
+  background-color: #B6A014;
+} */
+.first-color{
+   background: linear-gradient(45deg, #917E0F 25%, #B6A014  70%, #D1AD64 75%, #B6A014  80%, #917E0F 100%);
+}
+/* .second-color{
+  background-color: #AFAFB0;
+} */
+.second-color{
+   background: linear-gradient(45deg, #757575 25%, #9C9A9A 70%, #C2BCBC 75%, #9C9A9A 80%, #757575 90% 100%)
+}
+/* .third-color{
+  background-color: #8F6939;
+} */
+.third-color{
+  background: linear-gradient(45deg, #735532 25%, #8F6939, #A87B3E 75%, #8F6939 80%, #735532 90% 100%)
+}
+/* .total-btn-color{
+  background-color: #4A4A46;
+}
+ */
+
+@keyframes bounceIn  {
+  	0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+	40% {
+    transform: translateY(-30px);
+  }
+	60% {
+    transform: translateY(-15px);
+  }
+}
+
+.bounceIn {
+   animation: bounceIn 2.5s ease-out 3s 5 forwards;
 }
