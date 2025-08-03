@@ -1,0 +1,179 @@
+/* Desktop base style */
+.main-header {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.main-nav-ul {
+    display: flex; 
+    align-items: center;
+    list-style: none;
+    gap: 45px;
+    font-size: 20px;
+    margin: 0;
+    padding: 0;
+   /* This is the base for the mobile menu, hidden on desktop */
+    display: none; /* Default hidden for desktop */
+}
+
+/* common styles for menu items */
+.main-nav-ul li {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.main-nav-ul li img {
+    display: flex;
+    margin: auto;
+    max-width: 30px;
+}
+
+.anchor-link {
+    text-decoration: none;
+    transition: 0.2s;
+    display: inline-block;
+}
+
+.anchor-link:hover {
+    transform: scale(1.05);
+    color: var(--button-hover-color, #ffdb58);
+}
+
+/* Initial state for mobile icons (hidden on desktop) */
+/* Since `lg:hidden` is applied in Header.tsx, only specific styles are adjusted here in CSS */
+.nav-mob-open,
+.nav-mob-close {
+    cursor: pointer;
+    /* Size is specified by the 'size' prop in React Icons, so here we mainly adjust position */
+}
+
+/* --- Responsive Design --- */
+
+/* Screens smaller than 950px (mid-size tablets & desktops) */
+@media (max-width: 950px) {
+    .main-nav-ul {
+        gap: 40px;
+        font-size: 18px;
+    }
+    .header-styles {
+    background-color: transparent;
+    box-shadow: none;
+    flex: relative;
+}
+}
+
+/* Screens smaller than 780px (mobile view) */
+@media (max-width: 780px) {
+        .header-styles {
+    background-color: transparent;
+    box-shadow: none;}
+    /* Hamburger menu icon */
+    .nav-mob-open {
+        display: block; /* Visible on mobile */
+        position: absolute; 
+        top: 15px; 
+        right: 15px; 
+        z-index: 1001; /* Above the mobile menu */
+    }
+
+    /* Mobile menu close icon*/
+    .nav-mob-close {
+        display: block; /*  Visible when the menu is open */
+        position: absolute;
+        top: 30px;
+        right: 30px;
+        z-index: 1002; /*  Above other elements in the menu */
+        color: #fff;
+    }
+
+    /* Main Navigation Menu (slides in from the right on mobile)*/
+    .main-nav-ul {
+        display: flex; /*  Display as a Flex container on mobile */
+        position: fixed; /* Covers the entire screen */
+        flex-direction: column; /* Vertical alignment */
+        align-items: flex-start; /* Left-aligned */
+        top: 0;
+        right: -350px; /* Initially hidden off-screen */
+        gap: 30px;
+        background-color: rgb(63, 71, 14); 
+        width: 350px; 
+        height: 100%; /* Full screen height */
+        z-index: 1000; /* Displayed above other content */
+        transition: right 0.5s ease-in-out; /* lide animation */
+        padding-top: 80px; /* Space for the close button  */
+    }
+
+    .main-nav-ul li {
+        font-size: 25px;
+        padding-left: 100px;
+        flex-direction: row;
+        gap: 20px;
+        width: 100%;
+    }
+
+    /*  Styles for authentication links in the mobile men */
+    .mobile-auth-links {
+        display: flex; 
+        align-items: center;
+        gap: 10px; 
+        margin-top: 20px; 
+        padding-left: 100px; 
+        width: 100%;
+    }
+
+    /* Screens smaller than 460px */
+    @media (max-width: 460px) {
+        .main-nav-ul li {
+            font-size: 20px;
+        }
+        .mobile-auth-links {
+            flex-direction: column; /* Stack vertically on smaller screens */
+            align-items: flex-start;
+            gap: 5px;
+        }
+    }
+}
+
+/* Screens 781px and wider (desktop view) */
+@media (min-width: 781px) {
+    /* Completely hide mobile icons on desktop */
+    .nav-mob-open {
+        display: none !important; 
+    }
+    .nav-mob-close {
+        display: none !important;
+    }
+    
+    /*  Completely hide the mobile menu itself on desktop */
+    .main-nav-ul {
+        display: none !important;
+    }
+}
+
+/* Screens 500px and smaller (even smaller mobile) */
+@media (max-width: 500px) {
+    .nav-mob-open,
+    .nav-mob-close {
+      width: 30px; height: 30px; 
+    }
+    .nav-mob-open {
+        top: 10px;
+        right: 10px;
+    }
+    .nav-mob-close {
+        top: 20px;
+        right: 20px;
+    }
+    .main-nav-ul {
+        width: 280px;
+        right: -280px;
+    }
+    .main-nav-ul li {
+        padding-left: 50px;
+    }
+    .mobile-auth-links {
+        padding-left: 50px; 
+    }
+}

@@ -1,7 +1,7 @@
 {
   "name": "boadgame-score-app",
   "version": "0.1.0",
-  "type": "module",  
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -11,17 +11,20 @@
     "dev:api": "npx nodemon app/server/app.mjs"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.28.0",
+    "@clerk/themes": "^2.4.3",
     "@phosphor-icons/react": "^2.1.10",
     "aos": "^2.3.4",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "mongodb": "^6.18.0",
-    "mongoose": "^8.16.5",
+    "mongoose": "^8.17.0",
     "next": "15.4.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-icons": "^5.5.0",
+    "svix": "^1.70.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

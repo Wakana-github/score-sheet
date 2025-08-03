@@ -2,6 +2,18 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Delicious_Handrawn } from "next/font/google";
 import "./globals.css";
 
+import {
+  ClerkLoaded,
+  ClerkLoading,
+  ClerkProvider,
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "@clerk/nextjs";
+import Header from "./header/page";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -13,10 +25,10 @@ const geistMono = Geist_Mono({
 });
 
 const deliciousHandrawn = Delicious_Handrawn({
-  weight: '400', // Delicious Handrawnは通常、単一の太さ（400）のみ提供されます
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-delicious-handrawn', // CSS変数名を指定
+  weight: "400", // Delicious Handrawnは通常、単一の太さ（400）のみ提供されます
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-delicious-handrawn", // CSS変数名を指定
 });
 
 export const metadata: Metadata = {
@@ -30,12 +42,35 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={` ${geistMono.variable} ${deliciousHandrawn.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+    <ClerkProvider
+      appearance={{
+        elements: {
+          root: {
+            fontFamily: `var(${geistMono.variable}), var(${geistSans.variable} antialiased)`,
+          },
+        },
+      }}
+    >
+      <html lang="en">
+        <body
+          className={` ${geistMono.variable} ${geistSans.variable} ${deliciousHandrawn.variable} antialiased `}
+        >
+          <ClerkLoading>
+            <div className="flex justify-center h-screen items-center">
+              LOADING...
+            </div>
+          </ClerkLoading>
+          <ClerkLoaded>
+          {/* display main contents from the top when mobile screen */}
+          <div className="relative w-full h-64">
+            <div className="absolute inset-0 pt-16 lg:pt-0">
+              <Header />
+            </div>
+            <div className="pt-16 lg:pt-0">{children}</div>
+          </div>
+          </ClerkLoaded>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

@@ -104,12 +104,12 @@ export default function CustomSheetPage() {
     <main>
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
-          <p className="text-xl pt-2 ">Create Your Own</p>
-          <h1 className="text-4xl font-bold">Custom Sheet</h1>
+          <p className="text-xl hand_font pt-2 ">Create Your Own</p>
+          <h1 className="text-4xl hand_font font-bold">Custom Sheet</h1>
 
           {/* Game name */}
-          <div className="mt-3">
-            <label htmlFor="gameName" className="text-2xl block">
+          <div className="mt-3 ">
+            <label htmlFor="gameName" className="text-2xl hand_font block">
               Game Name:{" "}
             </label>
             <div className="flex justify-center">
@@ -119,11 +119,11 @@ export default function CustomSheetPage() {
                 value={gameName}
                 onChange={handleGameNameChange}
                 placeholder="My original game"
-                className="normal_font text-lg bg-white p-3 rounded-md focus:outline-none focus:ring-1 focus:dark_green outline-none border-none ring-0 shadow-none text-center w-auto"
+                className=" text-lg bg-white p-3 rounded-md focus:outline-none focus:ring-1 focus:dark_green outline-none border-none ring-0 shadow-none text-center w-auto"
               />
             </div>
             {gameNameError && (
-              <p className="normal_font text-red-500 text-xs mt-1">{gameNameError}</p>
+              <p className=" text-red-500 text-xs mt-1">{gameNameError}</p>
             )}
           </div>
 
@@ -132,7 +132,7 @@ export default function CustomSheetPage() {
             {" "}
             {/* number of score items */}
             <div className="flex flex-col items-center">
-              <label htmlFor="scoreItemsCount" className="text-2xl">
+              <label htmlFor="scoreItemsCount" className="text-2xl hand_font">
                 Score Items: 
               </label>
               <input
@@ -142,16 +142,16 @@ export default function CustomSheetPage() {
                 onChange={handleScoreItemsCountChange}
                 min="1"
                 placeholder="5"
-                className="normal_font text-lg p-2 rounded-md focus:outline-none focus:ring-1 focus:dark_green outline-none border-none ring-0 shadow-none text-center w-24 bg-white"
+                className="text-lg p-2 rounded-md focus:outline-none focus:ring-1 focus:dark_green outline-none border-none ring-0 shadow-none text-center w-24 bg-white"
               />
                {scoreItemsError && (
-                <p className="normal_font text-red-500 text-xs mt-1">{scoreItemsError}</p>
+                <p className=" text-red-500 text-xs mt-1">{scoreItemsError}</p>
               )}
             </div>
 
             {/* number of players*/}
             <div className="flex flex-col items-center mt-1">
-              <label htmlFor="playersCount" className="text-2xl">
+              <label htmlFor="playersCount" className="text-2xl hand_font">
                 Players: 
               </label>
               <input
@@ -161,10 +161,10 @@ export default function CustomSheetPage() {
                 onChange={handlePlayersCountChange}
                 min="1"
                 placeholder="5"
-                className="normal_font text-lg bg-white p-2 rounded-md focus:outline-none focus:ring-1 focus:dark_green outline-none border-none ring-0 shadow-none text-center w-24"
+                className="text-lg bg-white p-2 rounded-md focus:outline-none focus:ring-1 focus:dark_green outline-none border-none ring-0 shadow-none text-center w-24"
               />
                {playersError && (
-                <p className="normal_font text-red-500 text-xs mt-1">{playersError}</p>
+                <p className="text-red-500 text-xs mt-1">{playersError}</p>
               )}
             </div>
           </div>
@@ -172,7 +172,7 @@ export default function CustomSheetPage() {
           {/* Use this sheet button  */}
           <button
             onClick={handleUseThisSheet}
-            className="dark_green font-bold py-2 px-6 rounded-lg text-2xl mt-3 w-[100%] max-w-xs"
+            className="dark_green font-bold hand_font py-2 px-6 rounded-lg text-2xl mt-3 w-[100%] max-w-xs"
           >
             Use This Sheet
           </button>
@@ -180,7 +180,7 @@ export default function CustomSheetPage() {
           {/* Return to Home button */}
           <div
             onClick={handleReturnToHome}
-            className=" py-1 px-2 rounded-lg text-xl mt-2 w-50 flex justify-self-start"
+            className=" py-1 px-2 rounded-lg text-xl hand_font mt-2 w-50 flex justify-self-start"
           >
            ← Return to Home
           </div>

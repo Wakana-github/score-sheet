@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { RiDeleteBinLine } from 'react-icons/ri';
 
 //End point URL for API
-// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/scores'; 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/scores'; 
 
 // ScoreRecord interface (must match score-sheet/page.tsx)
 interface ScoreRecord {
@@ -31,61 +31,64 @@ export default function RecordsPage() {
   const [filterKeyword, setFilterKeyword] = useState(''); // Filter keyword state
 
   useEffect(() => {
-    try {
-      // Use 'scoreRecords' key consistently
-      const storedRecords: any[] = JSON.parse(localStorage.getItem('scoreRecords') || '[]');
-
-      // --- Migration Logic ---
-      // If lastSavedAt is missing, set it to createdAt as a fallback
-      const migratedRecords: ScoreRecord[] = storedRecords.map(record => {
-        if (!record.lastSavedAt) {
-          return { ...record, lastSavedAt: record.createdAt || new Date().toLocaleString() };
+  const fetchRecords = async () => {
+      try {
+        const response = await fetch(API_BASE_URL); // GET /api/scores を呼び出す
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return record as ScoreRecord; // Cast to ScoreRecord once lastSavedAt is ensured
-      });
-      // --- End Migration Logic ---
+        const data: ScoreRecord[] = await response.json();
+        setRecords(data); // バックエンドでソート済み
+      } catch (error) {
+        console.error('Error loading records from API:', error);
+        alert('Failed to load records. Please try again later.'); // ユーザーへのフィードバック
+        setRecords([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRecords();
+  }, []); // ページロード時に一度だけフェッチ
 
-      // Sort records by last saved date, newest first
-      const sortedRecords = [...migratedRecords].sort((a, b) => {
-        return new Date(b.lastSavedAt).getTime() - new Date(a.lastSavedAt).getTime();
-      });
-      setRecords(sortedRecords);
-
-    } catch (error) {
-      console.error('Error loading records from LocalStorage:', error);
-      setRecords([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Calculate filtered records using useMemo for performance
   const filteredRecords = useMemo(() => {
     if (!filterKeyword) {
-      return records; // Return all records if no keyword
+      return records;
     }
     const lowercasedFilter = filterKeyword.toLowerCase();
     return records.filter(record =>
       record.gameTitle.toLowerCase().includes(lowercasedFilter)
     );
-  }, [records, filterKeyword]); // Recalculate if records or filterKeyword changes
+  }, [records, filterKeyword]);
 
   const handleRecordClick = (recordId: string) => {
-    // Navigate to the score sheet page
+    // 既存のスコアシートを編集する場合
     router.push(`/score-sheet?recordId=${recordId}`);
   };
 
-  const handleDeleteRecord = (recordId: string) => {
-    if (confirm('Are you sure you want to delete this record?')) {
+  const handleDeleteRecord = async (recordId: string) => { 
+    if (confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
       try {
-        const storedRecords: ScoreRecord[] = JSON.parse(localStorage.getItem('scoreRecords') || '[]');
-        const updatedRecords = storedRecords.filter((record: ScoreRecord) => record.id !== recordId);
-        localStorage.setItem('scoreRecords', JSON.stringify(updatedRecords));
-        setRecords(updatedRecords); // Update state to re-render
+        // ★ MODIFIED: DELETE API呼び出し
+        const response = await fetch(`${API_BASE_URL}/${recordId}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Unknown error'}`);
+        }
+
+        // 成功した場合、フロントエンドのステートを更新
+        setRecords(prevRecords => prevRecords.filter(record => record.id !== recordId));
         alert('Record deleted successfully!');
       } catch (error) {
         console.error('Error deleting record:', error);
-        alert('Failed to delete record. Please try again.');
+       if (error instanceof Error) {
+          alert(`Failed to delete record: ${error.message}`);
+        } else {
+          // Error 型でない場合は、より一般的なメッセージを表示
+          alert('Failed to delete record: An unknown error occurred.');
+        }
       }
     }
   };
@@ -101,7 +104,7 @@ export default function RecordsPage() {
   return (
     <main className="flex flex-col items-center justify-start min-h-screen py-8 px-2 overflow-x-auto bg-cover bg-center bg-no-repeat">
       {/* My Records Title - Using default font */}
-      <h1 className="text-4xl font-bold mb-4">My Records</h1> 
+      <h1 className="text-4xl font-bold mb-4 hand_font">My Records</h1> 
 
       {/* Filter by game title label - Using default font */}
      <div className="mb-4 w-full flex flex-col items-center px-2"> 
@@ -119,8 +122,8 @@ export default function RecordsPage() {
 </div>
 
       {/* Saved Records count - Using default font */}
-      <div className="mb-2 text-base"> 
-        Saved Records: {records.length} / {MAX_FREE_RECORDS}
+     <div className="mb-8 text-xl text-gray-700">
+        Saved Records: {records.length} / {MAX_FREE_RECORDS} (Free Plan Max)
       </div>
 
       {filteredRecords.length === 0 ? (
@@ -180,7 +183,7 @@ export default function RecordsPage() {
       <div className="mt-8">
         <button
           onClick={() => router.push("/")}
-          className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg text-xl"
+          className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg text-xl hand_font"
         >
           ← Return to Home
         </button>

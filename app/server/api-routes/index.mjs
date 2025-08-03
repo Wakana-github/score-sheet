@@ -74,6 +74,76 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+
+// update an existing record by ID
+router.put('/:id', async (req, res) => {
+  try {
+    const { id: recordId } = req.params; // URLパスからIDを取得
+    const { gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, createdAt } = req.body; // リクエストボディから更新データを取得
+
+    // Mongooseの findByIdAndUpdate を使用してレコードを更新
+    // `id` フィールドで検索し、更新データを適用
+    // `{ new: true }` は、更新後のドキュメントを返すように指定します
+    const updatedRecord = await ScoreRecord.findOneAndUpdate(
+      { id: recordId }, // 検索条件
+      {
+        gameTitle,
+        playerNames,
+        scoreItemNames,
+        scores,
+        numPlayers,
+        numScoreItems,
+        createdAt: createdAt, // createdAt は通常変更しないが、念のためボディから渡されたものを適用
+        lastSavedAt: new Date(), // 更新日時を最新に設定
+      },
+      { new: true } // 更新後のドキュメントを返す
+    );
+
+    if (!updatedRecord) {
+      return res.status(404).json({ message: 'Score record not found.' });
+    }
+
+    res.status(200).json({ message: 'Record updated successfully!', record: updatedRecord });
+  } catch (error) {
+    console.error('Error updating score record:', error);
+    res.status(500).json({ message: 'Failed to update score record.', error: error.message });
+  }
+});
+
+// POST /api/scores
+// save new record
+// Note: This route should only handle NEW record creation.
+//       Updating existing records should be handled by the PUT /:id route.
+router.post('/', async (req, res) => {
+  try {
+    // 新規レコードであることを前提に処理
+    const { id, gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, createdAt, lastSavedAt } = req.body;
+
+    // `id` が既に存在するかどうかはここではチェックせず、常に新しいレコードとして保存
+    // フロントエンドで既にUUIDが生成されている前提
+    const record = new ScoreRecord({
+      id,
+      gameTitle,
+      playerNames,
+      scoreItemNames,
+      scores,
+      numPlayers,
+      numScoreItems,
+      createdAt: createdAt || new Date(), // フロントエンドから提供されなければ現在時刻
+      lastSavedAt: new Date() // 保存日時を最新に設定
+    });
+    await record.save(); // 新しいレコードを保存
+    res.status(201).json({ message: 'Record saved successfully', record });
+  } catch (error) {
+    console.error('Error saving new record:', error);
+    // MongoDBのE11000 duplicate key error をチェックし、より具体的なメッセージを返す
+    if (error.code === 11000) {
+      return res.status(409).json({ message: 'A record with this ID already exists. Please try again with a new ID or use PUT to update.', error: error.message });
+    }
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // DELETE /api/scores/:id
 //  delete a score record by IDす。
 router.delete('/:id', async (req, res) => {
