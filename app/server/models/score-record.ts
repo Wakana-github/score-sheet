@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, models, model } from 'mongoose';
 
 
 // 1. Define a TypeScript interface that corresponds to the schema.
@@ -15,6 +15,11 @@ export interface IScoreRecord extends Document {
   lastSavedAt: Date;
 }
 
+// A type that extracts only the fields required for new record creation.
+// It omits automatically generated fields like _id, createdAt, etc.
+export type IScoreRecordCreation = Omit<IScoreRecord, '_id' | 'createdAt' | 'lastSavedAt'>;
+
+
 // define Mongoose model 
 const ScoreRecordSchema: Schema = new mongoose.Schema({
   id: { type: String, required: true, unique: true }, 
@@ -30,6 +35,6 @@ const ScoreRecordSchema: Schema = new mongoose.Schema({
 
 // 3. Create the model and associate it with the type information.
 // Use mongoose.models.ScoreRecord if it exists; otherwise, create a new one.
-const ScoreRecord = (mongoose.models.ScoreRecord as mongoose.Model<IScoreRecord>)
+const ScoreRecord = (models.ScoreRecord || model<IScoreRecord>('ScoreRecord', ScoreRecordSchema));
 
 export default ScoreRecord;

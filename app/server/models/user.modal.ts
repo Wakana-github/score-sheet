@@ -1,4 +1,6 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema, model, models } from 'mongoose';
+import { InferSchemaType } from 'mongoose';
+
 
 const UserSchema = new mongoose.Schema({
   // Clerk User ID
@@ -40,7 +42,21 @@ const UserSchema = new mongoose.Schema({
   timestamps: true // Automatically adds created_at and updated_at fields.
 });
 
-// Create and export the model.
-const User = mongoose.models.User || mongoose.model('User', UserSchema);
+//create schema type
+type UserType = InferSchemaType<typeof UserSchema>;
+
+export type UserCreationType = {
+  clerkId: string;
+  email: string;
+  username?: string | null;
+  stripeCustomerId?: string;
+  subscriptionStatus?: 'active' | 'trialing' | 'canceled' | 'inactive';
+};
+
+
+//Create the model and associate it with the type information.
+const User = (models?.User || mongoose.model('User', UserSchema));
+
+
 
 export default User;

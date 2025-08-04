@@ -1,9 +1,11 @@
 "use server";
 
-import User from "../server/models/user.modal";
-import connectDB from '../server/helper/score-sheet-db.mjs'; 
+import User, {UserCreationType} from "../server/models/user.modal";
+import connectDB from '../server/helper/score-sheet-db'; 
+// import { User } from "@clerk/nextjs/server";
 
-export async function createUser(user: any){
+
+export async function createUser(user:UserCreationType ){
     try{
         await connectDB();
         const newUser = await User.create(user);

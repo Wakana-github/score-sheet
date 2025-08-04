@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { RiDeleteBinLine } from 'react-icons/ri'; // ゴミ箱アイコン
 
 // ★MODIFIED: APIのエンドポイントURL (Next.jsの環境変数として定義)
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/scores';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/scores';
 
 // ★MODIFIED: ScoreRecordの型定義 (backend の Mongoose スキーマと一致させる)
 interface ScoreRecord {
