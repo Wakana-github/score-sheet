@@ -142,7 +142,7 @@ export default function RecordsPage() {
 
           {/* List of filtered records */}
           <div className="space-y-0">
-            {filteredRecords.map((record, index) => (
+            {filteredRecords.map((record) => (
               <div
                 key={record.id}
                 className="p-3 border-b border-gray-400 flex justify-between items-center group hover:bg-gray-50 transition-colors duration-200"

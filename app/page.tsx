@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { UserButton } from '@clerk/nextjs';
 import { SignedIn, SignedOut, SignInButton, SignUpButton } from '@clerk/clerk-react';
 
 

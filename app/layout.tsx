@@ -6,11 +6,6 @@ import {
   ClerkLoaded,
   ClerkLoading,
   ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
 } from "@clerk/nextjs";
 import Header from "./header/page";
 

@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from 'mongoose';
+import mongoose, { models } from 'mongoose';
 import { InferSchemaType } from 'mongoose';
 
 

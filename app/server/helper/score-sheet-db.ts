@@ -1,4 +1,4 @@
-import mongoose, { Mongoose } from "mongoose";
+import mongoose from "mongoose";
 import { ServerApiVersion } from "mongodb";
 import dotenv from 'dotenv';
 dotenv.config();
@@ -13,7 +13,7 @@ dotenv.config();
 
 
 //store cache in the global object
-let cached = global as typeof global & {
+const cached = global as typeof global & {
   mongoose?: {
     conn: typeof mongoose | null;
     promise: Promise<typeof mongoose> | null;

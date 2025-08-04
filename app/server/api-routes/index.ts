@@ -20,21 +20,26 @@ router.get("/", async (req: Request, res: Response) => {
 
 // POST /api/scores
 // save new record, or update existed record
-router.post("/", async (req: Request, res: Response) => {
-   try {
+router.post("/", async (req: Request<object, object, IScoreRecordCreation>, res: Response) => {
+  try {
     const newRecordData = req.body;
     const record: IScoreRecord = await ScoreRecord.create(newRecordData);
     res.status(201).json({ message: "Record saved successfully", record });
   } catch (error) {
     if (error instanceof Error) {
       console.error("Error saving new record:", error);
-      if ((error as any).code === 11000) {
+     if ('code' in error && error.code === 11000) {
         return res.status(409).json({
           message: "A record with this ID already exists. Please use PUT to update.",
           error: error.message,
         });
       }
+
       res.status(500).json({ message: "Server error", error: error.message });
+    } else {
+      // unknown error
+      console.error("Unknown error:", error);
+      res.status(500).json({ message: "An unknown server error occurred." });
     }
   }
 });
@@ -42,7 +47,7 @@ router.post("/", async (req: Request, res: Response) => {
 
 // GET /api/scores/:id
 // / get a score record by ID
-router.get("/:id", async (req: Request, res: Response) => {
+router.get("/:id", async (req: Request<{ id: string }>, res: Response) => {
   try {
     const record = await ScoreRecord.findOne({ id: req.params.id });
     if (!record) {
@@ -57,7 +62,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 // PUT / update an existing record by ID
-router.put("/:id", async (req: Request<{ id: string }, {}, IScoreRecordCreation>, res: Response) => {
+router.put("/:id", async (req: Request<{ id: string }, object, IScoreRecordCreation>, res: Response) => {
   try {
     const recordId = req.params.id;
     const updatedData = req.body;
