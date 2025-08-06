@@ -1,8 +1,8 @@
-import mongoose, { models } from 'mongoose';
+import mongoose, { Schema, model, models } from 'mongoose';
 import { InferSchemaType } from 'mongoose';
 
 
-const UserSchema = new mongoose.Schema({
+const UserSchema = new Schema({
   // Clerk User ID
   // The Clerk ID is unique and is the most important piece of information for identifying a user.
   clerkId: {
@@ -48,14 +48,21 @@ type UserType = InferSchemaType<typeof UserSchema>;
 export type UserCreationType = {
   clerkId: string;
   email: string;
-  username?: string | null;
+  username: string | null;
   stripeCustomerId?: string;
   subscriptionStatus?: 'active' | 'trialing' | 'canceled' | 'inactive';
 };
 
+export type UserUpdateType = {
+    username?: string | null;
+    email?: string;
+    stripeCustomerId?: string;
+    subscriptionStatus?: 'active' | 'trialing' | 'canceled' | 'inactive';
+};
+
 
 //Create the model and associate it with the type information.
-const User = (models?.User || mongoose.model('User', UserSchema));
+const User = (models?.User || model('User', UserSchema));
 
 
 

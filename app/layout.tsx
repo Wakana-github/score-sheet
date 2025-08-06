@@ -57,11 +57,9 @@ export default function RootLayout({
           </ClerkLoading>
           <ClerkLoaded>
           {/* display main contents from the top when mobile screen */}
-          <div className="relative w-full h-64">
-            <div className="absolute inset-0 pt-16 lg:pt-0">
+          <div className="relative w-full h16">
               <Header />
-            </div>
-            <div className="pt-16 lg:pt-0">{children}</div>
+            <div className="pt-16">{children}</div>
           </div>
           </ClerkLoaded>
         </body>

@@ -12,8 +12,14 @@
     font-size: 20px;
     margin: 0;
     padding: 0;
+    right: -350px;
+    transition: right 0.3s ease-in-out;
    /* This is the base for the mobile menu, hidden on desktop */
     display: none; /* Default hidden for desktop */
+}
+
+.main-nav-ul.open {
+  right: 0; /* openクラスが付いたら表示 */
 }
 
 /* common styles for menu items */

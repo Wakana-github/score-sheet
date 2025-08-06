@@ -3,12 +3,14 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { v4 as uuidv4 } from "uuid"; 
+import { v4 as uuidv4 } from "uuid";
 import Link from "next/link";
+import LoadingPage from "@/components/lodingPage";
+import { useAuth } from "@clerk/nextjs";
 
-// API endpoint URL 
+// API endpoint URL
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/scores"; 
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/scores";
 
 // ScoreRecord interface. must be same as Mongoose Schema
 interface ScoreRecord {
@@ -42,6 +44,10 @@ export default function ScoreSheetPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const recordIdFromUrl = searchParams.get("recordId"); // Record ID passed from the URL
+  // logged in user from Clerk
+  const { isLoaded, isSignedIn, userId, sessionId, getToken } = useAuth();
+  // User subscription plan --- from Stripe
+  const userPlan = "free";
 
   // Temporary interface for initialization (when loading from games.json)
   interface InitialGameData {
@@ -52,7 +58,7 @@ export default function ScoreSheetPage() {
     score_items: string[];
   }
 
-   // Manage scoreData as a single State object
+  // Manage scoreData as a single State object
   const [scoreData, setScoreData] = useState<ScoreData>({
     id: uuidv4(), // Generate UUID for new creation
     gameTitle: "",
@@ -64,7 +70,7 @@ export default function ScoreSheetPage() {
       .map((_, i) => `Round ${i + 1}`),
     scores: Array(3)
       .fill(0)
-      .map(() => Array(3).fill("")),  // Initial scores for 3 players x 3 items (initialized with empty strings)
+      .map(() => Array(3).fill("")), // Initial scores for 3 players x 3 items (initialized with empty strings)
     numPlayers: 3,
     numScoreItems: 3,
     createdAt: new Date().toISOString(),
@@ -75,7 +81,7 @@ export default function ScoreSheetPage() {
   const [showTotal, setShowTotal] = useState(false);
   const [playerRanks, setPlayerRanks] = useState<number[]>([]);
 
-   // Calculate total scores (optimized with useMemo)
+  // Calculate total scores (optimized with useMemo)
   const calculateTotalScores = useMemo(() => {
     const totals = Array(scoreData.numPlayers).fill(0);
     for (let i = 0; i < scoreData.numScoreItems; i++) {
@@ -90,7 +96,7 @@ export default function ScoreSheetPage() {
     return totals;
   }, [scoreData.scores, scoreData.numPlayers, scoreData.numScoreItems]);
 
-   // Calculate rankings (optimized with useCallback)
+  // Calculate rankings (optimized with useCallback)
   const calculateRanks = useCallback(() => {
     const totals = calculateTotalScores; // Sort in descending order (higher score is higher rank)
     const playerTotalsWithIndex = totals.map((total, index) => ({
@@ -120,7 +126,7 @@ export default function ScoreSheetPage() {
     async function initializeSheet() {
       setLoading(true);
       if (recordIdFromUrl) {
-         // Edit mode for existing record: Load from API
+        // Edit mode for existing record: Load from API
         try {
           const response = await fetch(`${API_BASE_URL}/${recordIdFromUrl}`);
           if (!response.ok) {
@@ -258,7 +264,7 @@ export default function ScoreSheetPage() {
             .map(() => Array(initialNumPlayers).fill("")), // reset numbers
           numPlayers: initialNumPlayers,
           numScoreItems: initialNumScoreItems,
-          createdAt: new Date().toISOString(), 
+          createdAt: new Date().toISOString(),
           lastSavedAt: new Date().toISOString(),
         });
         setShowTotal(false); // hide total as default
@@ -268,7 +274,7 @@ export default function ScoreSheetPage() {
     initializeSheet();
   }, [recordIdFromUrl, searchParams, router]);
 
-  // reculculate ranking whrn scores and playerNames has changed 
+  // reculculate ranking whrn scores and playerNames has changed
   useEffect(() => {
     if (showTotal && scoreData.numPlayers > 0 && scoreData.numScoreItems > 0) {
       calculateRanks();
@@ -282,7 +288,7 @@ export default function ScoreSheetPage() {
     calculateRanks,
   ]);
 
-  // change player name handler 
+  // change player name handler
   const handlePlayerNameChange = useCallback(
     (index: number, newName: string) => {
       setScoreData((prev) => {
@@ -310,7 +316,7 @@ export default function ScoreSheetPage() {
   const handleScoreChange = useCallback(
     (row: number, col: number, value: string) => {
       setScoreData((prev) => {
-        const newScores = prev.scores.map((r) => [...r]); 
+        const newScores = prev.scores.map((r) => [...r]);
         // create new row when new player's row doesn't exist
         if (!newScores[row]) {
           newScores[row] = Array(prev.numPlayers).fill("");
@@ -331,7 +337,7 @@ export default function ScoreSheetPage() {
           .fill("")
           .map((_, i) => prev.playerNames[i] || `Player ${i + 1}`);
         const newScores = prev.scores.map((row) => {
-          // change rows 
+          // change rows
           const newRow = Array(newNum)
             .fill("")
             .map((_, i) => row[i] || "");
@@ -364,7 +370,7 @@ export default function ScoreSheetPage() {
             const existingRow = prev.scores[i] || []; // fetch existed score items, otherwise empty coulmns
             return Array(prev.numPlayers)
               .fill("")
-              .map((_, j) => existingRow[j] || ""); 
+              .map((_, j) => existingRow[j] || "");
           });
         return {
           ...prev,
@@ -380,7 +386,7 @@ export default function ScoreSheetPage() {
   // Toggle total score
   const handleToggleTotal = useCallback(() => {
     setShowTotal((prev) => !prev);
-    // calculate ranking showTotal cahge from false to true 
+    // calculate ranking showTotal cahge from false to true
     if (!showTotal) {
       calculateRanks();
     } else {
@@ -415,11 +421,11 @@ export default function ScoreSheetPage() {
     const scoresAsNumbers = scoreData.scores.map((row) =>
       row.map((s) => {
         const num = parseInt(s);
-        return isNaN(num) ? 0 : num; // change empty or invalid letters to 0 
+        return isNaN(num) ? 0 : num; // change empty or invalid letters to 0
       })
     );
 
-    // create object to send 
+    // create object to send
     const dataToSend: ScoreRecord = {
       ...scoreData,
       scores: scoresAsNumbers, // change scores to numeric
@@ -492,11 +498,7 @@ export default function ScoreSheetPage() {
 
   // ページロード中のUI
   if (loading) {
-    return (
-      <main className="flex items-center justify-center h-screen bg-white">
-        <p className="text-3xl normal_font">Loading score sheet...</p>
-      </main>
-    );
+    return <LoadingPage />;
   }
 
   return (
@@ -610,7 +612,7 @@ export default function ScoreSheetPage() {
                           <input
                             type="number"
                             inputMode="numeric" // display numeric keyboad on Mobile
-                            pattern="[0-9]*" 
+                            pattern="[0-9]*"
                             value={scoreData.scores[rowIdx]?.[colIdx] || ""} // safety check
                             onChange={(e) =>
                               handleScoreChange(rowIdx, colIdx, e.target.value)

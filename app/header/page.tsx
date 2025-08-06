@@ -6,28 +6,34 @@ import {
   SignInButton,
   SignUpButton,
   UserButton,
+  useUser,
 } from "@clerk/nextjs";
 import Link from "next/link";
 import React, { useState, useRef } from 'react';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import './headerMenu.css'; 
 
+
+
 export default function Header() {
+    const { isSignedIn, user, isLoaded } = useUser();
   const menuRef = useRef<HTMLUListElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const openMenu = () => {
-    if (menuRef.current) {
-      menuRef.current.style.right = '0px'; 
-      setIsMenuOpen(true);
-    }
+    setIsMenuOpen(true);
+    // if (menuRef.current) {
+    //   menuRef.current.style.right = '0px'; 
+    //   setIsMenuOpen(true);
+    // }
   };
 
   const closeMenu = () => {
-    if (menuRef.current) {
-      menuRef.current.style.right = '-350px'; 
-      setIsMenuOpen(false);
-    }
+    setIsMenuOpen(false);
+    // if (menuRef.current) {
+    //   menuRef.current.style.right = '-350px'; 
+    //   setIsMenuOpen(false);
+    // }
   };
 
   const handleLinkClick = () => {
@@ -71,7 +77,7 @@ export default function Header() {
       </div>
 
       {/* Main Navigation Menu (slides in from right on mobile) */}
-      <ul ref={menuRef} className='main-nav-ul'>
+      <ul ref={menuRef} className={`main-nav-ul ${isMenuOpen ? 'open' : ''}`}>
           <FaTimes 
             onClick={closeMenu} 
             className='nav-mob-close' 
@@ -118,7 +124,9 @@ export default function Header() {
           </SignedOut>
           <SignedIn>
             <div className="flex items-center">
-              <p className="text-white text-sm pr-3">Profile:</p>
+              <p className="text-white text-sm pr-3">
+                {user?.username ? `${user.username}:` : 'Profile:'}
+              </p>
             <UserButton /> 
             </div>
           </SignedIn>
@@ -137,7 +145,9 @@ export default function Header() {
           </SignUpButton>
         </SignedOut>
         <SignedIn>
-              <p className="text-sm pr-2">Profile:</p>
+              <p className="text-sm pr-2">
+                {user?.username ? `${user.username}:` : 'Profile:'}
+              </p>
           <UserButton />
         </SignedIn>
       </div>

@@ -1,23 +1,26 @@
-import mongoose from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 import { ServerApiVersion } from "mongodb";
 import dotenv from 'dotenv';
 dotenv.config();
 
   // connection URL in .env
-  const MONGODB_URI = process.env.MONGO_URI as string;;
+  const MONGODB_URI = process.env.MONGO_URI as string;
   //check if URL is set
     if (!MONGODB_URI) {
     throw new Error("Please define the MONGO_URI environment variable inside .env.local");
     // process.exit(1); // If there is no MONGO_URI, close app
   }
 
+  interface MongooseCache{
+  conn: Mongoose | null;
+  promise: Promise<Mongoose> | null;
+  }
+
+
 
 //store cache in the global object
 const cached = global as typeof global & {
-  mongoose?: {
-    conn: typeof mongoose | null;
-    promise: Promise<typeof mongoose> | null;
-  };
+  mongoose?: MongooseCache
 };
 
 
@@ -37,7 +40,8 @@ async function connectDB() {
 
     if(!cached.mongoose!.promise) { // '!'を付けてnon-null assertionを行う
     const opts = {
-       serverApi: ServerApiVersion.v1, 
+      dbName: "score-sheet-db",
+      serverApi: ServerApiVersion.v1, 
       bufferCommands: false, // コマンドバッファリングを無効にする
       connectTimeoutMS: 30000,
     };
@@ -63,7 +67,7 @@ async function connectDB() {
    return cached.mongoose!.conn;
 }
 
-
+export default connectDB;
 //   try {
 //     await mongoose.connect(MONGODB_URI, { 
 //       useNewUrlParser: true, // default true after Mongoose 6.0
@@ -78,4 +82,3 @@ async function connectDB() {
 //   }
 // }
 
-export default connectDB;

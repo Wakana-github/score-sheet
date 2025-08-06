@@ -7,7 +7,8 @@ const isPublicRoute = createRouteMatcher([
   '/score-sheet',
   '/custom-sheet',
   '/records',
-  '/games.json'
+  '/games.json',
+  '/api/webhooks(.*)'
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
