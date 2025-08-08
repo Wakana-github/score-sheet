@@ -1,4 +1,6 @@
-import mongoose, { Schema, model, models } from 'mongoose';
+// import mongoose, { Schema, model, models } from 'mongoose';
+import mongoosePkg from 'mongoose';
+const { default: mongoose, Schema, model, models} = mongoosePkg;
 import { InferSchemaType } from 'mongoose';
 
 

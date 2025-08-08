@@ -1,7 +1,7 @@
 "use server";
 
-import User, {UserCreationType, UserUpdateType} from "../server/models/user.modal";
-import connectDB from '../server/helper/score-sheet-db'; 
+import User, {UserCreationType, UserUpdateType} from "../server/models/user.modal.ts";
+import connectDB from '../server/helper/score-sheet-db.ts'; 
 import { UserSoundIcon } from "@phosphor-icons/react";
 // import { User } from "@clerk/nextjs/server";
 

@@ -1,5 +1,5 @@
 import express, { Request, Response, Router } from "express";
-import ScoreRecord, { IScoreRecord, IScoreRecordCreation }  from "../models/score-record"; // ScoreRecord モデルをインポート
+import ScoreRecord, { IScoreRecord, IScoreRecordCreation }  from "../models/score-record.ts"; // ScoreRecord モデルをインポート
 
 const router = express.Router();
 

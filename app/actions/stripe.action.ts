@@ -1,7 +1,6 @@
 "use server"
 
-import { stripe } from "../lib/stripe"
-
+import { stripe } from "../lib/stripe.ts"
 type Props = {
     userId: string;
     email: string;

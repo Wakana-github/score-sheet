@@ -1,8 +1,8 @@
 import express from "express";
 import cors from 'cors';
 import dotenv from 'dotenv';
-import connectDB from './helper/score-sheet-db'; 
-import scoreRoutes from './api-routes/index';
+import connectDB from './helper/score-sheet-db.ts'; 
+import scoreRoutes from './api-routes/index.ts';
 dotenv.config();
 
 

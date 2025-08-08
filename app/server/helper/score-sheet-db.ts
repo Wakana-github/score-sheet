@@ -1,7 +1,10 @@
-import mongoose, { Mongoose } from "mongoose";
+import mongoosePkg from "mongoose";
 import { ServerApiVersion } from "mongodb";
 import dotenv from 'dotenv';
 dotenv.config();
+
+const { default: mongoose } = mongoosePkg;
+type MongooseType = typeof mongoose; // 型が必要な場合
 
   // connection URL in .env
   const MONGODB_URI = process.env.MONGO_URI as string;
@@ -12,8 +15,8 @@ dotenv.config();
   }
 
   interface MongooseCache{
-  conn: Mongoose | null;
-  promise: Promise<Mongoose> | null;
+  conn: MongooseType | null;
+  promise: Promise<MongooseType> | null;
   }
 
 
