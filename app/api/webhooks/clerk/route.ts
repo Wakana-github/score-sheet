@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       const user = {
         clerkId: id,
         email: email_addresses[0].email_address as string,
-        username: username,
+        username: username
       };
       console.log(user);
 

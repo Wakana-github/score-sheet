@@ -2,6 +2,7 @@
 
 import User, {UserCreationType, UserUpdateType} from "../server/models/user.modal";
 import connectDB from '../server/helper/score-sheet-db'; 
+import { UserSoundIcon } from "@phosphor-icons/react";
 // import { User } from "@clerk/nextjs/server";
 
 // Create new user
@@ -53,5 +54,20 @@ export async function deleteUser(clerkId: string) {
     } catch (error) {
         console.error("Error deleting user:", error);
         throw new Error("Failed to delete user.");
+    }
+}
+
+export async function getUser(userId: string) {
+    try{
+        await connectDB();
+        const user = await User.findOne({
+            where: {
+                id: userId,
+            }
+        });
+        return JSON.parse(JSON.stringify(user));
+    } catch (error) {
+        console.error("Error finding user id:", error);
+        throw new Error("Failed to fetch ClerkId.");
     }
 }

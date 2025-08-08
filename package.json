@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "dev:api": "ts-node-dev --project app/server/tsconfig.server.json app/server/app.ts"
+    "dev:api": "nodemon --watch app/server --ext ts --exec node --loader ts-node/esm app/server/app.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.28.0",
@@ -24,6 +24,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-icons": "^5.5.0",
+    "stripe": "^18.4.0",
     "svix": "^1.70.0",
     "uuid": "^11.1.0"
   },

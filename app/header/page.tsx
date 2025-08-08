@@ -73,6 +73,11 @@ export default function Header() {
               <span className="hand_font">My Records</span>
             </button>
           </Link>
+          <Link href="/stats" passHref>
+            <button className=" hover:text-blue-800 text-2xl font-medium px-4 py-2 rounded-md transition-colors duration-200">
+              <span className="hand_font">Statistics</span>
+            </button>
+          </Link>
         </div>
       </div>
 
