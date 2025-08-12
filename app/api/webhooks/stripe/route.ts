@@ -11,13 +11,13 @@ export const runtime = "nodejs";
 export async function POST(request: NextRequest) {
   await connectDB();
   const body = await request.text();
-  const signiture = (await headers()).get("Stripe-Signature") as string;
+ const signature = request.headers.get("stripe-signature") as string;
   let event: Stripe.Event;
 
   try {
     event = stripe.webhooks.constructEvent(
       body,
-      signiture,
+      signature,
       process.env.STRIPE_WEBHOOK_SECRET as string
     );
   } catch (error) {
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         return new NextResponse("Checkout completed", { status: 200 });
       }
 
-      // Handle
+      // Handle subscription updated through User Portal
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription; // receive subscription objects
         const stripeCustomerId = subscription.customer as string;

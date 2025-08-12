@@ -80,7 +80,7 @@ return(
     <p>id: {userData?._id}</p>
     <p>clerkId: {userData?.clerkId}</p>
     <p>StripeId: {userData?.stripeCustomerId}</p>
-    {userData?.subscriptionStatus === "active" ? (
+    {userData?.subscriptionStatus === "active" || userData?.subscriptionStatus ==="trialing" ? (
       // サブスクリプション中のユーザー
       <div>
         <h1>Hello `{userData?.username}`</h1>
