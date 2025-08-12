@@ -46,7 +46,9 @@ async function connectDB() {
       dbName: "score-sheet-db",
       serverApi: ServerApiVersion.v1, 
       bufferCommands: false, // コマンドバッファリングを無効にする
-      connectTimeoutMS: 30000,
+      connectTimeoutMS: 60000,
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMs: 45000,
     };
 
    // プロミスをキャッシュ

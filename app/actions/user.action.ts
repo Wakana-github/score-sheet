@@ -61,9 +61,7 @@ export async function getUser(userId: string) {
     try{
         await connectDB();
         const user = await User.findOne({
-            where: {
-                id: userId,
-            }
+            clerkId: userId
         });
         return JSON.parse(JSON.stringify(user));
     } catch (error) {

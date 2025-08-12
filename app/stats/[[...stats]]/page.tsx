@@ -1,6 +1,6 @@
 "use client";
 
-import { subscribe } from "@/app/actions/stripe.action";
+import { createUserPortalUrl, subscribe } from "@/app/actions/stripe.action";
 import { getUser } from "@/app/actions/user.action";
 import LoadingPage from "@/components/lodingPage";
 import { useUser } from "@clerk/nextjs";
@@ -10,18 +10,23 @@ import { useEffect, useState } from "react";
 export default function Stats() {
   const { isLoaded, isSignedIn, user } = useUser();
   const [userData, setUserData] = useState<any>(null);
+  const [isLoadingUserData, setIsLoadingUserData] = useState(true);
   const router = useRouter();
 
   useEffect(() =>{
     const getUserData = async () =>{
+      setIsLoadingUserData(true);
       const userData = await getUser(user?.id || "");
       setUserData(userData);
+      setIsLoadingUserData(false);
     };
 
-    if(isSignedIn){
+    if (isSignedIn) {
       getUserData();
+    } else if (isLoaded) {
+      setIsLoadingUserData(false);
     }
-   }, [isSignedIn, user])
+  }, [isSignedIn, isLoaded, user]);
    
 
    const handleClickSubscribeButton = async() =>{
@@ -34,7 +39,7 @@ export default function Stats() {
       email: user?.emailAddresses[0]?.emailAddress || "",
       priceId: process.env.NEXT_PUBLIC_STRIPE_BETA_SIXMONTH_PRICE_ID as string
     });
-
+44
     if(url){
       router.push(url);
     } else {
@@ -44,16 +49,23 @@ export default function Stats() {
    };
 
     const editPaymentDetails = async() =>{
-      const url= process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL!;
+
+      // データが存在するかを事前にチェック
+  if (!userData || !userData.stripeCustomerId) {
+    console.error("Error: stripeCustomerId not found.");
+    return; // 処理を中断
+  }
+
+      const url= await createUserPortalUrl(userData.stripeCustomerId);
       if(url){
-        router.push(url + "?prefilled_email=" +user?.emailAddresses[0]?.emailAddress)
+        router.push(url)
       } else{
-        throw new Error("Failed to edit payment details");
+        throw new Error("Failed to create user potal session");
       }
     }
 
 
-  if (!isLoaded) {
+  if (!isLoaded || isLoadingUserData) {
     return (
       <div>
         <LoadingPage />
@@ -61,40 +73,37 @@ export default function Stats() {
     );
   }
 
-  return(
-    <div>
-      <h1>{user?.username}'s stats </h1>
-      {userData?.subscriptionStatus === 'active' || userData?.stripeCustomerId ?(
+return(
+  <div>
+    <h1>{user?.username}'s stats </h1>
+    <p>subsctription: {userData?.subscriptionStatus}</p>
+    <p>id: {userData?._id}</p>
+    <p>clerkId: {userData?.clerkId}</p>
+    <p>StripeId: {userData?.stripeCustomerId}</p>
+    {userData?.subscriptionStatus === "active" ? (
+      // サブスクリプション中のユーザー
       <div>
-        {
-          userData?.subscriptionStatus === 'active' &&
-          userData?.stripeCustomerId &&
-          `You are a subscribed user`
-        }
-        {
-          !(userData?.subscriptionStatus === 'active') &&
-          userData?.stripeCustomerId &&
-          `Update your subscription plan`
-        }
-        
+        <h1>Hello `{userData?.username}`</h1>
+        <p>You are a subscribed user</p>
         <button
-          // onClick={editPaymentDetails}
-          className="">
-            Edit payment details
-          </button>
-          </div>
-      ) :(
-        <div>
-        
+          onClick={editPaymentDetails}
+          className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded"
+        >
+          Edit payment details
+        </button>
+      </div>
+    ) : (
+      // サブスクリプションしていないユーザー
+      <div>
+        <p>You need to subscribe to see this page.</p>
         <button
           onClick={handleClickSubscribeButton}
-          className="bg-[#4A4A46] hover:bg-gray-400 text-white"
-         >
-        Subscribe
-       </button>
-       </div> 
-      )}
-    </div>
-    
-  );
+          className="bg-green-500 hover:bg-green-600 text-white p-2 rounded"
+        >
+          Subscribe
+        </button>
+      </div>
+    )}
+  </div>
+);
 };
