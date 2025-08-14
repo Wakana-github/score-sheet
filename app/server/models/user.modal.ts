@@ -40,6 +40,24 @@ const UserSchema = new Schema({
     enum: ['active', 'trialing', 'canceled', 'inactive'],
     default: 'inactive',
   },
+  stripeSubscriptionId: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+  stripePriceId: {
+    type: String,
+    sparse: true,
+  },
+  planName: {
+    type: String,
+    sparse: true,
+  },
+  subscriptionEndsAt: {
+    type: Date,
+    sparse: true,
+  },
+
 }, {
   timestamps: true // Automatically adds created_at and updated_at fields.
 });
@@ -53,6 +71,10 @@ export type UserCreationType = {
   username: string | null;
   stripeCustomerId?: string;
   subscriptionStatus?: 'active' | 'trialing' | 'canceled' | 'inactive';
+   stripeSubscriptionId?: string;
+  stripePriceId?: string;
+  planName?: string;
+  subscriptionEndsAt?: Date;
 };
 
 export type UserUpdateType = {
@@ -60,6 +82,10 @@ export type UserUpdateType = {
     email?: string;
     stripeCustomerId?: string;
     subscriptionStatus?: 'active' | 'trialing' | 'canceled' | 'inactive';
+    stripeSubscriptionId?: string;
+    stripePriceId?: string;
+    planName?: string;
+    subscriptionEndsAt?: Date;
 };
 
 

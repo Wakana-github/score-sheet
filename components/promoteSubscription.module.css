@@ -1,0 +1,145 @@
+
+.pageContainer {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Blur Content */
+.backgroundContent {
+  filter: blur(1px); /* adjust blur */
+  opacity: 0.7;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Subscription Overlay */
+.subscriptionOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.7); /* 半透明の白色 */
+  z-index: 10;
+}
+
+/* Contents in Overlay */
+.overlayContent{
+  text-align: center;
+  padding: 40px;
+  background: linear-gradient(160deg, #333 0%, #222 100%); /* 控えめなグラデーション */
+  border-radius: 10px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6); /* 強いシャドウで浮き上がった印象に */
+  max-width: 500px;
+  margin: 20px;
+  color: #e0e0e0; /* 明るいグレーのテキストカラー */
+  border: 1px solid #444; /* 細いボーダーで輪郭を強調 */
+}
+
+/* タイトルのスタイル */
+.title {
+  color: #fff;
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+/* 説明文のスタイル */
+.description {
+  color: #b0b0b0; /* 少し暗めのグレー */
+  margin-bottom: 2rem;
+}
+
+/* 特徴リストのスタイル */
+.featureList {
+  list-style-type: none;
+  padding: 0;
+  margin: 20px 0 30px;
+  text-align: left;
+}
+
+.featureList li {
+  margin-bottom: 10px;
+  font-size: 1.1em;
+  position: relative;
+  padding-left: 1.5em;
+}
+
+.featureList li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #00bcd4; /* シックな水色をアクセントに */
+}
+
+/* 複数のボタンを囲むコンテナのスタイル */
+.subscribeButtonsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* 画面幅が広い場合にボタンを横並びにする */
+@media (min-width: 600px) {
+  .subscribeButtonsWrapper {
+    flex-direction: row;
+    justify-content: center;
+  }}
+
+.subscribeButton {
+  display: block;
+  width: 100%; /* 親コンテナの幅いっぱいに広げる */
+  background-color: #007bff; /* 青系のアクセントカラー */
+  color: #fff;
+  border: none;
+  padding: 10px 8px;
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+.subscribeButton:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px); /* ホバー時に少し浮き上がるエフェクト */
+}
+
+
+@media (max-width: 600px) {
+
+  .title {
+  font-size: 1.3rem;
+  margin-bottom: 1.2rem;
+}
+.overlayContent{
+  max-width: 350px;
+  margin: 10px;
+}
+
+.description {
+  margin-bottom: 5px;
+}
+
+.featureList {
+  margin: 10px 0 20px;
+}
+
+.featureList li {
+  margin-bottom: 10px;
+  font-size: 1.0em;
+  position: relative;
+  padding-left: 1.5em;
+}
+}

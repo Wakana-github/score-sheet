@@ -55,11 +55,13 @@
     /* Size is specified by the 'size' prop in React Icons, so here we mainly adjust position */
 }
 
+
 /* --- Responsive Design --- */
 
-/* Screens smaller than 950px (mid-size tablets & desktops) */
-@media (max-width: 950px) {
-    .main-nav-ul {
+
+/* Screens smaller than 950px (mobile view) */
+@media (max-width: 1024px) {
+        .main-nav-ul {
         gap: 40px;
         font-size: 18px;
     }
@@ -68,10 +70,6 @@
     box-shadow: none;
     flex: relative;
 }
-}
-
-/* Screens smaller than 780px (mobile view) */
-@media (max-width: 780px) {
         .header-styles {
     background-color: transparent;
     box-shadow: none;}
@@ -96,7 +94,7 @@
 
     /* Main Navigation Menu (slides in from the right on mobile)*/
     .main-nav-ul {
-        display: flex; /*  Display as a Flex container on mobile */
+        display: flex !important; /*  Display as a Flex container on mobile */
         position: fixed; /* Covers the entire screen */
         flex-direction: column; /* Vertical alignment */
         align-items: flex-start; /* Left-aligned */
@@ -117,6 +115,9 @@
         flex-direction: row;
         gap: 20px;
         width: 100%;
+    }
+    .main-nav-ul .nav_subscribe_button{
+        font-size: 18px;
     }
 
     /*  Styles for authentication links in the mobile men */
@@ -142,8 +143,9 @@
     }
 }
 
-/* Screens 781px and wider (desktop view) */
-@media (min-width: 781px) {
+
+/* Screens 950px and wider (desktop view) */
+@media (min-width: 1024px) {
     /* Completely hide mobile icons on desktop */
     .nav-mob-open {
         display: none !important; 

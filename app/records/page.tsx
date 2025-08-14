@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { RiDeleteBinLine } from 'react-icons/ri';
+import LoadingPage from '@/components/lodingPage';
 
 //End point URL for API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/scores'; 
@@ -33,22 +34,22 @@ export default function RecordsPage() {
   useEffect(() => {
   const fetchRecords = async () => {
       try {
-        const response = await fetch(API_BASE_URL); // GET /api/scores を呼び出す
+        const response = await fetch(API_BASE_URL); // call GET /api/scores 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data: ScoreRecord[] = await response.json();
-        setRecords(data); // バックエンドでソート済み
+        setRecords(data); // sorted recored
       } catch (error) {
         console.error('Error loading records from API:', error);
-        alert('Failed to load records. Please try again later.'); // ユーザーへのフィードバック
+        alert('Failed to load records. Please try again later.'); 
         setRecords([]);
       } finally {
         setLoading(false);
       }
     };
     fetchRecords();
-  }, []); // ページロード時に一度だけフェッチ
+  }, []); // fetch only once
 
   const filteredRecords = useMemo(() => {
     if (!filterKeyword) {
@@ -61,7 +62,7 @@ export default function RecordsPage() {
   }, [records, filterKeyword]);
 
   const handleRecordClick = (recordId: string) => {
-    // 既存のスコアシートを編集する場合
+    // when update existed score
     router.push(`/score-sheet?recordId=${recordId}`);
   };
 
@@ -78,7 +79,7 @@ export default function RecordsPage() {
           throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Unknown error'}`);
         }
 
-        // 成功した場合、フロントエンドのステートを更新
+        // when delete successed
         setRecords(prevRecords => prevRecords.filter(record => record.id !== recordId));
         alert('Record deleted successfully!');
       } catch (error) {
@@ -86,7 +87,6 @@ export default function RecordsPage() {
        if (error instanceof Error) {
           alert(`Failed to delete record: ${error.message}`);
         } else {
-          // Error 型でない場合は、より一般的なメッセージを表示
           alert('Failed to delete record: An unknown error occurred.');
         }
       }
@@ -96,7 +96,7 @@ export default function RecordsPage() {
   if (loading) {
     return (
       <main className="flex items-center justify-center h-screen bg-white">
-        <p className="text-3xl normal_font">Loading records...</p>
+        <LoadingPage />
       </main>
     );
   }
