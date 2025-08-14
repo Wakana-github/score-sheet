@@ -8,12 +8,13 @@ import connectDB from "@/app/server/helper/score-sheet-db";
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  await connectDB();
-  const body = await request.text();
+  await connectDB();  // Connect to MongoDB
+  const body = await request.text(); // Read the raw request body and Stripe signature
   const signature = request.headers.get("stripe-signature") as string;
   let event: Stripe.Event;
 
   try {
+     // Verify the Stripe webhook signature
     event = stripe.webhooks.constructEvent(
       body,
       signature,
@@ -26,6 +27,7 @@ export async function POST(request: NextRequest) {
     });
   }
 
+    // List of allowed Stripe price IDs for subscriptions
   const allowedPriceIds = [
     process.env.NEXT_PUBLIC_STRIPE_BETA_SIXMONTH_PRICE_ID,
     process.env.NEXT_PUBLIC_STRIPE_BETA_YEAR_PRICE_ID,
@@ -36,10 +38,11 @@ export async function POST(request: NextRequest) {
     console.log(`📩 Received event: ${eventType}`);
 
     switch (eventType) {
-      // Checkout session completed
+      // Handle completed checkout session
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
 
+        // Validate required metadata and subscription info
         if (
           !session ||
           !session.metadata?.userId ||
@@ -54,7 +57,7 @@ export async function POST(request: NextRequest) {
         const subscriptionId = session.subscription as string;
         const userId = session.metadata.userId;
 
-        // サブスク詳細取得（expand で product オブジェクト取得）
+        // Retrieve full subscription details from Stripe and expand product info
         const subscription = (await stripe.subscriptions.retrieve(
           subscriptionId,
           {
@@ -64,7 +67,7 @@ export async function POST(request: NextRequest) {
 
         const item = subscription.items.data[0];
 
-        // 安全に planName 取得
+         // Safely get the plan name
         let planName = "Unknown Plan";
         if (
           typeof item.price.product !== "string" &&
@@ -79,12 +82,13 @@ export async function POST(request: NextRequest) {
           : new Date();
         const priceId = item.price.id || "";
 
+         // Check if priceId is allowed
         if (!allowedPriceIds.includes(priceId)) {
           console.warn(`⚠️ Price ID ${priceId} does not match allowed IDs.`);
           return new NextResponse("Price ID does not match", { status: 400 });
         }
 
-
+        // Update or create user in database with subscription info
         const updatedUser = await User.findOneAndUpdate(
           { clerkId: userId },
           {
@@ -106,18 +110,19 @@ export async function POST(request: NextRequest) {
         return new NextResponse("Checkout completed", { status: 200 });
       }
 
-      // Subscription updated
+      // Handle subscription updates
       case "customer.subscription.updated": {
          const subscriptionId = (event.data.object as Stripe.Subscription).id;
+
+         // Retrieve subscription details from Stripe with product info expanded
         const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
     expand: ["items.data.price.product"]
   });
         
-
-        // subscription を expand していない場合、price.product は文字列なので Unknown Plan になる
-        // item.current_period_end を使うので subscription 本体を expand する必要はなし
+        
         const item = subscription.items.data[0];
 
+        // Safely get the plan name
         let planName = "Unknown Plan";
         if (
           typeof item.price.product !== "string" &&
@@ -126,12 +131,15 @@ export async function POST(request: NextRequest) {
         ) {
           planName = item.price.product.name;
         }
-
+        
+        // Calculate subscription end date
         const subscriptionEndsAt = item.current_period_end
           ? new Date(item.current_period_end * 1000)
           : new Date();
         const priceId = item.price.id || "";
 
+
+        // Map Stripe subscription status to DB status
         const stripeStatus = subscription.status;
         let dbStatus: "active" | "trialing" | "canceled" | "inactive" =
           "inactive";
@@ -147,6 +155,7 @@ export async function POST(request: NextRequest) {
             dbStatus = "inactive";
         }
 
+        // Update user subscription info in the database
         const updatedUser = await User.findOneAndUpdate(
           { stripeCustomerId: subscription.customer as string },
           {
@@ -165,7 +174,7 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Subscription deleted
+      // Handle subscription deletion
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
         
@@ -184,7 +193,7 @@ export async function POST(request: NextRequest) {
             dbStatus = "inactive";
         }
 
-
+        // Clear user's subscription info in DB
         const updatedUser = await User.findOneAndUpdate(
           { stripeCustomerId: subscription.customer as string },
           {
@@ -207,6 +216,8 @@ export async function POST(request: NextRequest) {
         break;
     }
 
+
+    // Revalidate Next.js path cache for the homepage
     revalidatePath("/", "layout");
     return new NextResponse("Webhook received", { status: 200 });
   } catch (err) {
