@@ -20,16 +20,22 @@
 
 /* Subscription Overlay */
 .subscriptionOverlay {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
+  right: 0;
+  bottom: 0;
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  z-index: 50;
+  overflow-y: auto;
+
   align-items: center;
   background-color: rgba(255, 255, 255, 0.7); /* 半透明の白色 */
-  z-index: 10;
+    backdrop-filter: blur(8px);
 }
 
 /* Contents in Overlay */
@@ -40,23 +46,42 @@
   border-radius: 10px;
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6); /* 強いシャドウで浮き上がった印象に */
   max-width: 500px;
-  margin: 20px;
+  margin: 30px auto;
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
   color: #e0e0e0; /* 明るいグレーのテキストカラー */
   border: 1px solid #444; /* 細いボーダーで輪郭を強調 */
+}
+
+.closeButton {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 2rem;
+  font-weight: bold;
+  color: black;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.closeButton:hover {
+  color: red;
 }
 
 /* タイトルのスタイル */
 .title {
   color: #fff;
-  font-size: 1.8rem;
+  font-size: 1.3rem;
   font-weight: bold;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 /* 説明文のスタイル */
 .description {
   color: #b0b0b0; /* 少し暗めのグレー */
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 /* 特徴リストのスタイル */
@@ -71,7 +96,7 @@
   margin-bottom: 10px;
   font-size: 1.1em;
   position: relative;
-  padding-left: 1.5em;
+  padding-left: 1.0em;
 }
 
 .featureList li::before {
@@ -125,7 +150,9 @@
 }
 .overlayContent{
   max-width: 350px;
-  margin: 10px;
+  margin: 15px;
+   max-height: calc(100vh - 10px);
+    overflow-y: auto;
 }
 
 .description {

@@ -9,10 +9,12 @@
     "start": "next start",
     "lint": "next lint",
     "dev:api": "nodemon --watch app/server --ext ts --exec node --loader ts-node/esm app/server/app.ts",
-    "stripe:listen":"stripe listen --- localhost:3000/api/webhooks/stripe",
-    "ngrok:open":"ngrok http http://localhost:3000"
+    "stripe:listen": "stripe listen --- localhost:3000/api/webhooks/stripe",
+    "ngrok:open": "ngrok http http://localhost:3000"
   },
   "dependencies": {
+    "@clerk/clerk-sdk-node": "^5.1.6",
+    "@clerk/express": "^1.7.20",
     "@clerk/nextjs": "^6.28.0",
     "@clerk/themes": "^2.4.3",
     "@phosphor-icons/react": "^2.1.10",

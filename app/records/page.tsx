@@ -5,6 +5,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import LoadingPage from '@/components/lodingPage';
+import { useAuth, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'; 
 
 //End point URL for API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/scores'; 
@@ -20,23 +21,44 @@ interface ScoreRecord {
   numScoreItems: number;
   createdAt: string; // Date and time when the record was first created
   lastSavedAt: string; // Date and time when the record was last saved/updated
+  userId: string;
 }
 
 // Maximum save limit for the FREE version (should match score-sheet)
-const MAX_FREE_RECORDS = 3;
+const MAX_FREE_RECORDS = 5;
 
 export default function RecordsPage() {
   const router = useRouter();
   const [records, setRecords] = useState<ScoreRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterKeyword, setFilterKeyword] = useState(''); // Filter keyword state
+  const { isLoaded, isSignedIn, getToken } = useAuth();
 
   useEffect(() => {
   const fetchRecords = async () => {
+    if (!isLoaded || !isSignedIn) {
+        setLoading(false);
+        // 認証されていない場合はレコードをロードしない
+        return;
+      }
+
       try {
-        const response = await fetch(API_BASE_URL); // call GET /api/scores 
+        // get auth token
+        setLoading(true);
+        const token = await getToken({ template: 'long_lasting' });
+
+        const response = await fetch(`${API_BASE_URL}`, 
+          { 
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+ // call GET /api/scores 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorData = await response.json();
+         throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Unknown error'}`);
         }
         const data: ScoreRecord[] = await response.json();
         setRecords(data); // sorted recored
@@ -48,8 +70,10 @@ export default function RecordsPage() {
         setLoading(false);
       }
     };
+
     fetchRecords();
-  }, []); // fetch only once
+  },  [isLoaded, isSignedIn, getToken]); // fetch only once
+
 
   const filteredRecords = useMemo(() => {
     if (!filterKeyword) {
@@ -66,12 +90,18 @@ export default function RecordsPage() {
     router.push(`/score-sheet?recordId=${recordId}`);
   };
 
+
+
   const handleDeleteRecord = async (recordId: string) => { 
     if (confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
       try {
-        // ★ MODIFIED: DELETE API呼び出し
+        const token = await getToken({ template: 'long_lasting' });
+        // ★Call DELETE API
         const response = await fetch(`${API_BASE_URL}/${recordId}`, {
           method: 'DELETE',
+           headers: {
+            'Authorization': `Bearer ${token}`, 
+           }
         });
 
         if (!response.ok) {
@@ -93,9 +123,9 @@ export default function RecordsPage() {
     }
   };
 
-  if (loading) {
+  if (loading || !isLoaded) {
     return (
-      <main className="flex items-center justify-center h-screen bg-white">
+      <main className="flex items-center justify-center h-screen">
         <LoadingPage />
       </main>
     );

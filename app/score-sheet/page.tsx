@@ -6,7 +6,9 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import Link from "next/link";
 import LoadingPage from "@/components/lodingPage";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser  } from "@clerk/nextjs";
+import PromoteSubscription from "@/components/promoteSubscription";
+
 
 // API endpoint URL
 const API_BASE_URL =
@@ -23,6 +25,7 @@ interface ScoreRecord {
   numScoreItems: number;
   createdAt: string; //ISO 8601 formatted string (e.g., "2023-10-27T10:00:00.000Z")
   lastSavedAt: string; // ISO 8601 formatted string
+  userId: string;
 }
 
 // ScoreData state interface (for form management).
@@ -38,16 +41,21 @@ interface ScoreData {
   numScoreItems: number;
   createdAt: string;
   lastSavedAt: string;
+  userId: string;
 }
 
 export default function ScoreSheetPage() {
+  
   const searchParams = useSearchParams();
   const router = useRouter();
   const recordIdFromUrl = searchParams.get("recordId"); // Record ID passed from the URL
   // logged in user from Clerk
   const { isLoaded, isSignedIn, userId, sessionId, getToken } = useAuth();
+  const { user } = useUser();
+  
   // User subscription plan --- from Stripe
-  const userPlan = "free";
+  const userPlan = user?.publicMetadata?.subscriptionStatus || "free";
+
 
   // Temporary interface for initialization (when loading from games.json)
   interface InitialGameData {
@@ -75,11 +83,13 @@ export default function ScoreSheetPage() {
     numScoreItems: 3,
     createdAt: new Date().toISOString(),
     lastSavedAt: new Date().toISOString(),
+    userId: userId || "", 
   });
 
   const [loading, setLoading] = useState(true);
   const [showTotal, setShowTotal] = useState(false);
   const [playerRanks, setPlayerRanks] = useState<number[]>([]);
+ const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false);
 
   // Calculate total scores (optimized with useMemo)
   const calculateTotalScores = useMemo(() => {
@@ -109,7 +119,7 @@ export default function ScoreSheetPage() {
     const ranks = Array(scoreData.numPlayers).fill(0);
     let currentRank = 1;
     for (let i = 0; i < playerTotalsWithIndex.length; i++) {
-      // 同点の場合は同じ順位
+      // The same scores will be the same ranking
       if (
         i > 0 &&
         playerTotalsWithIndex[i].total < playerTotalsWithIndex[i - 1].total
@@ -125,14 +135,25 @@ export default function ScoreSheetPage() {
   useEffect(() => {
     async function initializeSheet() {
       setLoading(true);
+       if (!isLoaded) {
+                return;
+            }
+
       if (recordIdFromUrl) {
         // Edit mode for existing record: Load from API
         try {
-          const response = await fetch(`${API_BASE_URL}/${recordIdFromUrl}`);
+          //fetch token
+           const token = await getToken({ template: "long_lasting" });
+         
+           const response = await fetch(`${API_BASE_URL}/${recordIdFromUrl}`,
+            { headers: {"Authorization": `Bearer ${token}`,},});
+
           if (!response.ok) {
             if (response.status === 404) {
               alert("Record not found. It might have been deleted.");
-            } else {
+            } else if (response.status === 401) {
+                            alert("You are not authorized to view this record.");
+                        } else {
               const errorData = await response.json();
               throw new Error(
                 `HTTP error! status: ${response.status} - ${
@@ -145,6 +166,13 @@ export default function ScoreSheetPage() {
           }
           const recordToLoad: ScoreRecord = await response.json();
 
+          // check if the user is the owner of a record
+                    if (recordToLoad.userId !== userId) {
+                         alert("You do not have permission to view this record.");
+                         router.push("/records");
+                         return;
+                    }
+
           // Set loaded data to scoreData state
           setScoreData({
             id: recordToLoad.id,
@@ -156,6 +184,7 @@ export default function ScoreSheetPage() {
             numScoreItems: recordToLoad.numScoreItems,
             createdAt: recordToLoad.createdAt,
             lastSavedAt: recordToLoad.lastSavedAt,
+            userId: recordToLoad.userId,
           });
           setShowTotal(true); // Show total for existing records
         } catch (error) {
@@ -170,7 +199,7 @@ export default function ScoreSheetPage() {
           setLoading(false);
         }
       } else {
-        // 新規作成モード
+        // Create New Sheet
         const gameId = searchParams.get("gameId");
         const customGameName = searchParams.get("name");
         const customRows = searchParams.get("rows");
@@ -266,14 +295,14 @@ export default function ScoreSheetPage() {
           numScoreItems: initialNumScoreItems,
           createdAt: new Date().toISOString(),
           lastSavedAt: new Date().toISOString(),
+           userId: userId || "",
         });
         setShowTotal(false); // hide total as default
         setLoading(false);
       }
     }
     initializeSheet();
-  }, [recordIdFromUrl, searchParams, router]);
-
+  }, [isLoaded, recordIdFromUrl, searchParams, router, getToken, userId]);
   // reculculate ranking whrn scores and playerNames has changed
   useEffect(() => {
     if (showTotal && scoreData.numPlayers > 0 && scoreData.numScoreItems > 0) {
@@ -394,7 +423,7 @@ export default function ScoreSheetPage() {
     }
   }, [showTotal, calculateRanks, scoreData.numPlayers]);
 
-  // スコアの順位に応じて背景色を設定
+  // Set Background colours depends on a score ranking
   const getRankBackgroundColor = (playerIndex: number) => {
     if (!showTotal || playerRanks.length === 0) return "";
     const rank = playerRanks[playerIndex];
@@ -412,10 +441,19 @@ export default function ScoreSheetPage() {
 
   // Save data handler to use API
   const handleSaveSheet = async () => {
+    //Check if game name is set
     if (scoreData.gameTitle.trim() === "") {
       alert("Please enter a game title before saving.");
       return;
     }
+    //check if user logged in
+    if (!isSignedIn || !userId) {
+  alert("Please sign in to save your score sheet.");
+  return;
+}
+
+//Get token from Clerk
+ const token = await getToken({ template: "long_lasting" });
 
     // change score data into number
     const scoresAsNumbers = scoreData.scores.map((row) =>
@@ -424,6 +462,8 @@ export default function ScoreSheetPage() {
         return isNaN(num) ? 0 : num; // change empty or invalid letters to 0
       })
     );
+
+
 
     // create object to send
     const dataToSend: ScoreRecord = {
@@ -434,29 +474,46 @@ export default function ScoreSheetPage() {
       createdAt: recordIdFromUrl
         ? scoreData.createdAt
         : new Date().toISOString(),
+         userId: userId
     };
 
     try {
       let response;
+
+      //set autherisation header
+      const headers = {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`, // token added
+      };
+
+
       if (recordIdFromUrl) {
         // upload existed record (use PUT)
         response = await fetch(`${API_BASE_URL}/${recordIdFromUrl}`, {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: headers,
           body: JSON.stringify(dataToSend),
         });
       } else {
         // Create new record (use POST)
         response = await fetch(API_BASE_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: headers,
           body: JSON.stringify(dataToSend),
         });
       }
+
+       if (response.status === 403) {
+        const errorData = await response.json();
+         if (errorData.isActiveUser) {
+        // alert for active user
+        alert(errorData.message);
+      } else {
+        // show subscription prompt page for free user
+        setShowSubscriptionPrompt(true);
+      }
+      return;
+    }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -496,10 +553,15 @@ export default function ScoreSheetPage() {
     }
   };
 
-  // ページロード中のUI
+  // Loading Page
   if (loading) {
     return <LoadingPage />;
   }
+// Toggle showSubscriptionPrompt depends on the status
+  //  if (showSubscriptionPrompt) {
+  //   return (<PromoteSubscription>{statsContent}</PromoteSubscription>);
+  // }
+
 
   return (
     <main>
@@ -689,6 +751,10 @@ export default function ScoreSheetPage() {
           </Link>
         </div>
       </div>
+      {/* showSubscriptionPromptがtrueの場合のみPromoteSubscriptionを重ねて表示 */}
+      {showSubscriptionPrompt && (
+        <PromoteSubscription onClose={() => setShowSubscriptionPrompt(false)} />
+      )}
     </main>
   );
 }

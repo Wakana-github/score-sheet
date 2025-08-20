@@ -19,6 +19,7 @@ interface ScoreRecord {
   numScoreItems: number;
   createdAt: string; // ISO 8601 形式の文字列
   lastSavedAt: string; // ★追加: ISO 8601 形式の文字列 (backendと一致)
+  userId: string;
 }
 
 // Maximum save limit for the FREE version (backendでもチェックされるべきですが、フロントエンドにも残します)

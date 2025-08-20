@@ -58,8 +58,14 @@ export default function Stats() {
     </div>
   );
 
-  // //Toggle promoteSubscription page based on a subscription status
+    return (
+    <main>
+      {/* Display PromoteSubscription when isActiveUser is false */}
 
-  return isActiveUser ? statsContent : <PromoteSubscription>{statsContent}</PromoteSubscription>;
-
+      {isActiveUser ? (
+        statsContent
+      ) : (<PromoteSubscription />
+       )}
+    </main>
+  );
 };

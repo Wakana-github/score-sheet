@@ -20,10 +20,10 @@ const geistMono = Geist_Mono({
 });
 
 const deliciousHandrawn = Delicious_Handrawn({
-  weight: "400", // Delicious Handrawnは通常、単一の太さ（400）のみ提供されます
+  weight: "400", // Delicious Handrawn has only 400 thickness
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-delicious-handrawn", // CSS変数名を指定
+  variable: "--font-delicious-handrawn", // CSS variable name
 });
 
 export const metadata: Metadata = {

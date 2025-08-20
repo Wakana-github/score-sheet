@@ -100,7 +100,7 @@
         align-items: flex-start; /* Left-aligned */
         top: 0;
         right: -350px; /* Initially hidden off-screen */
-        gap: 30px;
+        gap: 10px;
         background-color: rgb(63, 71, 14); 
         width: 350px; 
         height: 100%; /* Full screen height */

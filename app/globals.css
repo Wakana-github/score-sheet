@@ -30,7 +30,7 @@ body {
   background-image:url("/paper_bg.jpg");
   background-repeat: no-repeat;    
   background-attachment: fixed;
-  background-repeat: no-repeat;    /* 画像の繰り返しをしない */
+  background-repeat: no-repeat;    
   background-attachment: fixed;
 }
 
