@@ -1,4 +1,6 @@
 // src/components/promoteSubscription.tsx
+
+"use client";
 import React from "react";
 import styles from "./promoteSubscription.module.css";
 import SubscriptionPromoteButton from "./subscriptionPromoteButton";
