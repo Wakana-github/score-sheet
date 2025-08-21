@@ -24,6 +24,15 @@ interface ScoreRecord {
   userId: string;
 }
 
+interface PaginatedRecords {
+  records: ScoreRecord[];
+  totalRecords: number;
+  currentPage: number;
+  limit: number;
+  isActiveUser: boolean;
+  maxRecords: number;
+}
+
 // Maximum save limit for the FREE version (should match score-sheet)
 const MAX_FREE_RECORDS = 5;
 
@@ -34,20 +43,28 @@ export default function RecordsPage() {
   const [filterKeyword, setFilterKeyword] = useState(''); // Filter keyword state
   const { isLoaded, isSignedIn, getToken } = useAuth();
 
+  //pagination status
+  const [currentPage, setCurrentPage] = useState(1); // current page
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [maxRecords, setMaxRecords] = useState(MAX_FREE_RECORDS);
+  const [isActiveUser, setIsActiveUser] = useState(false);
+  const limit = 10;  // limit of records per page
+  const totalPages = Math.ceil(totalRecords / limit); 
+
   useEffect(() => {
-  const fetchRecords = async () => {
+  async function fetchRecords(){
     if (!isLoaded || !isSignedIn) {
         setLoading(false);
-        // 認証されていない場合はレコードをロードしない
+        // stop loading record if a user isn't logged in
         return;
       }
 
+      setLoading(true);
       try {
         // get auth token
-        setLoading(true);
         const token = await getToken({ template: 'long_lasting' });
 
-        const response = await fetch(`${API_BASE_URL}`, 
+        const response = await fetch(`${API_BASE_URL}?page=${currentPage}`, 
           { 
           method: 'GET',
           headers: {
@@ -60,8 +77,13 @@ export default function RecordsPage() {
           const errorData = await response.json();
          throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Unknown error'}`);
         }
-        const data: ScoreRecord[] = await response.json();
-        setRecords(data); // sorted recored
+
+         const data: PaginatedRecords = await response.json();
+          setRecords(data.records);  // sorted recored
+          setTotalRecords(data.totalRecords);
+          setMaxRecords(data.maxRecords);
+          setIsActiveUser(data.isActiveUser);
+
       } catch (error) {
         console.error('Error loading records from API:', error);
         alert('Failed to load records. Please try again later.'); 
@@ -72,7 +94,7 @@ export default function RecordsPage() {
     };
 
     fetchRecords();
-  },  [isLoaded, isSignedIn, getToken]); // fetch only once
+  },  [isLoaded, isSignedIn, getToken, currentPage]); // fetch only once
 
 
   const filteredRecords = useMemo(() => {
@@ -96,7 +118,7 @@ export default function RecordsPage() {
     if (confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
       try {
         const token = await getToken({ template: 'long_lasting' });
-        // ★Call DELETE API
+        // Call DELETE API
         const response = await fetch(`${API_BASE_URL}/${recordId}`, {
           method: 'DELETE',
            headers: {
@@ -109,8 +131,8 @@ export default function RecordsPage() {
           throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Unknown error'}`);
         }
 
-        // when delete successed
-        setRecords(prevRecords => prevRecords.filter(record => record.id !== recordId));
+        // when delete successed, fetch new states     
+       setCurrentPage(1);
         alert('Record deleted successfully!');
       } catch (error) {
         console.error('Error deleting record:', error);
@@ -123,6 +145,52 @@ export default function RecordsPage() {
     }
   };
 
+ // Rendering pegenation UI
+  const renderPagination = () => {
+    if (totalPages <= 1) return null; // Don't show button when there is onnly 1 page
+
+    const pageNumbers = [];
+    // ページ番号ボタンの表示を制限するロジック
+    const maxPageButtons = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+    let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+    
+    if (endPage - startPage + 1 < maxPageButtons) {
+        startPage = Math.max(1, endPage - maxPageButtons + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+    }
+     return (
+        <div className="flex justify-center items-center my-4 normal_font text-gray-800">
+            <button
+                onClick={() => setCurrentPage(prev => prev - 1)}
+                disabled={currentPage === 1}
+                className="mx-1 px-3 py-1 border border-gray-400 rounded-lg disabled:opacity-50"
+            >
+                Previous
+            </button>
+            {pageNumbers.map(number => (
+                <button
+                    key={number}
+                    onClick={() => setCurrentPage(number)}
+                    className={`mx-1 px-3 py-1 rounded-lg ${currentPage === number ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}
+                >
+                    {number}
+                </button>
+            ))}
+            <button
+                onClick={() => setCurrentPage(prev => prev + 1)}
+                disabled={currentPage === totalPages}
+                className="mx-1 px-3 py-1 border border-gray-400 rounded-lg disabled:opacity-50"
+            >
+                Next
+            </button>
+        </div>
+    );
+  };
+
   if (loading || !isLoaded) {
     return (
       <main className="flex items-center justify-center h-screen">
@@ -130,6 +198,7 @@ export default function RecordsPage() {
       </main>
     );
   }
+
 
   return (
     <main className="flex flex-col items-center justify-start min-h-screen py-8 px-2 overflow-x-auto bg-cover bg-center bg-no-repeat">
@@ -153,7 +222,7 @@ export default function RecordsPage() {
 
       {/* Saved Records count - Using default font */}
      <div className="mb-8 text-xl text-gray-700">
-        Saved Records: {records.length} / {MAX_FREE_RECORDS} (Free Plan Max)
+        {`Saved Records: ${totalRecords} / ${maxRecords}(${isActiveUser ? ' ' : 'Free Plan '}Max)`}
       </div>
 
       {filteredRecords.length === 0 ? (
@@ -208,6 +277,9 @@ export default function RecordsPage() {
           </div>
         </div>
       )}
+
+{/* rendering pagination UI */}
+      {renderPagination()}
 
       {/* Back to Home button - Using default font */}
       <div className="mt-8">
