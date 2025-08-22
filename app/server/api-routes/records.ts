@@ -45,10 +45,11 @@ router.post(
       }
 
       //fetch data from req.body
-      const { gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems } = req.body;
+      const { id, gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems } = req.body;
 
       //Create API object
       const newRecordData = {
+        id,
         gameTitle,
         playerNames,
         scoreItemNames,
@@ -217,7 +218,7 @@ router.delete(
         _id: req.params.id,
         userId: userId,
       });
-      
+
       if (result.deletedCount === 0) {
         return res.status(404).json({ message: "Record not found" });
       }

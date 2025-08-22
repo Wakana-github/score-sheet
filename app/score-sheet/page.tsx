@@ -16,7 +16,7 @@ const API_BASE_URL =
 
 // ScoreRecord interface. must be same as Mongoose Schema
 interface ScoreRecord {
-  id: string; // Unique ID generated on the application side (UUID)
+  _id: string; // Unique ID generated on the application side (UUID)
   gameTitle: string;
   playerNames: string[];
   scoreItemNames: string[];
@@ -32,7 +32,7 @@ interface ScoreRecord {
 // It's almost identical to ScoreRecord, but 'scores' is string[][] to directly hold input values.
 // This prevents conversion errors to number types even if input fields are empty.
 interface ScoreData {
-  id: string;
+  _id: string;
   gameTitle: string;
   playerNames: string[];
   scoreItemNames: string[];
@@ -68,7 +68,7 @@ export default function ScoreSheetPage() {
 
   // Manage scoreData as a single State object
   const [scoreData, setScoreData] = useState<ScoreData>({
-    id: uuidv4(), // Generate UUID for new creation
+    _id: uuidv4(), // Generate UUID for new creation
     gameTitle: "",
     playerNames: Array(3)
       .fill("")
@@ -175,7 +175,7 @@ export default function ScoreSheetPage() {
 
           // Set loaded data to scoreData state
           setScoreData({
-            id: recordToLoad.id,
+            _id: recordToLoad._id,
             gameTitle: recordToLoad.gameTitle,
             playerNames: recordToLoad.playerNames,
             scoreItemNames: recordToLoad.scoreItemNames,
@@ -284,7 +284,7 @@ export default function ScoreSheetPage() {
 
         // Set initial State for new creation
         setScoreData({
-          id: uuidv4(), // provide new UUID for new sheet
+          _id: uuidv4(), // provide new UUID for new sheet
           gameTitle: initialGameTitle,
           playerNames: initialPlayerNames,
           scoreItemNames: initialScoreItemNames,
@@ -466,9 +466,13 @@ export default function ScoreSheetPage() {
 
 
     // create object to send
-    const dataToSend: ScoreRecord = {
-      ...scoreData,
+    const dataToSend = {
+      gameTitle: scoreData.gameTitle,
+  playerNames: scoreData.playerNames,
+  scoreItemNames: scoreData.scoreItemNames,
       scores: scoresAsNumbers, // change scores to numeric
+      numPlayers: scoreData.numPlayers,
+      numScoreItems: scoreData.numScoreItems,
       lastSavedAt: new Date().toISOString(), // update last saving time
       // update createdAt only for new record (createdAt on existed record don't change)
       createdAt: recordIdFromUrl
@@ -496,10 +500,15 @@ export default function ScoreSheetPage() {
         });
       } else {
         // Create new record (use POST)
+        const newDataToSend = {
+          ...dataToSend,
+          id: scoreData._id, // add id field
+         };
+
         response = await fetch(API_BASE_URL, {
           method: "POST",
           headers: headers,
-          body: JSON.stringify(dataToSend),
+          body: JSON.stringify(newDataToSend), //send newDataToSend
         });
       }
 
@@ -530,10 +539,10 @@ export default function ScoreSheetPage() {
       // turn to update mode after saving new record
       if (!recordIdFromUrl) {
         // update record ID and createdAt, theb replace URL to new record ID
-        router.replace(`/score-sheet?recordId=${result.record.id}`);
+        router.replace(`/score-sheet?recordId=${result.record._id}`);
         setScoreData((prev) => ({
           ...prev,
-          id: result.record.id,
+          _id: result.record._id,
           createdAt: result.record.createdAt,
         }));
       } else {
@@ -556,6 +565,9 @@ export default function ScoreSheetPage() {
   // Loading Page
   if (loading) {
     return <LoadingPage />;
+
+
+
   }
 // Toggle showSubscriptionPrompt depends on the status
   //  if (showSubscriptionPrompt) {

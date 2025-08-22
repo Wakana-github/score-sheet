@@ -12,7 +12,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/a
 
 // ScoreRecord interface (must match score-sheet/page.tsx)
 interface ScoreRecord {
-  id: string; // Unique ID (e.g., timestamp)
+  _id: string; // Unique ID (e.g., timestamp)
   gameTitle: string; // Corresponds to score.title
   playerNames: string[];
   scoreItemNames: string[]; // Not used for display, but included in type
@@ -243,10 +243,10 @@ export default function RecordsPage() {
           <div className="space-y-0">
             {filteredRecords.map((record) => (
               <div
-                key={record.id}
+                key={record._id}
                 className="p-3 border-b border-gray-400 flex justify-between items-center group hover:bg-gray-50 transition-colors duration-200"
               >
-                <div onClick={() => handleRecordClick(record.id)} className="cursor-pointer flex-grow grid grid-cols-4 sm:grid-cols-5 gap-2 items-center">
+                <div onClick={() => handleRecordClick(record._id)} className="cursor-pointer flex-grow grid grid-cols-4 sm:grid-cols-5 gap-2 items-center">
                   {/* Game Name - Using dark-green and normal_font for record content */}
                   <div className="col-span-2 sm:col-span-2 text- font-bold text-dark-green normal_font truncate">
                     {record.gameTitle}
@@ -264,7 +264,7 @@ export default function RecordsPage() {
                   <div className="col-span-1 text-right">
                     {/* Delete button moves to the right */}
                     <button
-                      onClick={(e) => { e.stopPropagation(); handleDeleteRecord(record.id); }} // Prevent parent click
+                      onClick={(e) => { e.stopPropagation(); handleDeleteRecord(record._id); }} // Prevent parent click
                       className="bg-gray-300 hover:bg-gray-500 font-bold py-1 px-2 rounded-md text-sm group-hover:opacity-100 transition-opacity duration-200"
                       title="Delete Record"
                     >
