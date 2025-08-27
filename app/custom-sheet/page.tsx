@@ -17,7 +17,10 @@ export default function CustomSheetPage() {
   const router = useRouter();
 
   const handleGameNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setGameName(event.target.value);
+    const inputValue = event.target.value;
+     if (inputValue.length <= 35 ) {
+    setGameName(inputValue);
+     }
     if (gameNameError) {
       setGameNameError(null); // Clear error when user starts typing
     }
@@ -66,8 +69,14 @@ export default function CustomSheetPage() {
     setPlayersError(null);
 
     // 1. Game Name Validation
+   const allowedCharsRegex =  /^[a-zA-Z0-9Ａ-Ｚａ-ｚ０-９\sぁ-んァ-ヶ一-龠ー\-_\.]*$/; //allow alphanumeric and Japanese characters, and some symbols.
+    
+    //If empty name
     if (gameName.trim() === '') {
       setGameNameError('Please enter a game name.');
+      hasError = true;
+    } else if (!allowedCharsRegex.test(gameName)) {
+      setGameNameError('Game names can only use alphanumeric characters, Japanese characters, and the symbols -, _, and .');
       hasError = true;
     }
 
@@ -76,12 +85,20 @@ export default function CustomSheetPage() {
       setScoreItemsError('Must be 1 or greater.'); // Set inline error
       hasError = true;
     }
+    if (scoreItemsCount! > 15) {
+    setScoreItemsError('Score items cannot exceed 15');
+    hasError = true;
+  }
 
     // 3. Players Count Validation
     if (playersCount === null || playersCount < 1) {
-      setPlayersError('Must be 1 or greater.'); // Set inline error
+      setPlayersError('Must be 1 or greater'); // Set inline error
       hasError = true;
     }
+    if (playersCount! > 10) {
+    setPlayersError('players cannot exceed 10');
+    hasError = true;
+  }
 
     // If any error occurred, stop the process
     if (hasError) {

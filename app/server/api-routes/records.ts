@@ -4,6 +4,7 @@ import User from "../models/user.modal.ts";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 import { AuthenticatedRequest } from "../types/express.d";
 
+
 const router = express.Router();
 
 const MAX_FREE_RECORDS = 5;

@@ -21,9 +21,10 @@ export default function Home() {
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
   const router = useRouter();
 
-  // Read Json file
+  // Fetch game data fron API
   useEffect(() => {
-    fetch('/games.json')
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    fetch(`${baseUrl}/games`)
       .then((response) => response.json())
       .then((data: GameData[]) => {
         setGames(data);

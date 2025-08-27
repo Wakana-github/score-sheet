@@ -1,18 +1,26 @@
 // app/score-sheet/page.tsx
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import Link from "next/link";
 import LoadingPage from "@/components/lodingPage";
 import { useAuth, useUser  } from "@clerk/nextjs";
 import PromoteSubscription from "@/components/promoteSubscription";
+import he from 'he';
 
 
 // API endpoint URL
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/scores";
+
+//max number of platers and score items
+const MAX_SCORE_ITEMS = 15;
+const MAX_PLAYERS = 10;
+//Regex
+  const allowedCharsRegex =  /^[a-zA-Z0-9Ａ-Ｚａ-ｚ０-９\sぁ-んァ-ヶ一-龠ー\-_\.\/]*$/;
+  const allowedScoreRegex = /^[0-9\-]*$/;
 
 // ScoreRecord interface. must be same as Mongoose Schema
 interface ScoreRecord {
@@ -176,9 +184,9 @@ export default function ScoreSheetPage() {
           // Set loaded data to scoreData state
           setScoreData({
             _id: recordToLoad._id,
-            gameTitle: recordToLoad.gameTitle,
-            playerNames: recordToLoad.playerNames,
-            scoreItemNames: recordToLoad.scoreItemNames,
+            gameTitle:he.decode(recordToLoad.gameTitle),
+            playerNames: recordToLoad.playerNames.map(name => he.decode(name)),
+            scoreItemNames:recordToLoad.scoreItemNames.map(name => he.decode(name)),
             scores: recordToLoad.scores.map((row) => row.map(String)), // Convert number array to string array
             numPlayers: recordToLoad.numPlayers,
             numScoreItems: recordToLoad.numScoreItems,
@@ -258,8 +266,11 @@ export default function ScoreSheetPage() {
             isNaN(parsedRows) ||
             isNaN(parsedColumns) ||
             parsedRows < 2 ||
-            parsedColumns < 1
+            parsedRows > MAX_SCORE_ITEMS + 1 ||
+            parsedColumns < 1 ||
+            parsedColumns > MAX_PLAYERS
           ) {
+            //alert("invalid sheet size");
             router.push("/custom-sheet");
             setLoading(false);
             return;
@@ -317,50 +328,68 @@ export default function ScoreSheetPage() {
     calculateRanks,
   ]);
 
+
+
+  //handle entering state
+  const composingRefs = useRef<{ [key: string]: boolean }>({});
+const handleCompositionStart = (key: string) => {
+composingRefs.current[key] = true;
+};
+const handleCompositionEnd = (key: string, value: string, handler: (value: string) => void, regex: RegExp, alertMessage: string) => {
+composingRefs.current[key] = false; if (!regex.test(value)) {
+ alert(alertMessage);
+return;
+}
+ handler(value);
+ };
+
   // change player name handler
   const handlePlayerNameChange = useCallback(
     (index: number, newName: string) => {
-      setScoreData((prev) => {
-        const updatedPlayerNames = [...prev.playerNames];
-        updatedPlayerNames[index] = newName;
-        return { ...prev, playerNames: updatedPlayerNames };
-      });
-    },
-    []
-  );
+
+       //check is it's not while tiping, validate if the input matches the regex
+       setScoreData((prev) => {
+ const updatedPlayerNames = [...prev.playerNames];
+ updatedPlayerNames[index] = he.encode(newName);
+ return { ...prev, playerNames: updatedPlayerNames };
+ })
+},
+[]
+);
 
   // change score item handler
   const handleScoreItemNameChange = useCallback(
-    (index: number, newName: string) => {
-      setScoreData((prev) => {
-        const updatedScoreItemNames = [...prev.scoreItemNames];
-        updatedScoreItemNames[index] = newName;
-        return { ...prev, scoreItemNames: updatedScoreItemNames };
-      });
-    },
-    []
-  );
-
+ (index: number, newName: string) => {
+ setScoreData((prev) => {
+ const updatedScoreItemNames = [...prev.scoreItemNames];
+ updatedScoreItemNames[index] = he.encode(newName);
+ return { ...prev, scoreItemNames: updatedScoreItemNames };
+});
+},
+[]);
   // score change handler
-  const handleScoreChange = useCallback(
-    (row: number, col: number, value: string) => {
-      setScoreData((prev) => {
-        const newScores = prev.scores.map((r) => [...r]);
-        // create new row when new player's row doesn't exist
-        if (!newScores[row]) {
-          newScores[row] = Array(prev.numPlayers).fill("");
-        }
-        newScores[row][col] = value;
-        return { ...prev, scores: newScores };
-      });
-    },
-    []
-  );
-
+ const handleScoreChange = useCallback(
+ (row: number, col: number, value: string) => {
+setScoreData((prev) => {
+ const newScores = prev.scores.map((r) => [...r]);
+// create new row when new player's row doesn't exist
+ if (!newScores[row]) {newScores[row] = Array(prev.numPlayers).fill("");
+ }
+newScores[row][col] = value;
+return { ...prev, scores: newScores };
+ });
+},
+[]
+);
   // change number of player handler
   const handleNumPlayersChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const newNum = parseInt(e.target.value);
+
+      if (isNaN(newNum) || newNum < 1 || newNum > MAX_PLAYERS) {
+        alert("invalid player numbers");
+        return;
+    }
       setScoreData((prev) => {
         const newPlayerNames = Array(newNum)
           .fill("")
@@ -389,6 +418,12 @@ export default function ScoreSheetPage() {
   const handleNumScoreItemsChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const newNum = parseInt(e.target.value);
+
+      if (isNaN(newNum) || newNum < 1 || newNum > MAX_SCORE_ITEMS) {
+        alert("invalid score item numbers");
+        return;
+    }
+
       setScoreData((prev) => {
         const newScoreItemNames = Array(newNum)
           .fill("")
@@ -467,7 +502,7 @@ export default function ScoreSheetPage() {
 
     // create object to send
     const dataToSend = {
-      gameTitle: scoreData.gameTitle,
+      gameTitle: he.encode(scoreData.gameTitle),
   playerNames: scoreData.playerNames,
   scoreItemNames: scoreData.scoreItemNames,
       scores: scoresAsNumbers, // change scores to numeric
@@ -565,15 +600,7 @@ export default function ScoreSheetPage() {
   // Loading Page
   if (loading) {
     return <LoadingPage />;
-
-
-
   }
-// Toggle showSubscriptionPrompt depends on the status
-  //  if (showSubscriptionPrompt) {
-  //   return (<PromoteSubscription>{statsContent}</PromoteSubscription>);
-  // }
-
 
   return (
     <main>
@@ -582,14 +609,28 @@ export default function ScoreSheetPage() {
           {/* Game Title */}
           <h1 className="text-xl font-bold hand_font mb-2 w-full text-center">
             <input
-              type="text"
-              value={scoreData.gameTitle}
-              onChange={(e) =>
-                setScoreData((prev) => ({ ...prev, gameTitle: e.target.value }))
-              }
-              className="w-full text-center bg-transparent border-b-2 border-gray-400 focus:outline-none focus:border-blue-500 text-black font-bold text-2xl py-1 px-2"
-              placeholder="Enter Game Title"
-            />
+  type="text"
+  value={scoreData.gameTitle}
+  placeholder="Enter Game Title"
+  maxLength={35}
+  onChange={(e) => {
+    const inputValue = e.target.value;
+     if (allowedCharsRegex.test(inputValue)) {
+    setScoreData((prev) => ({ ...prev, gameTitle: e.target.value }));
+     }else {
+      alert("Game titles can only contain allowed characters.");
+    }
+  }}
+  onCompositionStart={(e) => handleCompositionStart('gameTitle')}
+   onCompositionEnd={(e) => handleCompositionEnd(
+'gameTitle',
+ e.currentTarget.value,
+ (val) => setScoreData((prev) => ({ ...prev, gameTitle: val })),
+ allowedCharsRegex,
+ "Game titles can only contain allowed characters."
+ )}
+  className="w-full text-center bg-transparent border-b-2 border-gray-400 focus:outline-none focus:border-blue-500 text-black font-bold text-2xl py-1 px-2"
+/>
           </h1>
           {/* munber of score items and players */}
           <div className="flex justify-end items-center text-lg hand_font text-gray-700 w-full mb-4">
@@ -619,7 +660,7 @@ export default function ScoreSheetPage() {
               onChange={handleNumPlayersChange}
               className="p-1 border border-gray-400 rounded-md bg-white text-gray-800 focus:ring-blue-500 focus:border-blue-500"
             >
-              {[1, 2, 3, 4, 5, 6].map((num) => (
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
                 <option key={num} value={num}>
                   {num}
                 </option>
@@ -647,14 +688,25 @@ export default function ScoreSheetPage() {
                       )}`}
                     >
                       <input
-                        type="text"
-                        value={name}
-                        onChange={(e) =>
-                          handlePlayerNameChange(i, e.target.value)
-                        }
-                        placeholder={`Player ${i + 1}`}
-                        className="w-full bg-transparent border-b border-gray-400 focus:outline-none focus:border-gray-400 text-center text-base text-white"
-                      />
+  type="text"
+  value={he.decode(scoreData.playerNames[i])}
+  placeholder={`Player ${i + 1}`}
+  onCompositionStart={() => handleCompositionStart(`player-${i}`)}
+onCompositionEnd={(e) => handleCompositionEnd(
+  `player-${i}`,
+e.currentTarget.value,
+(val) => handlePlayerNameChange(i, val), allowedCharsRegex,
+  "layer names can only use allowed characters."  )}
+ onChange={(e) => {
+const newName = e.target.value;
+setScoreData((prev) => {
+const updated = [...prev.playerNames];
+ updated[i] = newName;
+return { ...prev, playerNames: updated };
+ });
+}}
+ className="w-full bg-transparent border-b border-gray-400 focus:outline-none focus:border-gray-400 text-center text-base text-white"
+/>
                     </th>
                   ))}
               </tr>
@@ -667,14 +719,27 @@ export default function ScoreSheetPage() {
                     {/* Score Items */}
                     <td className="px-1 py-1 border-r hand_font border-gray-400 w-24 text-center text-base text-black min-w-[80px] max-w-[100px] sticky left-0 z-10">
                       <input
-                        type="text"
-                        value={itemName}
-                        onChange={(e) =>
-                          handleScoreItemNameChange(rowIdx, e.target.value)
-                        }
-                        placeholder={`Item ${rowIdx + 1}`}
-                        className="w-full bg-transparent border-b border-gray-400 focus:outline-none focus:border-gray-400 text-base text-black"
-                      />
+  type="text"
+  value={he.decode(scoreData.scoreItemNames[rowIdx])}
+  placeholder={`Item ${rowIdx + 1}`}
+  onCompositionStart={() => handleCompositionStart(`scoreItem-${rowIdx}`)}
+onCompositionEnd={(e) => handleCompositionEnd(
+ `scoreItem-${rowIdx}`,
+ e.currentTarget.value,
+(val) => handleScoreItemNameChange(rowIdx, val),
+ allowedCharsRegex,
+ "スコア項目には、許可された文字のみ使用できます。"
+)}
+onChange={(e) => {
+const newName = e.target.value;
+setScoreData((prev) => {
+const updated = [...prev.scoreItemNames];
+ updated[rowIdx] = newName;
+ return { ...prev, scoreItemNames: updated };
+});
+}}
+  className="w-full bg-transparent border-b border-gray-400 focus:outline-none focus:border-gray-400 text-base text-black"
+/>
                     </td>
                     {/* Enter scores */}
                     {Array.from({ length: scoreData.numPlayers }).map(
@@ -688,9 +753,26 @@ export default function ScoreSheetPage() {
                             inputMode="numeric" // display numeric keyboad on Mobile
                             pattern="[0-9]*"
                             value={scoreData.scores[rowIdx]?.[colIdx] || ""} // safety check
-                            onChange={(e) =>
+                            onChange={(e) =>{
+                              const value = e.target.value;
+                              if (!composingRefs.current[`score-${rowIdx}-${colIdx}`]) {
+if (!allowedScoreRegex.test(value)) {
+ alert("スコアは半角数字とハイフンのみ使用できます。");
+return;
+ }
+}
                               handleScoreChange(rowIdx, colIdx, e.target.value)
-                            }
+                            }}
+onCompositionStart={() => handleCompositionStart(`score-${rowIdx}-${colIdx}`)}
+ onCompositionEnd={(e) => handleCompositionEnd(
+`score-${rowIdx}-${colIdx}`,
+ e.currentTarget.value,
+(val) => handleScoreChange(rowIdx, colIdx, val),
+allowedScoreRegex,
+"スコアは半角数字とハイフンのみ使用できます。"
+)}
+
+
                             className="w-full text-center text-lg font-bold bg-transparent rounded focus:outline-none focus:ring-1 focus:ring-grey-100 text-black"
                             placeholder="0"
                           />

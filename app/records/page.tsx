@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import LoadingPage from '@/components/lodingPage';
 import { useAuth, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'; 
+import he from 'he'; 
 
 //End point URL for API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/scores'; 
@@ -79,7 +80,13 @@ export default function RecordsPage() {
         }
 
          const data: PaginatedRecords = await response.json();
-          setRecords(data.records);  // sorted recored
+          //decode gameTitle
+          const decodedRecords = data.records.map(record => ({
+              ...record,
+              gameTitle: he.decode(record.gameTitle),
+          }));
+
+          setRecords(decodedRecords);  // set decorded recored
           setTotalRecords(data.totalRecords);
           setMaxRecords(data.maxRecords);
           setIsActiveUser(data.isActiveUser);
@@ -150,7 +157,7 @@ export default function RecordsPage() {
     if (totalPages <= 1) return null; // Don't show button when there is onnly 1 page
 
     const pageNumbers = [];
-    // ページ番号ボタンの表示を制限するロジック
+    // Limit the display of page number buttons
     const maxPageButtons = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
     let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
