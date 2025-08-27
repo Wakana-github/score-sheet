@@ -1,5 +1,5 @@
 import { stripe } from "@/app/lib/stripe";
-import User from "@/app/server/models/user.modal";
+import User from "@/app/server/models/user.model";
 import { headers } from "next/headers";
 import { NextResponse, NextRequest } from "next/server";
 import Stripe from "stripe";

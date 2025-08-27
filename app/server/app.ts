@@ -11,6 +11,15 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 8080;
 
+//onitor for unhandled exceptions 
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason);
+});
+
 // CORS setting
 const corsOptions = {
   // set domain

@@ -1,8 +1,21 @@
 import express, { Request, Response, Router } from "express";
+import rateLimit from 'express-rate-limit';
 import ScoreRecord, { IScoreRecord } from "../models/score-record.ts";
-import User from "../models/user.modal.ts";
+import User from "../models/user.model.ts";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 import { AuthenticatedRequest } from "../types/express.d";
+import { JSDOM } from 'jsdom';
+import DOMPurify from 'dompurify';
+
+// Initialize JSDOM and pass it to DOMPurify
+const { window } = new JSDOM('');
+const domPurify = DOMPurify(window as any);
+
+// Define the return type of the helper function
+interface SanitizeResult {
+  error?: string;
+  value?: string;
+}
 
 
 const router = express.Router();
@@ -10,6 +23,37 @@ const router = express.Router();
 const MAX_FREE_RECORDS = 5;
 const MAX_ACTIVE_RECORDS = 500;
 const PAGENATION_LIMIT = 10;
+const MAX_TITLE_LENGTH = 35;
+const MAX_NAME_LENGTH = 30;
+
+
+const sanitizeAndValidateString = (input: string, maxLength: number, fieldName: string): SanitizeResult => {
+  if (typeof input !== 'string') {
+    return { error: `Invalid type for ${fieldName}.` };
+  }
+
+  const trimmedInput = input.trim();
+
+   // Count visible characters before sanitizing
+  const segmenter = new Intl.Segmenter('ja', { granularity: 'grapheme' });
+  const realLength = [...segmenter.segment(trimmedInput)].length;
+  if (realLength > maxLength) {
+    return { error: `${fieldName} cannot exceed ${maxLength} characters.` };
+  }
+
+ // Sanitization is performed after the character count check
+  const sanitized = domPurify.sanitize(trimmedInput);
+
+  return { value: sanitized };
+};
+
+// Rate limiting settings
+const apiLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // over 5 minutes
+  max: 100, // allow a maximum of 100 requests
+  message: "Too many requests from this IP, please try again after 15 minutes",
+});
+
 
 // --- Define API End Pont ---
 
@@ -18,6 +62,7 @@ const PAGENATION_LIMIT = 10;
 router.post(
   "/",
   ClerkExpressRequireAuth(),
+   apiLimiter,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const userId = req.auth?.userId; // fetch userId from req.auth
@@ -48,13 +93,53 @@ router.post(
       //fetch data from req.body
       const { id, gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems } = req.body;
 
-      //Create API object
+
+      
+       // === Validation and sanitization using DOMPurify ===
+      const sanitizedTitle = sanitizeAndValidateString(gameTitle, MAX_TITLE_LENGTH, 'gameTitle');
+      if (sanitizedTitle.error) return res.status(400).json({ message: sanitizedTitle.error });
+
+      // Validate that playerNames is an array
+      if (!Array.isArray(playerNames)) {
+        return res.status(400).json({ message: "Invalid playerNames data." });
+      }
+      const sanitizedPlayerNames = playerNames.map((name: string) => sanitizeAndValidateString(name, MAX_NAME_LENGTH, 'playerNames'));
+      // Explicitly specify the type for the `find` method's callback
+      if (sanitizedPlayerNames.some((result: SanitizeResult) => result.error)) {
+        return res.status(400).json({ message: sanitizedPlayerNames.find((result: SanitizeResult) => result.error)?.error });
+      }
+
+      // Validate that scoreItemNames is an array
+      if (!Array.isArray(scoreItemNames)) {
+        return res.status(400).json({ message: "Invalid scoreItemNames data." });
+      }
+      const sanitizedScoreItemNames = scoreItemNames.map((name: string) => sanitizeAndValidateString(name, MAX_NAME_LENGTH, 'scoreItemNames'));
+      // Explicitly specify the type for the `find` method's callback
+      if (sanitizedScoreItemNames.some((result: SanitizeResult) => result.error)) {
+        return res.status(400).json({ message: sanitizedScoreItemNames.find((result: SanitizeResult) => result.error)?.error });
+      }
+
+      // === Validate numerical data ===
+      if (typeof numPlayers !== 'number' || numPlayers < 1 || numPlayers > 10) {
+        return res.status(400).json({ message: "Invalid numPlayers." });
+      }
+      if (typeof numScoreItems !== 'number' || numScoreItems < 1 || numScoreItems > 15) {
+        return res.status(400).json({ message: "Invalid numScoreItems." });
+      }
+      if (!Array.isArray(scores) || scores.length !== numScoreItems) {
+        return res.status(400).json({ message: "Invalid scores data." });
+      }
+      const sanitizedScores = scores.map((row: any[]) => 
+        row.map(score => typeof score === 'number' ? score : 0) // 数値であることを確認
+      );
+
+      // === Create and save data object ===
       const newRecordData = {
         id,
-        gameTitle,
-        playerNames,
-        scoreItemNames,
-        scores,
+        gameTitle: sanitizedTitle.value,
+        playerNames: sanitizedPlayerNames.map(name => name.value),
+        scoreItemNames: sanitizedScoreItemNames.map(name => name.value),
+        scores: sanitizedScores,
         numPlayers,
         numScoreItems,
         userId: userId,
@@ -76,6 +161,7 @@ router.post(
 // frtch all records by user ID
 router.get(
   "/",
+   apiLimiter,
   ClerkExpressRequireAuth(),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -112,13 +198,20 @@ router.get(
           .limit(MAX_FREE_RECORDS);
       }
 
+      const sanitizedRecords = records.map(record => ({
+        ...record.toObject(),
+        gameTitle: domPurify.sanitize(record.gameTitle),
+        playerNames: record.playerNames.map(name => domPurify.sanitize(name)),
+        scoreItemNames: record.scoreItemNames.map(name => domPurify.sanitize(name)),
+      }));
+
       res.status(200).json({
-      records,
+      records: sanitizedRecords,
       totalRecords,
       currentPage: page,
       limit,
       isActiveUser,
-      maxRecords,
+      maxRecords:isActiveUser ? MAX_ACTIVE_RECORDS : MAX_FREE_RECORDS,
     });
     } catch (error: unknown) {
       const err = error as Error;
@@ -132,6 +225,7 @@ router.get(
 // / get a score record by ID
 router.get(
   "/:id",
+   apiLimiter,
   ClerkExpressRequireAuth(),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -162,6 +256,7 @@ router.get(
 // PUT / update an existing record by ID
 router.put(
   "/:id",
+  apiLimiter,
   ClerkExpressRequireAuth(),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -171,8 +266,60 @@ router.put(
         return res.status(401).json({ message: "Unauthorized" });
       }
       const recordId = req.params.id;
-      const updatedData = { ...req.body, lastSavedAt: new Date() };
 
+ // Only get the necessary data from the request body
+      const { gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems } = req.body;
+
+      // === Add validation and sanitization using DOMPurify===
+      const sanitizedTitle = sanitizeAndValidateString(gameTitle, MAX_TITLE_LENGTH, 'gameTitle');
+      if (sanitizedTitle.error) return res.status(400).json({ message: sanitizedTitle.error });
+
+      // Validate that playerNames is an array
+      if (!Array.isArray(playerNames)) {
+        return res.status(400).json({ message: "Invalid playerNames data." });
+      }
+      const sanitizedPlayerNames = playerNames.map((name: string) => sanitizeAndValidateString(name, MAX_NAME_LENGTH, 'playerNames'));
+      if (sanitizedPlayerNames.some((result: SanitizeResult) => result.error)) {
+        return res.status(400).json({ message: sanitizedPlayerNames.find((result: SanitizeResult) => result.error)?.error });
+      }
+
+      // Validate that scoreItemNames is an array
+      if (!Array.isArray(scoreItemNames)) {
+        return res.status(400).json({ message: "Invalid scoreItemNames data." });
+      }
+      const sanitizedScoreItemNames = scoreItemNames.map((name: string) => sanitizeAndValidateString(name, MAX_NAME_LENGTH, 'scoreItemNames'));
+      if (sanitizedScoreItemNames.some((result: SanitizeResult) => result.error)) {
+        return res.status(400).json({ message: sanitizedScoreItemNames.find((result: SanitizeResult) => result.error)?.error });
+      }
+
+      // === Validate numerical data  ===
+      if (typeof numPlayers !== 'number' || numPlayers < 1 || numPlayers > 10) {
+        return res.status(400).json({ message: "Invalid numPlayers." });
+      }
+      if (typeof numScoreItems !== 'number' || numScoreItems < 1 || numScoreItems > 15) {
+        return res.status(400).json({ message: "Invalid numScoreItems." });
+      }
+      if (!Array.isArray(scores) || scores.length !== numScoreItems) {
+        return res.status(400).json({ message: "Invalid scores data." });
+      }
+      const sanitizedScores = scores.map((row: any[]) =>
+        row.map(score => typeof score === 'number' ? score : 0) // 数値であることを確認
+      );
+
+      // Explicitly specify the fields to be updated
+      const updatedData = {
+        gameTitle: sanitizedTitle.value,
+        playerNames: sanitizedPlayerNames.map(name => name.value),
+        scoreItemNames: sanitizedScoreItemNames.map(name => name.value),
+        scores: sanitizedScores,
+        numPlayers,
+        numScoreItems,
+        lastSavedAt: new Date(),
+      };
+
+
+
+      //update a record
       const updatedRecord: IScoreRecord | null =
         await ScoreRecord.findOneAndUpdate(
           { _id: recordId, userId: userId },
@@ -206,6 +353,7 @@ router.put(
 //  delete a score record by ID
 router.delete(
   "/:id",
+  apiLimiter,
   ClerkExpressRequireAuth(),
   async (req: AuthenticatedRequest, res: Response) => {
     try {

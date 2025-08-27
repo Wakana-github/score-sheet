@@ -16,6 +16,7 @@ export interface IScoreRecord extends mongoosePkg.Document {
   createdAt: Date;
   lastSavedAt: Date;
   userId: string;
+  groupId?: string; 
 }
 
 // A type that extracts only the fields required for new record creation.
@@ -35,6 +36,7 @@ const ScoreRecordSchema = new Schema({
   createdAt: { type: Date, default: Date.now }, 
   lastSavedAt: { type: Date, default: Date.now },
   userId: { type: String, required: true },
+  groupId: { type: String, required: false }
 });
 
 // 3. Create the model and associate it with the type information.
