@@ -7,6 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import PromoteSubscription from "@/components/promoteSubscription";
+import StatsPage from "./StatsPage"; 
 
 export default function Stats() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -58,14 +59,18 @@ export default function Stats() {
     </div>
   );
 
+  if (isActiveUser) {
+    return (
+      <main>
+        <StatsPage />
+      </main>
+    );
+  }
+
     return (
     <main>
       {/* Display PromoteSubscription when isActiveUser is false */}
-
-      {isActiveUser ? (
-        statsContent
-      ) : (<PromoteSubscription />
-       )}
+      <PromoteSubscription />
     </main>
   );
 };

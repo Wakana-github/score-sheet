@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import LoadingPage from '@/components/lodingPage';
 import { useUser } from '@clerk/nextjs';
 
-// 統計データの型を定義
+//define stats types
 interface GameStats {
   gameTitle: string;
   plays: number;
@@ -40,7 +40,7 @@ export default function StatsPage() {
         const data = await response.json();
         setStats(data);
         if (data.gameDetails.length > 0) {
-          setSelectedGame(data.gameDetails[0]); // 最初のゲームをデフォルトで選択
+          setSelectedGame(data.gameDetails[0]); // select first game as default
         }
       } catch (error) {
         console.error('Error:', error);
@@ -59,25 +59,41 @@ export default function StatsPage() {
     return <div>Please sign in to view your stats.</div>;
   }
 
+   // DIsplay message when there are no records
+  if (!stats || stats.totalPlays === 0) {
+    return <div className="p-4 md:p-8">No records found. Please save some scores to view your stats.</div>;
+  }
+
+  // Find most played game details for display with play count
+  const mostPlayedGameDetails = stats.gameDetails.find(
+    g => g.gameTitle === stats.mostPlayedGame
+  );
+
   return (
-    <div className="p-4 md:p-8">
-      <h1 className="text-3xl font-bold mb-6">Personal Stats for {user?.username}</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div className="mt-4 p-4 md:p-8">
+      <h1 className="text-3xl md:text-4xl font-bold mb-4 hand_font">Personal Stats for <span className="text-4xl md:text-5xl   text-[#41490e]"><br/>{user?.username}</span></h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
         <StatCard title="Total Plays" value={stats?.totalPlays || 0} />
-        <StatCard title="Most Played Game" value={stats?.mostPlayedGame || 'N/A'} />
-        {/* その他の主要な統計カードを追加 */}
+        <StatCard
+          title="Most Played Game"
+          value={
+            mostPlayedGameDetails
+              ? `${mostPlayedGameDetails.gameTitle} (${mostPlayedGameDetails.plays} plays)`
+              : stats.mostPlayedGame
+          }
+        />
       </div>
 
-      <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Games Played</h2>
+      <div className="mb-5 md:mb-8">
+        <h2 className="text-2xl md:text-3xl font-bold hand_font mb-2 md:mb-4">Game Title</h2>
         <select
           onChange={(e) => {
             const game = stats?.gameDetails.find(g => g.gameTitle === e.target.value);
             setSelectedGame(game || null);
           }}
           value={selectedGame?.gameTitle || ''}
-          className="w-full md:w-1/2 p-2 border border-gray-300 rounded"
+          className="w-full md:w-1/2 p-2 border border-gray-500 rounded"
         >
           {stats?.gameDetails.map(game => (
             <option key={game.gameTitle} value={game.gameTitle}>
@@ -88,7 +104,7 @@ export default function StatsPage() {
       </div>
 
       {selectedGame && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           <StatCard title="Average Score" value={selectedGame.averageScore.toFixed(2)} />
           <StatCard title="Highest Score" value={selectedGame.highestScore} />
           <StatCard title="Lowest Score" value={selectedGame.lowestScore} />
@@ -103,8 +119,8 @@ export default function StatsPage() {
 }
 
 const StatCard = ({ title, value }: { title: string; value: string | number }) => (
-  <div className="bg-white p-6 rounded-lg shadow-md">
-    <h3 className="text-lg font-medium text-gray-500">{title}</h3>
-    <p className="text-4xl font-bold text-gray-900 mt-2">{value}</p>
+  <div className="bg-white p-2 md:p-4 lg:p-5 rounded-lg shadow-md">
+    <h3 className="text-lg md:text-xl lg:text-2xl font-medium text-gray-500">{title}</h3>
+    <p className="text-xl md:text-3xl lg:text-4xl font-bold text-gray-900 mt-2">{value}</p>
   </div>
 );
