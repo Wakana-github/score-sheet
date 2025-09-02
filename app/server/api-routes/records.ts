@@ -34,14 +34,14 @@ const sanitizeAndValidateString = (input: string, maxLength: number, fieldName: 
 
   const trimmedInput = input.trim();
 
-   // Count visible characters before sanitizing
+   // Count visible characters before sanitizing 
   const segmenter = new Intl.Segmenter('ja', { granularity: 'grapheme' });
   const realLength = [...segmenter.segment(trimmedInput)].length;
   if (realLength > maxLength) {
     return { error: `${fieldName} cannot exceed ${maxLength} characters.` };
   }
 
- // Sanitization is performed after the character count check
+ // Sanitization with DOMPurify is performed after the character count check
   const sanitized = domPurify.sanitize(trimmedInput);
 
   return { value: sanitized };

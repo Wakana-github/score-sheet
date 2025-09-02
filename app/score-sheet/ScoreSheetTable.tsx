@@ -36,7 +36,8 @@ interface ScoreSheetTableProps {
   handleScoreChange: (row: number, col: number, value: string) => void;
   handleNumPlayersChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   handleNumScoreItemsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  allowedCharsRegex: RegExp;
+  allowedTitleRegex: RegExp;
+  allowedNameRegex: RegExp;
   allowedScoreRegex: RegExp;
   composingRefs: React.MutableRefObject<{ [key: string]: boolean }>;
 }
@@ -55,7 +56,8 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
   handleScoreChange,
   handleNumPlayersChange,
   handleNumScoreItemsChange,
-  allowedCharsRegex,
+  allowedTitleRegex,
+  allowedNameRegex,
   allowedScoreRegex,
   composingRefs,
 }) => {
@@ -76,7 +78,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                 "gameTitle",
                 e.currentTarget.value,
                 handleGameTitleChange,
-                allowedCharsRegex,
+                allowedTitleRegex,
                 "Game titles can only contain allowed characters."
               )
             }
@@ -136,9 +138,9 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                 .map((name, i) => (
                   <th
                     key={i}
-                    className={`table_green px-1 py-1 hand_font border-r border-gray-400 text-center min-w-[70px] max-w-[80px] ${getRankBackgroundColor(
-                      i
-                    )}`}
+                    className={
+                      `table_green px-1 py-1 hand_font border-r border-gray-400 text-center min-w-[70px] max-w-[80px] 
+                      ${getRankBackgroundColor(i)}`}
                   >
                     <input
                       type="text"
@@ -152,13 +154,13 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                           `player-${i}`,
                           e.currentTarget.value,
                           (val) => handlePlayerNameChange(i, val),
-                          allowedCharsRegex,
-                          "layer names can only use allowed characters."
+                          allowedNameRegex,
+                          "Player names can only use allowed characters."
                         )
                       }
-                      onChange={(e) =>
+                      onChange={(e) =>{
                         handlePlayerNameChange(i, e.target.value)
-                      }
+                      }}
                       className="w-full bg-transparent border-b border-gray-400 focus:outline-none focus:border-gray-400 text-center text-base text-white"
                     />
                   </th>
@@ -184,7 +186,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                           `scoreItem-${rowIdx}`,
                           e.currentTarget.value,
                           (val) => handleScoreItemNameChange(rowIdx, val),
-                          allowedCharsRegex,
+                          allowedNameRegex,
                           "スコア項目には、許可された文字のみ使用できます。"
                         )
                       }

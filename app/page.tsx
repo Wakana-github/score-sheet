@@ -56,6 +56,11 @@ export default function Home() {
     router.push('/records'); // render my record page
   };
 
+  //Change Nickname handler
+  const handleGoToNicknamePage = () => {
+    router.push('/set-nickname');
+  };
+
   // while loading data
   if (games.length === 0) {
     return (
@@ -125,7 +130,7 @@ export default function Home() {
           </div>
 
           {/* login / signin button */}
-         <div className=" my-7 text-xl flex justify-center items-center gap-4"> {/* flex, justify-center, items-center, gap-4 を追加してボタンを中央に並べる */}
+         <div className=" my-6 text-xl flex justify-center items-center gap-4"> {/* flex, justify-center, items-center, gap-4 を追加してボタンを中央に並べる */}
             <SignedOut>
               {/* Sign-in button*/}
               <SignInButton
@@ -149,11 +154,6 @@ export default function Home() {
                 </button>
               </SignUpButton>
             </SignedOut>
-
-            <SignedIn>
-              {/*  Display the user button if signed in */}
-              {/* <UserButton /> */}
-            </SignedIn>
           </div>
         </div>
       </div>

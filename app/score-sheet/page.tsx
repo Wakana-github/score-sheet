@@ -35,7 +35,8 @@ export default function ScoreSheetPage() {
     handleScoreItemNameChange,
     handleScoreChange,
     getRankBackgroundColor,
-    allowedCharsRegex,
+    allowedTitleRegex,
+    allowedNameRegex,
     allowedScoreRegex,
     composingRefs,
   } = useScoreSheet();
@@ -50,9 +51,9 @@ export default function ScoreSheetPage() {
   return (
 
       <main>
-              <div className="flex flex-col {` ${
+              <div className={`flex flex-col ${
     scoreData.numPlayers >= 8 ? 'justify-start' : 'justify-center'
-  }`}  min-h-screen py-3 px-2 bg-cover bg-center bg-no-repeat">
+  } min-h-screen py-3 px-2 bg-cover bg-center bg-no-repeat`}>
 
           <ScoreSheetTable
               scoreData={scoreData}
@@ -68,7 +69,8 @@ export default function ScoreSheetPage() {
               handleScoreChange={handleScoreChange}
               handleNumPlayersChange={handleNumPlayersChange}
               handleNumScoreItemsChange={handleNumScoreItemsChange}
-              allowedCharsRegex={allowedCharsRegex}
+              allowedTitleRegex={allowedTitleRegex}
+              allowedNameRegex={allowedNameRegex}
               allowedScoreRegex={allowedScoreRegex}
               composingRefs={composingRefs}
             />

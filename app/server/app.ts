@@ -5,6 +5,7 @@ import { ClerkExpressRequireAuth, ClerkExpressWithAuth } from '@clerk/clerk-sdk-
 import scoreRoutes from './api-routes/index.ts';
 import gameRoutes from './api-routes/games.ts';
 import dotenv from 'dotenv';
+import path from 'path'; 
 
 dotenv.config();
 
@@ -30,11 +31,12 @@ const corsOptions = {
 //middleware
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(ClerkExpressWithAuth()); 
+// app.use(ClerkExpressWithAuth()); 
 
 //API route
 app.use('/api/games', gameRoutes);
-app.use('/api/scores', scoreRoutes);
+app.use('/api/scores',ClerkExpressWithAuth(), scoreRoutes);
+
 
 //undefine route
 app.use((req: Request, res: Response) => {

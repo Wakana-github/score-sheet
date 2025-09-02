@@ -46,7 +46,8 @@ const MAX_TITLE_LENGTH = 35;
 const MAX_NAME_LENGTH = 30;
 
 // Regular expressions for input validation
-const allowedCharsRegex = /^[a-zA-Z0-9Ａ-Ｚａ-ｚ０-９\sぁ-んァ-ヶ一-龠ー\-_\.\/\(\)]*$/;
+const allowedTitleRegex = /^[a-zA-Z0-9Ａ-Ｚａ-ｚ０-９\sぁ-んァ-ヶ一-龠ー\-_\.\/\(\)]*$/; 
+const allowedNameRegex = /^[a-zA-Z0-9Ａ-Ｚａ-ｚ０-９\sぁ-んァ-ヶ一-龠ー\-_\.\/\(\)\u{1F000}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]*$/u;
 const allowedScoreRegex = /^[0-9\-]*$/;
 const segmenter = new Intl.Segmenter('ja', { granularity: 'grapheme' });
 
@@ -283,7 +284,8 @@ export default function useScoreSheet() {
     composingRefs.current[key] = true;
   };
 
-  const handleCompositionEnd = useCallback((key: string, value: string, handler: (value: string) => void, regex: RegExp, alertMessage: string) => {
+  const handleCompositionEnd = useCallback(
+    (key: string, value: string, handler: (value: string) => void, regex: RegExp, alertMessage: string) => {
     composingRefs.current[key] = false;
     if (!regex.test(value)) {
       alert(alertMessage);
@@ -294,6 +296,10 @@ export default function useScoreSheet() {
 
   // Update Game Title in state
   const handleGameTitleChange = useCallback((newTitle: string) => {
+     if (!allowedTitleRegex.test(newTitle)) {
+          alert("Game titles can only contain allowed characters.");
+      return;
+  }
 const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
   const length = [...segmenter.segment(normalizedTitle)].length; // count per grapheme
 
@@ -307,6 +313,11 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
 
   // Update Player Name in state
   const handlePlayerNameChange = useCallback((index: number, newName: string) => {
+
+     if (!allowedNameRegex.test(newName)) {
+      alert("Player names can only contain letters, numbers, Japanese characters, and emojis.");
+      return;
+  }
 
     const normalizedName = newName.trim().normalize('NFC');
     const length = [...segmenter.segment(normalizedName)].length;
@@ -325,8 +336,12 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
 
   // Update Score Item Name in state
   const handleScoreItemNameChange = useCallback((index: number, newName: string) => {
+    if (!allowedNameRegex.test(newName)) {
+      alert("Score item names can only contain letters, numbers, Japanese characters, and emojis.");
+      return;
+  }
 
-     const normalizedName = newName.trim().normalize('NFC');
+    const normalizedName = newName.trim().normalize('NFC');
     const length = [...segmenter.segment(normalizedName)].length;
 
     if (length > MAX_NAME_LENGTH) {
@@ -504,14 +519,14 @@ return Array.from({ length: prev.numPlayers }, (_, j) => existingRow[j] || "");
     } = scoreData;
 
        // validation for gametitle
-  if (!allowedCharsRegex.test(scoreData.gameTitle)) {
+  if (!allowedTitleRegex.test(scoreData.gameTitle)) {
       alert("Game titles can only contain allowed characters.");
       return;
   }
   
   // validation for player name and score items
   const allNames = [...scoreData.playerNames, ...scoreData.scoreItemNames];
-  if (!allNames.every(name => allowedCharsRegex.test(name))) {
+  if (!allNames.every(name => allowedNameRegex.test(name))) {
       alert("Player and item Names can only contain allowed characters.");
       return;
   }
@@ -620,7 +635,8 @@ if (!isTotalScoreValid) {
     handleScoreItemNameChange,
     handleScoreChange,
     getRankBackgroundColor,
-    allowedCharsRegex,
+    allowedTitleRegex,
+    allowedNameRegex,
     allowedScoreRegex,
     composingRefs,
   };

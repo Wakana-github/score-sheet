@@ -20,10 +20,9 @@ export async function createUser(user:UserCreationType ){
 export async function updateUser(clerkId: string, user: UserUpdateType) {
     try {
         await connectDB();
-        
         const updatedUser = await User.findOneAndUpdate(
             { clerkId: clerkId },
-            user,
+            { $set: user },
             { new: true, runValidators: true }
         );
         

@@ -27,7 +27,7 @@ router.get("/", ClerkExpressRequireAuth(), async (req: AuthenticatedRequest, res
 });
 
 // DELETE /api/scores/:id
-//  delete a score record by IDす。
+//  delete a score record by ID
 router.delete("/:id", ClerkExpressRequireAuth(),  async (req: AuthenticatedRequest, res: Response) => {
     try {
       //chsrk authorisation

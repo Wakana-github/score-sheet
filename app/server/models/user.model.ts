@@ -29,6 +29,12 @@ const UserSchema = new Schema({
     unique: true, // It's desirable for email addresses to be unique.
   },
 
+  //nickname
+   nickname: {
+    type: String,
+    sparse: true,
+  },
+
   // Fields for subscription information and other app-specific data.
   stripeCustomerId: {
     type: String,
@@ -69,6 +75,7 @@ export type UserCreationType = {
   clerkId: string;
   email: string;
   username: string | null;
+  nickname?: string | null; 
   stripeCustomerId?: string;
   subscriptionStatus?: 'active' | 'trialing' | 'canceled' | 'inactive';
    stripeSubscriptionId?: string;
@@ -80,6 +87,7 @@ export type UserCreationType = {
 export type UserUpdateType = {
     username?: string | null;
     email?: string;
+    nickname?: string | null; 
     stripeCustomerId?: string;
     subscriptionStatus?: 'active' | 'trialing' | 'canceled' | 'inactive';
     stripeSubscriptionId?: string;

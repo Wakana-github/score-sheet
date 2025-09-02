@@ -32,10 +32,10 @@ export default function SubscriptionButton({ subscriptionStatus, stripeCustomerI
   };
 
   const editPaymentDetails = async () => {
-     // データが存在するかを事前にチェック
+     // check id stripe data exists
     if (!stripeCustomerId) {
       console.error("Error: stripeCustomerId not found.");
-      return;// 処理を中断
+      return;
     }
     const url = await createUserPortalUrl(stripeCustomerId);
     if (url) {
@@ -49,7 +49,7 @@ export default function SubscriptionButton({ subscriptionStatus, stripeCustomerI
     return (
       <button
         onClick={editPaymentDetails}
-        className="bg-[#f1490c] hover:bg-[#991d1d] text-white py-2 px-4 rounded"
+        className="bg-[#f1490c] hover:bg-[#991d1d] text-white text-base md:text-lg  py-2 px-4 rounded"
       >
         Edit payment details
       </button>
@@ -58,7 +58,7 @@ export default function SubscriptionButton({ subscriptionStatus, stripeCustomerI
     return (
       <button
         onClick={handleClickSubscribeButton}
-        className="bg-[#f1490c] hover:bg-[#991d1d] text-white  py-2 px-4 rounded"
+        className="bg-[#f1490c] hover:bg-[#991d1d] text-white text-base  py-1 px-4 rounded"
       >
         Subscribe
       </button>

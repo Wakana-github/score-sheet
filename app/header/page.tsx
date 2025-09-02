@@ -50,8 +50,8 @@ export default function Header() {
   }, [isSignedIn, user]);
 
   return (
-    <header className="flex justify-between items-center p-4 h-16 bg-white shadow-xl fixed top-0 w-full header-styles">
-      {/* Left section: Mobile menu open icon AND Desktop navigation links */}
+    <header className="flex jus      {/* Left section: Mobile menu open icon AND Desktop navigation links */}tify-between items-center p-4 h-16 bg-white shadow-xl fixed top-0 w-full header-styles">
+
       <div className="left-section flex items-center gap-3">
         {/* Mobile menu open icon (visible only on mobile) */}
         <div className="fixed top-4 right-4 z-50 lg:hidden">
@@ -66,29 +66,32 @@ export default function Header() {
         </div>
 
         {/* Desktop navigation links (hidden on mobile) */}
-        <div className="pl-10 hidden lg:flex items-center gap-3">
+        <div className="pl-10 hidden lg:flex items-center gap-3 ">
           {" "}
           {/* Hidden by default, flex on large screens and up */}
           <Link href="/" passHref>
-            <button className=" hover:text-blue-800 text-2xl font-medium px-4 py-2 rounded-md transition-colors duration-200">
+            <button className=" hover:text-blue-800 text-2xl  font-medium px-4 md:px-2 py-2 rounded-md transition-colors duration-200">
               <span className="hand_font">Home</span>
             </button>
           </Link>
           <Link href="/custom-sheet" passHref>
-            <button className=" hover:text-blue-800 text-2xl font-medium px-4 py-2 rounded-md transition-colors duration-200">
+            <button className=" hover:text-blue-800 text-2xl font-medium px-4 md:px-2  py-2 rounded-md transition-colors duration-200">
               <span className="hand_font">Custom Sheet</span>
             </button>
           </Link>
           <Link href="/records" passHref>
-            <button className=" hover:text-blue-800 text-2xl font-medium px-4 py-2 rounded-md transition-colors duration-200">
+            <button className=" hover:text-blue-800 text-2xl  font-medium px-4 md:px-2 py-2 rounded-md transition-colors duration-200">
               <span className="hand_font">My Records</span>
             </button>
           </Link>
           <Link href="/stats" passHref>
-            <button className=" hover:text-blue-800 text-2xl font-medium px-4 py-2 rounded-md transition-colors duration-200">
+            <button className=" hover:text-blue-800 text-2xl  font-medium px-4 md:px-2 py-2 rounded-md transition-colors duration-200">
               <span className="hand_font">Statistics</span>
             </button>
           </Link>
+
+      
+
         </div>
       </div>
 
@@ -127,6 +130,15 @@ export default function Header() {
               Statistics
             </span>
           </Link>
+        </li>
+        <li>
+          <SignedIn>
+              {/*  Display the user button if signed in */}
+              <Link href="/set-nickname" passHref onClick={handleLinkClick}>
+                <button className="bg-blue-500  text-white text-sm rounded-full border-none cursor-pointer  px-3 py-1"
+              >Set Nickname</button>
+              </Link>
+            </SignedIn>
         </li>
 
         {/* Mobile-specific Sign In/Up buttons within the menu */}
@@ -171,16 +183,8 @@ export default function Header() {
       </ul>
 
       {/* Right section: Clerk authentication buttons (Desktop only) */}
-      <div className="right-section hidden lg:flex items-center gap-2 mx-3">
-        {/* Subscription button */}
-        {isLoaded && isSignedIn && !isLoadingUserData && (
-          <div className="flex items-center gap-2 px-2">
-            <SubscriptionButton
-              subscriptionStatus={userData?.subscriptionStatus}
-              stripeCustomerId={userData?.stripeCustomerId}
-            />
-          </div>
-        )}
+      <div className="right-section hidden lg:flex items-center gap-2 mx-3 flex-grow justify-end">
+       {/*  Display the sign in/up button if signed in */}
         <SignedOut>
           <SignInButton />
           <SignUpButton>
@@ -189,12 +193,32 @@ export default function Header() {
             </button>
           </SignUpButton>
         </SignedOut>
+
         <SignedIn>
+
+              {/*  Display nichname, user, and edit subscription buttons if signed in */}
+              <div className="flex items-center gap-2 ml-auto">
+              <Link href="/set-nickname" passHref onClick={handleLinkClick}>
+                <button className="bg-blue-500  text-white text-sm md:text-lg rounded-full border-none cursor-pointer  px-4 py-1 ml-7"
+              >Set Nickname</button>
+              </Link>
+
           {/* Clerk user name and icon */}
-          <p className="text-sm pr-2">
+          <p className="text-sm pr-2 md:text-lg ">
             {user?.username ? `${user.username}:` : "Profile:"}
           </p>
           <UserButton />
+
+           {/* Subscription button */}
+        {isLoaded && isSignedIn && !isLoadingUserData && (
+          <div className="flex items-center gap-2 px-2">
+            <SubscriptionButton
+              subscriptionStatus={userData?.subscriptionStatus}
+              stripeCustomerId={userData?.stripeCustomerId}
+            />
+          </div>
+        )}
+        </div>
         </SignedIn>
       </div>
     </header>
