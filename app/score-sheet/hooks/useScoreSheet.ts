@@ -69,7 +69,18 @@ export default function useScoreSheet() {
 
   const userPlan = user?.publicMetadata?.subscriptionStatus || "free";
 
-  const [scoreData, setScoreData] = useState<ScoreData>({
+  const [scoreData, setScoreData] = useState<ScoreData>(() => {
+  // fetch username, set null if it does not exist.
+  const userNickname = (user?.publicMetadata?.nickname && typeof user.publicMetadata.nickname === 'string')
+    ? user.publicMetadata.nickname
+    : null;
+
+  // set first playername as nickname
+  const initialPlayerNames = [
+    userNickname || "Player 1",
+    ...Array(2).fill("").map((_, i) => `Player ${i + 2}`)
+  ];
+    return {
     _id: uuidv4(),
     gameTitle: "",
     playerNames: Array(3).fill("").map((_, i) => `Player ${i + 1}`),
@@ -80,6 +91,7 @@ export default function useScoreSheet() {
     createdAt: new Date().toISOString(),
     lastSavedAt: new Date().toISOString(),
     userId: userId || "",
+    };
   });
 
   const [loading, setLoading] = useState(true);
@@ -187,10 +199,16 @@ export default function useScoreSheet() {
           setLoading(false);
         }
       } else {
+        //set initial sheet
         const gameId = searchParams.get("gameId");
         const customGameName = searchParams.get("name");
         const customRows = searchParams.get("rows");
         const customColumns = searchParams.get("columns");
+
+        //fetch user nickname\
+        const userNickname = (user?.publicMetadata?.nickname && typeof user.publicMetadata.nickname === 'string')
+        ? user.publicMetadata.nickname
+        : null;
 
         let initialGameTitle = "New Score Sheet";
         let initialNumPlayers = 3;
@@ -209,7 +227,12 @@ export default function useScoreSheet() {
               initialGameTitle = selectedGame.title;
               initialNumPlayers = selectedGame.column;
               initialNumScoreItems = selectedGame.row;
-              initialPlayerNames = Array.from({ length: selectedGame.column }, (_, i) => `Player ${i + 1}`);
+              initialPlayerNames = Array.from({ length: selectedGame.column }, (_, i) => {
+              if (i === 0 && userNickname) {
+                return userNickname;
+              }
+              return `Player ${i + 1}`;
+            });
               initialScoreItemNames = selectedGame.score_items;
             } else {
               console.error("Game not found.");
@@ -247,7 +270,12 @@ export default function useScoreSheet() {
           initialGameTitle = decodeURIComponent(customGameName);
           initialNumPlayers = parsedColumns;
           initialNumScoreItems = parsedRows - 1;
-          initialPlayerNames = Array.from({ length: parsedColumns }, (_, i) => `Player ${i + 1}`);
+          initialPlayerNames = Array.from({ length: parsedColumns }, (_, i) => {
+          if (i === 0 && userNickname) {
+            return userNickname;
+          }
+          return `Player ${i + 1}`;
+        });
           initialScoreItemNames = Array.from({ length: parsedRows - 1 }, (_, i) => `Item ${i + 1}`);
         } else {
           router.push("/custom-sheet");
