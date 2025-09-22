@@ -47,7 +47,7 @@ const MAX_NAME_LENGTH = 30;
 
 // Regular expressions for input validation
 const allowedTitleRegex = /^[a-zA-Z0-9Ａ-Ｚａ-ｚ０-９\sぁ-んァ-ヶ一-龠ー\-_\.\/\(\)]*$/; 
-const allowedNameRegex = /^[a-zA-Z0-9Ａ-Ｚａ-ｚ０-９\sぁ-んァ-ヶ一-龠ー\-_\.\/\(\)\u{1F000}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]*$/u;
+const allowedNameRegex = /^[a-zA-Z0-9Ａ-Ｚａ-ｚ０-９\sぁ-んァ-ヶ一-龠ー\-_\.\/\(\)\u{3000}-\u{303F}\u{3040}-\u{309F}\u{30A0}-\u{30FF}\u{4E00}-\u{9FFF}\u{FF01}-\u{FF5E}\u{20}-\u{7E}\u{1F000}-\u{1FA6F}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{25A0}-\u{25FF}\u{2B00}-\u{2BFF}\u{FE0F}]*$/u;
 const allowedScoreRegex = /^[0-9\-]*$/;
 const segmenter = new Intl.Segmenter('ja', { granularity: 'grapheme' });
 
@@ -315,7 +315,7 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
   const handlePlayerNameChange = useCallback((index: number, newName: string) => {
 
      if (!allowedNameRegex.test(newName)) {
-      alert("Player names can only contain letters, numbers, Japanese characters, and emojis.");
+      alert("Player names can only contain letters, numbers, Japanese characters, and some emojis.");
       return;
   }
 
@@ -337,7 +337,7 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
   // Update Score Item Name in state
   const handleScoreItemNameChange = useCallback((index: number, newName: string) => {
     if (!allowedNameRegex.test(newName)) {
-      alert("Score item names can only contain letters, numbers, Japanese characters, and emojis.");
+      alert("Score item names can only contain letters, numbers, Japanese characters, and some emojis.");
       return;
   }
 
