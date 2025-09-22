@@ -44,7 +44,7 @@ export default function Stats() {
 
 
   //Display stats page for active user
-// 実際のstatsページのコンテンツをJSX要素として定義
+// Define the actual stats page content as a JSX element
   const statsContent = (
     <div>
       <h1>{user?.username}'s stats </h1>
