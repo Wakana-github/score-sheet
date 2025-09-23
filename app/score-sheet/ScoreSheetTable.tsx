@@ -97,7 +97,7 @@ useEffect(() => {
               )
             }
             className="w-full text-center bg-transparent border-b-2 border-gray-400 focus:outline-none focus:border-blue-500 text-black font-bold text-2xl py-1 px-2"
-          />
+          />o ko
         </h1>
         {/* munber of score items and players */}
         <div className="flex justify-end items-center text-lg hand_font text-gray-700 w-full mb-4">
@@ -188,7 +188,7 @@ useEffect(() => {
               .map((itemName, rowIdx) => (
                 <tr key={rowIdx}>
                   {/* Score Items */}
-                  <td className="px-1 py-1 border-r hand_font border-gray-400 w-24 text-center text-base text-black min-w-[80px] max-w-[100px] sticky left-0 z-20 bg-gray-200">
+                  <td className="px-1 py-1 border-r hand_font border-gray-400 w-24 text-center text-base text-black min-w-[80px] max-w-[100px] sticky left-0 z-20 bg-[#f1e9e1]">
                     <input
                       type="text"
                       value={he.decode(scoreData.scoreItemNames[rowIdx])}
