@@ -1,5 +1,5 @@
 // ScoreSheetTable.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import he from "he";
 
 // ScoreData state interface (for form management).
@@ -61,6 +61,20 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
   allowedScoreRegex,
   composingRefs,
 }) => {
+//check if creen size is small
+const [isSmallScreen, setIsSmallScreen] = useState(false);
+useEffect(() => {
+    const checkScreenSize = () => {
+      setIsSmallScreen(window.innerWidth < 500);
+    };
+    // check screen size when first rendering or resize
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    // creenup funciton
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
+
   return (
     <div className="flex flex-col items-center justify-start py-3 px-2 bg-cover bg-center bg-no-repeat">
       <div className="flex flex-wrap justify-center items-center px-2">
@@ -121,12 +135,13 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
       </div>
         
     <div className={`flex overflow-x-auto w-full ${
-    scoreData.numPlayers >= 8 ? 'justify-start' : 'justify-center'
-  }`}
->
+      scoreData.numPlayers >= 8 ? 'justify-start' : 'justify-center'
+      }`}
+    >
+  <div className={` ${scoreData.numPlayers >= 4 && isSmallScreen ? 'w-full overflow-x-auto sm:overflow-x-visible' : ''}`}>
       <div className="inline-block min-w-max bg-transparent ">
-        <table className = "tableWidth divide-gray-400 border border-gray-400 text-base text-white">
-          <thead>
+        <table className = "tableWidth divide-gray-400 border border-gray-400 text-base text-white min-w-max">
+          <thead className="sticky top-0 z-30">
             <tr>
               {/* score items' header) */}
               <th className="table_green px-1 py-1 text-center text-base hand_font uppercase tracking-wider border-r border-gray-400 w-[80px] max-w-[100px] sticky left-0 z-20">
@@ -261,6 +276,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
         </div>
       </div>
     </div>
+  </div>
   );
 };
 
