@@ -18,6 +18,7 @@ interface ScoreRecord {
   createdAt: string; // ISO 8601 formatted string (e.g., "2023-10-27T10:00:00.000Z")
   lastSavedAt: string; // ISO 8601 formatted string
   userId: string;
+  custom: boolean; 
 }
 
 // Interface for the state of the score sheet in the form.
@@ -33,6 +34,7 @@ interface ScoreData {
   createdAt: string;
   lastSavedAt: string;
   userId: string;
+  custom: boolean;
 }
 
 // API endpoint URL for database operations
@@ -68,6 +70,7 @@ export default function useScoreSheet() {
   const { user } = useUser();
 
   const userPlan = user?.publicMetadata?.subscriptionStatus || "free";
+  
 
   const [scoreData, setScoreData] = useState<ScoreData>(() => {
   // fetch username, set null if it does not exist.
@@ -91,6 +94,7 @@ export default function useScoreSheet() {
     createdAt: new Date().toISOString(),
     lastSavedAt: new Date().toISOString(),
     userId: userId || "",
+    custom: false,
     };
   });
 
@@ -99,6 +103,7 @@ export default function useScoreSheet() {
   const [playerRanks, setPlayerRanks] = useState<number[]>([]);
   const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false);
 
+  const originalNumScoreItems = useRef<number>(0);
   const composingRefs = useRef<{ [key: string]: boolean }>({});
 
   const calculateTotalScores = useMemo(() => {
@@ -185,7 +190,9 @@ export default function useScoreSheet() {
             createdAt: recordToLoad.createdAt,
             lastSavedAt: recordToLoad.lastSavedAt,
             userId: recordToLoad.userId,
+            custom: recordToLoad.custom,
           });
+          originalNumScoreItems.current = recordToLoad.numScoreItems;
           setShowTotal(true);
         } catch (error) {
           console.error("Error loading record:", error);
@@ -215,6 +222,7 @@ export default function useScoreSheet() {
         let initialNumScoreItems = 3;
         let initialPlayerNames: string[] = Array(3).fill("").map((_, i) => `Player ${i + 1}`);
         let initialScoreItemNames: string[] = Array(3).fill("").map((_, i) => `Round ${i + 1}`);
+        let customSheet = false;
 
         if (gameId) {
           try {
@@ -234,6 +242,9 @@ export default function useScoreSheet() {
               return `Player ${i + 1}`;
             });
               initialScoreItemNames = selectedGame.score_items;
+              customSheet = false;
+              
+
             } else {
               console.error("Game not found.");
               router.push("/");
@@ -254,6 +265,7 @@ export default function useScoreSheet() {
         } else if (customRows && customColumns && customGameName) {
           const parsedRows = Number(customRows);
           const parsedColumns = Number(customColumns);
+          customSheet = true; 
 
           if (
             isNaN(parsedRows) ||
@@ -277,6 +289,8 @@ export default function useScoreSheet() {
           return `Player ${i + 1}`;
         });
           initialScoreItemNames = Array.from({ length: parsedRows - 1 }, (_, i) => `Item ${i + 1}`);
+          customSheet = true; 
+          originalNumScoreItems.current = initialNumScoreItems; 
         } else {
           router.push("/custom-sheet");
           setLoading(false);
@@ -294,6 +308,7 @@ export default function useScoreSheet() {
           createdAt: new Date().toISOString(),
           lastSavedAt: new Date().toISOString(),
           userId: userId || "",
+          custom: customSheet
         });
         setShowTotal(false);
         setLoading(false);
@@ -381,9 +396,16 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
     setScoreData((prev) => {
       const updatedScoreItemNames = [...prev.scoreItemNames];
       updatedScoreItemNames[index] = newName;
-      return { ...prev, scoreItemNames: updatedScoreItemNames };
+      const customSheet = true;
+
+
+      return { 
+        ...prev, 
+        scoreItemNames: updatedScoreItemNames,
+        custom:customSheet,
+       };
     });
-  }, []);
+  }, [scoreData]);
 
   
   // Update a specific score cell
@@ -487,15 +509,20 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
  i < prev.scoreItemNames.length ? he.decode(prev.scoreItemNames[i]) : `Round ${i + 1}`
  );
      const newScores = Array.from({ length: newNum }, (_, i) => {
-const existingRow = prev.scores[i] || [];
+     const existingRow = prev.scores[i] || [];
 return Array.from({ length: prev.numPlayers }, (_, j) => existingRow[j] || "");
  });
+
+ // Update custom status and title
+      const isCustomNow = newNum !== originalNumScoreItems.current;
+      const customSheet = prev.custom || isCustomNow;
    
       return {
         ...prev,
         numScoreItems: newNum,
         scoreItemNames: newScoreItemNames,
         scores: newScores,
+        custom: customSheet,
       };
     });
   }, []);
@@ -590,6 +617,7 @@ if (!isTotalScoreValid) {
   userId: userId,
   numPlayers,
   numScoreItems,
+  custom: scoreData.custom,
 };
 
     try {

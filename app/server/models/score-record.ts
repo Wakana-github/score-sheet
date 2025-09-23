@@ -16,6 +16,7 @@ export interface IScoreRecord extends mongoosePkg.Document {
   createdAt: Date;
   lastSavedAt: Date;
   userId: string;
+  custom: boolean; 
   groupId?: string; 
 }
 
@@ -36,6 +37,7 @@ const ScoreRecordSchema = new Schema({
   createdAt: { type: Date, default: Date.now }, 
   lastSavedAt: { type: Date, default: Date.now },
   userId: { type: String, required: true },
+  custom: { type: Boolean, required: true },
   groupId: { type: String, required: false }
 });
 

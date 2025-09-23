@@ -91,7 +91,7 @@ router.post(
       }
 
       //fetch data from req.body
-      const { id, gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems } = req.body;
+      const { id, gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, custom } = req.body;
 
 
       
@@ -145,6 +145,7 @@ router.post(
         userId: userId,
         createdAt: new Date(),
         lastSavedAt: new Date(),
+        custom: typeof custom === 'boolean' ? custom : false,
       };
 
       const record: IScoreRecord = await ScoreRecord.create(newRecordData);
@@ -268,7 +269,7 @@ router.put(
       const recordId = req.params.id;
 
  // Only get the necessary data from the request body
-      const { gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems } = req.body;
+      const { gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, custom } = req.body;
 
       // === Add validation and sanitization using DOMPurify===
       const sanitizedTitle = sanitizeAndValidateString(gameTitle, MAX_TITLE_LENGTH, 'gameTitle');
@@ -315,6 +316,7 @@ router.put(
         numPlayers,
         numScoreItems,
         lastSavedAt: new Date(),
+        custom: typeof custom === 'boolean' ? custom : false, 
       };
 
 
