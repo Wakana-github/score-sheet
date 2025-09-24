@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { allowedNameRegex, allowedGroupRegex, MAX_GROUP_NAME_LENGTH, MAX_NAME_LENGTH} from '../../lib/constants.ts'; 
-import { useAuth } from '@clerk/nextjs'
+import { useAuth, useUser } from '@clerk/nextjs'
 import he from 'he';
 import LoadingPage from '@/components/lodingPage';
 
@@ -27,10 +27,11 @@ const GroupRegisterPage: React.FC = () => {
   const groupId = searchParams.get('id');
 
   const { isLoaded, isSignedIn, getToken } = useAuth();
+  const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [groupName, setGroupName] = useState('');
-  const [numMembers, setNumMembers] = useState(3);
-  const [members, setMembers] = useState<string[]>(Array(3).fill(''));
+  const [numMembers, setNumMembers] = useState(2);
+  const [members, setMembers] = useState<string[]>(Array(2).fill(''));
   const [isLoading, setIsLoading] = useState(false)
 
 
@@ -48,14 +49,19 @@ const GroupRegisterPage: React.FC = () => {
         await fetchGroupData(groupId);
       } else {
         setGroupName('');
-        setNumMembers(3);
-        setMembers(Array(3).fill(''));
-        
+        setNumMembers(2);
+        // メンバー1をログインユーザーの名前に設定
+        const userDisplayName = user?.publicMetadata?.nickname && typeof user.publicMetadata.nickname === 'string'
+        ? user.publicMetadata.nickname
+        : user?.username;
+        const initialMembers = [userDisplayName, ...Array(1).fill('')];
+        setMembers(initialMembers);
+
         setIsLoading(false);
       }
     }
     initData();
-  }, [groupId, isLoaded, isSignedIn, router]);
+  }, [groupId, isLoaded, isSignedIn, router, user]);
 
   useEffect(() => {
     // Resize the member list based on the number of members
@@ -224,7 +230,7 @@ if (!isLoaded || !isSignedIn || isLoading) {
             onChange={(e) => setNumMembers(Number(e.target.value))}
             className="w-full mt-1 p-2 border rounded-md"
           >
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+            {[2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
               <option key={num} value={num}>{num}</option>
             ))}
           </select>
@@ -241,6 +247,7 @@ if (!isLoaded || !isSignedIn || isLoading) {
               onBlur={(e) => validateMemberName(e.target.value)}
               className="w-full mt-1 p-2 border rounded-md"
               required
+              disabled={index === 0}
             />
           </div>
         ))}
