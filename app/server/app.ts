@@ -4,6 +4,7 @@ import connectDB from './helper/score-sheet-db.ts';
 import { ClerkExpressRequireAuth, ClerkExpressWithAuth } from '@clerk/clerk-sdk-node';
 import scoreRoutes from './api-routes/index.ts';
 import gameRoutes from './api-routes/games.ts';
+import groupsRouter from './api-routes/groups.ts';
 import dotenv from 'dotenv';
 import path from 'path'; 
 
@@ -36,6 +37,7 @@ app.use(express.json());
 //API route
 app.use('/api/games', gameRoutes);
 app.use('/api/scores',ClerkExpressWithAuth(), scoreRoutes);
+app.use('/api/groups',ClerkExpressWithAuth(), groupsRouter);
 
 
 //undefine route

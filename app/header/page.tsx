@@ -50,7 +50,7 @@ export default function Header() {
   }, [isSignedIn, user]);
 
   return (
-    <header className="flex jus      {/* Left section: Mobile menu open icon AND Desktop navigation links */}tify-between items-center p-4 h-16 bg-white shadow-xl fixed top-0 w-full header-styles">
+    <header className="flex jus      {/* Left section: Mobile menu open icon AND Desktop navigation links */}tify-between items-center p-4 h-16 bg-white shadow-xl fixed top-0 w-full header-styles z-10">
 
       <div className="left-section flex items-center gap-3">
         {/* Mobile menu open icon (visible only on mobile) */}

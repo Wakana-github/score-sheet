@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const { default: mongoose } = mongoosePkg;
-type MongooseType = typeof mongoose; // 型が必要な場合
+type MongooseType = typeof mongoose; // when requires types
 
   // connection URL in .env
   const MONGODB_URI = process.env.MONGO_URI as string;

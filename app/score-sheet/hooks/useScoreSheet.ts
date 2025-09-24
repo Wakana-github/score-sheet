@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
+import { allowedTitleRegex, allowedNameRegex, allowedScoreRegex, MAX_SCORE_ITEMS, MAX_PLAYERS, MAX_TITLE_LENGTH, MAX_NAME_LENGTH } from '../../lib/constants.ts'; 
 import { useAuth, useUser } from "@clerk/nextjs";
 import he from 'he';
 
@@ -41,16 +42,8 @@ interface ScoreData {
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/scores";
 
-// Max limits for players and score items to prevent excessive data size
-const MAX_SCORE_ITEMS = 15;
-const MAX_PLAYERS = 10;
-const MAX_TITLE_LENGTH = 35;
-const MAX_NAME_LENGTH = 30;
 
-// Regular expressions for input validation
-const allowedTitleRegex = /^[a-zA-Z0-9Ａ-Ｚａ-ｚ０-９\sぁ-んァ-ヶ一-龠ー\-_\.\/\(\)]*$/; 
-const allowedNameRegex = /^[a-zA-Z0-9Ａ-Ｚａ-ｚ０-９\sぁ-んァ-ヶ一-龠ー\-_\.\/\(\)\u{3000}-\u{303F}\u{3040}-\u{309F}\u{30A0}-\u{30FF}\u{4E00}-\u{9FFF}\u{FF01}-\u{FF5E}\u{20}-\u{7E}\u{1F000}-\u{1FA6F}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{25A0}-\u{25FF}\u{2B00}-\u{2BFF}\u{FE0F}]*$/u;
-const allowedScoreRegex = /^[0-9\-]*$/;
+
 const segmenter = new Intl.Segmenter('ja', { granularity: 'grapheme' });
 
 // Temporary interface for initializing a new sheet from a game template
@@ -422,7 +415,7 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
   }
   
   // ① check invalid string (exept numbers and minus)
-  if (!/^-?\d*$/.test(value)) {
+  if (!allowedScoreRegex.test(value)) {
     alert("Score can only contain numbers or a minus sign.");
     return;
   }

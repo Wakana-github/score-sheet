@@ -51,7 +51,7 @@ const sanitizeAndValidateString = (input: string, maxLength: number, fieldName: 
 const apiLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // over 5 minutes
   max: 100, // allow a maximum of 100 requests
-  message: "Too many requests from this IP, please try again after 15 minutes",
+  message: "Too many requests in a short time, please try again later.",
 });
 
 

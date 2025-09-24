@@ -61,9 +61,9 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
   allowedScoreRegex,
   composingRefs,
 }) => {
-//check if creen size is small
-const [isSmallScreen, setIsSmallScreen] = useState(false);
-useEffect(() => {
+  //check if creen size is small
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+  useEffect(() => {
     const checkScreenSize = () => {
       setIsSmallScreen(window.innerWidth < 500);
     };
@@ -73,7 +73,6 @@ useEffect(() => {
     // creenup funciton
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
-
 
   return (
     <div className="flex flex-col items-center justify-start py-3 px-2 bg-cover bg-center bg-no-repeat">
@@ -97,7 +96,7 @@ useEffect(() => {
               )
             }
             className="w-full text-center bg-transparent border-b-2 border-gray-400 focus:outline-none focus:border-blue-500 text-black font-bold text-2xl py-1 px-2"
-          />o ko
+          />
         </h1>
         {/* munber of score items and players */}
         <div className="flex justify-end items-center text-lg hand_font text-gray-700 w-full mb-4">
@@ -133,150 +132,170 @@ useEffect(() => {
           </select>
         </div>
       </div>
-        
-    <div className={`flex overflow-x-auto w-full ${
-      scoreData.numPlayers >= 8 ? 'justify-start' : 'justify-center'
-      }`}
-    >
-  <div className={` ${scoreData.numPlayers >= 4 && isSmallScreen ? 'w-full overflow-x-auto sm:overflow-x-visible' : ''}`}>
-      <div className="inline-block min-w-max bg-transparent ">
-        <table className = "tableWidth divide-gray-400 border border-gray-400 text-base text-white min-w-max">
-          <thead className="sticky top-0 z-30">
-            <tr>
-              {/* score items' header) */}
-              <th className="table_green px-1 py-1 text-center text-base hand_font uppercase tracking-wider border-r border-gray-400 w-[80px] max-w-[100px] sticky left-0 z-20">
-                Score Items
-              </th>
-              {/* Player's header */}
-              {scoreData.playerNames
-                .slice(0, scoreData.numPlayers)
-                .map((name, i) => (
-                  <th
-                    key={i}
-                    className={
-                      `table_green px-1 py-1 hand_font border-r border-gray-400 text-center min-w-[70px] max-w-[80px] 
-                      ${getRankBackgroundColor(i)}`}
-                  >
-                    <input
-                      type="text"
-                      value={he.decode(scoreData.playerNames[i])}
-                      placeholder={`Player ${i + 1}`}
-                      onCompositionStart={() =>
-                        handleCompositionStart(`player-${i}`)
-                      }
-                      onCompositionEnd={(e) =>
-                        handleCompositionEnd(
-                          `player-${i}`,
-                          e.currentTarget.value,
-                          (val) => handlePlayerNameChange(i, val),
-                          allowedNameRegex,
-                          "Player names can only use allowed characters."
-                        )
-                      }
-                      onChange={(e) =>{
-                        handlePlayerNameChange(i, e.target.value)
-                      }}
-                      className="w-full bg-transparent border-b border-gray-400 focus:outline-none focus:border-gray-400 text-center text-base text-white"
-                    />
+
+      <div
+        className={`flex overflow-x-auto w-full ${
+          scoreData.numPlayers >= 8 ? "justify-start" : "justify-center"
+        }`}
+      >
+        <div
+          className={` ${
+            scoreData.numPlayers >= 4 && isSmallScreen
+              ? "w-full overflow-x-auto sm:overflow-x-visible"
+              : ""
+          }`}
+        >
+          <div className="inline-block min-w-max bg-transparent ">
+            <table className="tableWidth divide-gray-400 border border-gray-400 text-base text-white min-w-max">
+              <thead className="sticky top-0 z-0">
+                <tr>
+                  {/* score items' header) */}
+                  <th className="table_green px-1 py-1 text-center text-base hand_font uppercase tracking-wider border-r border-gray-400 w-[80px] max-w-[100px] sticky left-0 z-0">
+                    Score Items
                   </th>
-                ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-400">
-            {scoreData.scoreItemNames
-              .slice(0, scoreData.numScoreItems)
-              .map((itemName, rowIdx) => (
-                <tr key={rowIdx}>
-                  {/* Score Items */}
-                  <td className="px-1 py-1 border-r hand_font border-gray-400 w-24 text-center text-base text-black min-w-[80px] max-w-[100px] sticky left-0 z-20 bg-[#f1e9e1]">
-                    <input
-                      type="text"
-                      value={he.decode(scoreData.scoreItemNames[rowIdx])}
-                      placeholder={`Item ${rowIdx + 1}`}
-                      onCompositionStart={() =>
-                        handleCompositionStart(`scoreItem-${rowIdx}`)
-                      }
-                      onCompositionEnd={(e) =>
-                        handleCompositionEnd(
-                          `scoreItem-${rowIdx}`,
-                          e.currentTarget.value,
-                          (val) => handleScoreItemNameChange(rowIdx, val),
-                          allowedNameRegex,
-                          "スコア項目には、許可された文字のみ使用できます。"
-                        )
-                      }
-                      onChange={(e) =>
-                        handleScoreItemNameChange(rowIdx, e.target.value)
-                      }
-                      className="w-full bg-transparent border-b border-gray-400 focus:outline-none focus:border-gray-400 text-base text-black"
-                    />
-                  </td>
-                  {/* Enter scores */}
-                  {Array.from({ length: scoreData.numPlayers }).map(
-                    (_, colIdx) => (
-                      <td
-                        key={colIdx}
-                        className="px-1 border-r hand_font border-gray-400 text-center text-black min-w-[60px] max-w-[80px]"
+                  {/* Player's header */}
+                  {scoreData.playerNames
+                    .slice(0, scoreData.numPlayers)
+                    .map((name, i) => (
+                      <th
+                        key={i}
+                        className={`table_green px-1 py-1 hand_font border-r border-gray-400 text-center min-w-[70px] max-w-[80px] 
+                      ${getRankBackgroundColor(i)}`}
                       >
                         <input
                           type="text"
-                          inputMode="numeric"
-                          pattern="[0-9\-]*"
-                          value={scoreData.scores[rowIdx]?.[colIdx] || ""}
-                          onChange={(e) => {
-    // composingRefがtrueの場合は、onChangeを無視する
-    if (composingRefs.current[`score-${rowIdx}-${colIdx}`]) {
-      return;
-    }
-    // 即座に簡易的なバリデーションを実行
-    if (allowedScoreRegex.test(e.target.value) || e.target.value === "") {
-      handleScoreChange(rowIdx, colIdx, e.target.value);
-    }
-  }}
+                          value={he.decode(scoreData.playerNames[i])}
+                          placeholder={`Player ${i + 1}`}
                           onCompositionStart={() =>
-                            handleCompositionStart(`score-${rowIdx}-${colIdx}`)
+                            handleCompositionStart(`player-${i}`)
                           }
                           onCompositionEnd={(e) =>
                             handleCompositionEnd(
-                              `score-${rowIdx}-${colIdx}`,
+                              `player-${i}`,
                               e.currentTarget.value,
-                              (val) => handleScoreChange(rowIdx, colIdx, val),
-                              allowedScoreRegex,
-                              "スコアは半角数字とハイフンのみ使用できます。"
+                              (val) => handlePlayerNameChange(i, val),
+                              allowedNameRegex,
+                              "Player names can only use allowed characters."
                             )
                           }
-                          className="w-full text-center text-lg font-bold bg-transparent rounded focus:outline-none focus:ring-1 focus:ring-grey-100 text-black"
-                          placeholder="0"
+                          onChange={(e) => {
+                            handlePlayerNameChange(i, e.target.value);
+                          }}
+                          className="w-full bg-transparent border-b border-gray-400 focus:outline-none focus:border-gray-400 text-center text-base text-white"
+                        />
+                      </th>
+                    ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-400">
+                {scoreData.scoreItemNames
+                  .slice(0, scoreData.numScoreItems)
+                  .map((itemName, rowIdx) => (
+                    <tr key={rowIdx}>
+                      {/* Score Items */}
+                      <td className="px-1 py-1 border-r hand_font border-gray-400 w-24 text-center text-base text-black min-w-[80px] max-w-[100px] sticky left-0 z-0 bg-[#f1e9e1]">
+                        <input
+                          type="text"
+                          value={he.decode(scoreData.scoreItemNames[rowIdx])}
+                          placeholder={`Item ${rowIdx + 1}`}
+                          onCompositionStart={() =>
+                            handleCompositionStart(`scoreItem-${rowIdx}`)
+                          }
+                          onCompositionEnd={(e) =>
+                            handleCompositionEnd(
+                              `scoreItem-${rowIdx}`,
+                              e.currentTarget.value,
+                              (val) => handleScoreItemNameChange(rowIdx, val),
+                              allowedNameRegex,
+                              "Scores can only contain allowed characters."
+                            )
+                          }
+                          onChange={(e) =>
+                            handleScoreItemNameChange(rowIdx, e.target.value)
+                          }
+                          className="w-full bg-transparent border-b border-gray-400 focus:outline-none focus:border-gray-400 text-base text-black"
                         />
                       </td>
-                    )
-                  )}
-                </tr>
-              ))}
-            {/* 合計行 */}
-            <tr className="text-xl font-bold hand_font text-white text-center table_green">
-              <td className="px-2 py-1 border-r hand_font border-gray-400">
-                Total
-              </td>
-              {calculateTotalScores
-                .slice(0, scoreData.numPlayers)
-                .map((total, i) => (
-                  <td
-                    key={`total-${i}`}
-                    className={`px-1 py-0.5 border-r hand_font border-gray-400 text-center min-w-[60px] max-w-[80px] ${getRankBackgroundColor(
-                      i
-                    )}`}
-                  >
-                    {showTotal ? total : ""}
+                      {/* Enter scores */}
+                      {Array.from({ length: scoreData.numPlayers }).map(
+                        (_, colIdx) => (
+                          <td
+                            key={colIdx}
+                            className="px-1 border-r hand_font border-gray-400 text-center text-black min-w-[60px] max-w-[80px]"
+                          >
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9\-]*"
+                              value={scoreData.scores[rowIdx]?.[colIdx] || ""}
+                              onChange={(e) => {
+                                // If composingRef is true, ignore onChange.
+                                if (
+                                  composingRefs.current[
+                                    `score-${rowIdx}-${colIdx}`
+                                  ]
+                                ) {
+                                  return;
+                                }
+                                // Perform a quick validation immediately.
+                                if (
+                                  allowedScoreRegex.test(e.target.value) ||
+                                  e.target.value === ""
+                                ) {
+                                  handleScoreChange(
+                                    rowIdx,
+                                    colIdx,
+                                    e.target.value
+                                  );
+                                }
+                              }}
+                              onCompositionStart={() =>
+                                handleCompositionStart(
+                                  `score-${rowIdx}-${colIdx}`
+                                )
+                              }
+                              onCompositionEnd={(e) =>
+                                handleCompositionEnd(
+                                  `score-${rowIdx}-${colIdx}`,
+                                  e.currentTarget.value,
+                                  (val) =>
+                                    handleScoreChange(rowIdx, colIdx, val),
+                                  allowedScoreRegex,
+                                  "Scores can only contain half-width digits and hyphens."
+                                )
+                              }
+                              className="w-full text-center text-lg font-bold bg-transparent rounded focus:outline-none focus:ring-1 focus:ring-grey-100 text-black"
+                              placeholder="0"
+                            />
+                          </td>
+                        )
+                      )}
+                    </tr>
+                  ))}
+                {/* Toal */}
+                <tr className="text-xl font-bold hand_font text-white text-center table_green">
+                  <td className="px-2 py-1 border-r hand_font border-gray-400">
+                    Total
                   </td>
-                ))}
-            </tr>
-          </tbody>
-        </table>
+                  {calculateTotalScores
+                    .slice(0, scoreData.numPlayers)
+                    .map((total, i) => (
+                      <td
+                        key={`total-${i}`}
+                        className={`px-1 py-0.5 border-r hand_font border-gray-400 text-center min-w-[60px] max-w-[80px] ${getRankBackgroundColor(
+                          i
+                        )}`}
+                      >
+                        {showTotal ? total : ""}
+                      </td>
+                    ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
-  </div>
   );
 };
 
