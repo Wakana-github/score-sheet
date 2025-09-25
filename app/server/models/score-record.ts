@@ -16,7 +16,7 @@ export interface IScoreRecord extends mongoosePkg.Document {
   createdAt: Date;
   lastSavedAt: Date;
   userId: string;
-  custom: boolean; 
+  custom?: boolean; 
   groupId?: string; 
 }
 

@@ -6,6 +6,7 @@ import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 import { AuthenticatedRequest } from "../types/express.d";
 import { JSDOM } from 'jsdom';
 import DOMPurify from 'dompurify';
+import { MAX_TITLE_LENGTH, MAX_NAME_LENGTH, MAX_FREE_RECORDS, MAX_ACTIVE_RECORDS, PAGENATION_LIMIT } from '../../lib/constants.ts';
 
 // Initialize JSDOM and pass it to DOMPurify
 const { window } = new JSDOM('');
@@ -20,11 +21,6 @@ interface SanitizeResult {
 
 const router = express.Router();
 
-const MAX_FREE_RECORDS = 5;
-const MAX_ACTIVE_RECORDS = 500;
-const PAGENATION_LIMIT = 10;
-const MAX_TITLE_LENGTH = 35;
-const MAX_NAME_LENGTH = 30;
 
 
 const sanitizeAndValidateString = (input: string, maxLength: number, fieldName: string): SanitizeResult => {
@@ -130,7 +126,7 @@ router.post(
         return res.status(400).json({ message: "Invalid scores data." });
       }
       const sanitizedScores = scores.map((row: any[]) => 
-        row.map(score => typeof score === 'number' ? score : 0) // 数値であることを確認
+        row.map(score => typeof score === 'number' ? score : 0) // Check if it's numeric
       );
 
       // === Create and save data object ===
@@ -241,9 +237,7 @@ router.get(
         userId: userId,
       });
       if (!record) {
-        return res
-          .status(404)
-          .json({ message: "Record not found or access denied." });
+        return res.status(404).json({ message: "Record not found or access denied." });
       }
       res.status(200).json(record);
     } catch (error: unknown) {

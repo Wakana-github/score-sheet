@@ -23,6 +23,7 @@ interface ScoreRecord {
   createdAt: string; // Date and time when the record was first created
   lastSavedAt: string; // Date and time when the record was last saved/updated
   userId: string;
+  groupId?: string; 
 }
 
 interface PaginatedRecords {

@@ -5,6 +5,12 @@ import DOMPurify from "dompurify";
 import Group from "../models/group.ts"; // Adjust the path if needed
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 import { AuthenticatedRequest } from "../types/express.d"; // Assuming you have this type
+import {
+  allowedNameRegex,
+  allowedGroupRegex,
+  MAX_GROUP_NAME_LENGTH,
+  MAX_NAME_LENGTH,
+} from "../../lib/constants.ts";
 
 // Initialize JSDOM and pass it to DOMPurify
 const { window } = new JSDOM("");
@@ -16,29 +22,28 @@ interface SanitizeResult {
 }
 
 const router = express.Router();
-const MAX_GROUP_NAME_LENGTH = 50;
-const MAX_MEMBER_NAME_LENGTH = 30;
 
 // Helper function to sanitize and validate strings
 const sanitizeAndValidateString = (
   input: string,
   maxLength: number,
-  fieldName: string
+  fieldName: string,
+  regex: RegExp 
 ): SanitizeResult => {
-  if (typeof input !== "string") {
-    return { error: `Invalid type for ${fieldName}.` };
+  if (typeof input !== "string" || input.trim() === "") {
+    return { error: `${fieldName} cannot be empty.` };
   }
-
   const trimmedInput = input.trim();
-
   // Count visible characters before sanitizing
   const segmenter = new Intl.Segmenter("ja", { granularity: "grapheme" });
   const realLength = [...segmenter.segment(trimmedInput)].length;
-
   if (realLength > maxLength) {
     return { error: `${fieldName} cannot exceed ${maxLength} characters.` };
   }
-
+  // validation by regex
+  if (!regex.test(trimmedInput)) {
+    return { error: `${fieldName} contains invalid characters.` };
+  }
   // Sanitization with DOMPurify is performed after the character count check
   const sanitized = domPurify.sanitize(trimmedInput);
   return { value: sanitized };
@@ -66,13 +71,15 @@ router.post(
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      //fetch data from req.body
       const { groupName, members } = req.body;
 
       // Validate and sanitize groupName
       const sanitizedGroupName = sanitizeAndValidateString(
         groupName,
         MAX_GROUP_NAME_LENGTH,
-        "groupName"
+        "groupName",
+         allowedGroupRegex
       );
       if (sanitizedGroupName.error) {
         return res.status(400).json({ message: sanitizedGroupName.error });
@@ -84,9 +91,8 @@ router.post(
           .status(400)
           .json({ message: "Member name is invalid or empty." });
       }
-
       const sanitizedMembers = members.map((name: string) =>
-        sanitizeAndValidateString(name, MAX_MEMBER_NAME_LENGTH, "memberName")
+        sanitizeAndValidateString(name, MAX_NAME_LENGTH, "memberName", allowedNameRegex)
       );
       if (sanitizedMembers.some((result: SanitizeResult) => result.error)) {
         return res
@@ -97,17 +103,16 @@ router.post(
             )?.error,
           });
       }
-      const finalMembers = sanitizedMembers.map((name) => name.value);
+      const finalMembers = sanitizedMembers.map((result) => result.value);
 
+      // === Create and save group object ===
       const newGroup = await Group.create({
         groupName: sanitizedGroupName.value,
         members: finalMembers,
         ownerId: userId,
       });
 
-      res
-        .status(201)
-        .json({ message: "Group created successfully", group: newGroup });
+      res.status(201).json({ message: "Group created successfully", group: newGroup });
     } catch (error: any) {
       console.error("Error creating group:", error);
       res.status(500).json({ message: "Server error", error: error.message });
@@ -127,7 +132,7 @@ router.get(
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
-
+      // Find groups
       const groups = await Group.find({ ownerId: userId }).sort({
         createdAt: -1,
       });
@@ -179,15 +184,17 @@ router.put(
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
-
       const { groupName, members } = req.body;
+
 
       // Validate and sanitize groupName
       const sanitizedGroupName = sanitizeAndValidateString(
         groupName,
         MAX_GROUP_NAME_LENGTH,
-        "groupName"
+        "groupName",
+        allowedGroupRegex
       );
+
       if (sanitizedGroupName.error) {
         return res.status(400).json({ message: sanitizedGroupName.error });
       }
@@ -199,19 +206,20 @@ router.put(
           .json({ message: "Member name is invalid or empty." });
       }
 
+
       const sanitizedMembers = members.map((name: string) =>
-        sanitizeAndValidateString(name, MAX_MEMBER_NAME_LENGTH, "memberName")
+        sanitizeAndValidateString(name, MAX_NAME_LENGTH, "memberName", allowedNameRegex)
       );
       if (sanitizedMembers.some((result: SanitizeResult) => result.error)) {
-        return res
-          .status(400)
-          .json({
+        return res.status(400).json({
             message: sanitizedMembers.find(
               (result: SanitizeResult) => result.error
             )?.error,
           });
       }
-      const finalMembers = sanitizedMembers.map((name) => name.value);
+      const finalMembers = sanitizedMembers.map((result) => result.value);
+
+      
 
       //update a record
       const updatedGroup = await Group.findOneAndUpdate(
@@ -222,16 +230,13 @@ router.put(
         },
         { new: true, runValidators: true }
       );
-
       if (!updatedGroup) {
         return res
           .status(404)
           .json({ message: "Group not found or access denied." });
       }
 
-      res
-        .status(200)
-        .json({ message: "Group updated successfully", group: updatedGroup });
+      res.status(200).json({ message: "Group updated successfully", group: updatedGroup });
     } catch (error: any) {
       console.error("Error updating group:", error);
       res.status(500).json({ message: "Server error", error: error.message });
@@ -243,7 +248,6 @@ router.put(
 // Delete a group by ID
 router.delete(
   "/:id",
-  ClerkExpressRequireAuth(),
   apiLimiter,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -258,9 +262,7 @@ router.delete(
       });
 
       if (result.deletedCount === 0) {
-        return res
-          .status(404)
-          .json({ message: "Group not found or access denied." });
+        return res.status(404).json({ message: "Group not found or access denied." });
       }
 
       res.status(200).json({ message: "Group deleted successfully" });

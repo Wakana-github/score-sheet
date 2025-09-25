@@ -14,6 +14,7 @@ interface ScoreData {
   createdAt: string;
   lastSavedAt: string;
   userId: string;
+  groupId?: string; 
 }
 
 interface ScoreSheetTableProps {

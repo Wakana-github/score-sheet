@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { allowedNameRegex, allowedGroupRegex, MAX_GROUP_NAME_LENGTH, MAX_NAME_LENGTH} from '../../lib/constants.ts'; 
-import { useAuth, useUser } from '@clerk/nextjs'
-import he from 'he';
-import LoadingPage from '@/components/lodingPage';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  allowedNameRegex,
+  allowedGroupRegex,
+  MAX_GROUP_NAME_LENGTH,
+  MAX_NAME_LENGTH,
+} from "../../lib/constants.ts";
+import { useAuth, useUser } from "@clerk/nextjs";
+import he from "he";
+import LoadingPage from "@/components/lodingPage";
+import Link from "next/link";
 
 interface Group {
   _id: string;
@@ -16,24 +22,24 @@ interface Group {
 }
 
 //End point URL for API
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL|| 'http://localhost:8080/api'; 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
 
 // Segmenter for correct character counting in Japanese
-const segmenter = new Intl.Segmenter('ja', { granularity: 'grapheme' });
+const segmenter = new Intl.Segmenter("ja", { granularity: "grapheme" });
 
 const GroupRegisterPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const groupId = searchParams.get('id');
+  const groupId = searchParams.get("id");
 
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const { user } = useUser();
   const [loading, setLoading] = useState(true);
-  const [groupName, setGroupName] = useState('');
+  const [groupName, setGroupName] = useState("");
   const [numMembers, setNumMembers] = useState(2);
-  const [members, setMembers] = useState<string[]>(Array(2).fill(''));
-  const [isLoading, setIsLoading] = useState(false)
-
+  const [members, setMembers] = useState<string[]>(Array(2).fill(""));
+  const [isLoading, setIsLoading] = useState(false);
 
   // Data initialization process
   useEffect(() => {
@@ -41,20 +47,22 @@ const GroupRegisterPage: React.FC = () => {
       if (!isLoaded) return;
 
       if (!isSignedIn) {
-        router.push('/sign-in');
+        router.push("/sign-in");
         return;
       }
 
       if (groupId) {
         await fetchGroupData(groupId);
       } else {
-        setGroupName('');
+        setGroupName("");
         setNumMembers(2);
         // メンバー1をログインユーザーの名前に設定
-        const userDisplayName = user?.publicMetadata?.nickname && typeof user.publicMetadata.nickname === 'string'
-        ? user.publicMetadata.nickname
-        : user?.username;
-        const initialMembers = [userDisplayName, ...Array(1).fill('')];
+        const userDisplayName =
+          user?.publicMetadata?.nickname &&
+          typeof user.publicMetadata.nickname === "string"
+            ? user.publicMetadata.nickname
+            : user?.username;
+        const initialMembers = [userDisplayName, ...Array(1).fill("")];
         setMembers(initialMembers);
 
         setIsLoading(false);
@@ -65,135 +73,145 @@ const GroupRegisterPage: React.FC = () => {
 
   useEffect(() => {
     // Resize the member list based on the number of members
-    setMembers(prevMembers => {
+    setMembers((prevMembers) => {
       const newMembers = [...prevMembers];
       while (newMembers.length < numMembers) {
-        newMembers.push('');
+        newMembers.push("");
       }
       return newMembers.slice(0, numMembers);
     });
   }, [numMembers]);
 
-
- // Fetch group data
+  // Fetch group data
   const fetchGroupData = async (id: string) => {
     setIsLoading(true);
     try {
       const token = await getToken();
-      if (!token) throw new Error('No authentication token found.');
+      if (!token) throw new Error("No authentication token found.");
 
       const res = await fetch(`${API_BASE_URL}/groups/${id}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!res.ok) throw new Error('Failed to fetch group data');
+      if (!res.ok) throw new Error("Failed to fetch group data");
       const data = await res.json();
-      
+
       setGroupName(he.decode(data.groupName));
       setNumMembers(data.members.length);
       setMembers(data.members.map((member: string) => he.decode(member)));
     } catch (error) {
       console.error(error);
-      alert('Failed to load group data.');
-      router.push('/groups');
+      alert("Failed to load group data.");
+      router.push("/groups");
     } finally {
       setIsLoading(false);
     }
   };
 
   // Validation function for group name
-      const validateGroupName = useCallback((value: string) => {
-      const normalizedValue = value.trim().normalize('NFC');
-      const length = [...segmenter.segment(normalizedValue)].length;
-      
-      if (length > MAX_GROUP_NAME_LENGTH) {
-        alert(`Group name cannot exceed ${MAX_GROUP_NAME_LENGTH} characters.`);
-        return false;
-      }
-      
-      if (!allowedGroupRegex.test(normalizedValue)) {
-        alert("Group name can only contain allowed characters.");
-        return false;
-      }
-      
-      return true;
-    }, []);
+  const validateGroupName = useCallback((value: string) => {
+    const normalizedValue = value.trim().normalize("NFC");
+    const length = [...segmenter.segment(normalizedValue)].length;
 
-    // Validation function for member name
-    const validateMemberName = useCallback((value: string) => {
-        const normalizedValue = value.trim().normalize('NFC');
-        const length = [...segmenter.segment(normalizedValue)].length;
-        
-        if (length > MAX_NAME_LENGTH) {
-            alert(`Member name cannot exceed ${MAX_NAME_LENGTH} characters.`);
-            return false;
-        }
-        
-        if (!allowedNameRegex.test(normalizedValue)) {
-            alert("Member name can only contain letters, numbers, Japanese characters, and some emojis.");
-            return false;
-        }
-        
-        return true;
-    }, []);
+    if (length > MAX_GROUP_NAME_LENGTH) {
+      alert(`Group name cannot exceed ${MAX_GROUP_NAME_LENGTH} characters.`);
+      return false;
+    }
 
-    // Handle group name change
-    const handleGroupNameChange = useCallback((value: string) => {
-      setGroupName(value);
-    }, []);
+    if (!allowedGroupRegex.test(normalizedValue)) {
+      alert("Group name can only contain allowed characters.");
+      return false;
+    }
 
-    // Handle member name change
-    const handleMemberNameChange = useCallback((index: number, value: string) => {
-    const newMembers = [...members];
+    return true;
+  }, []);
+
+  // Validation function for member name
+  const validateMemberName = useCallback((value: string) => {
+    const normalizedValue = value.trim().normalize("NFC");
+    const length = [...segmenter.segment(normalizedValue)].length;
+
+    if (length > MAX_NAME_LENGTH) {
+      alert(`Member name cannot exceed ${MAX_NAME_LENGTH} characters.`);
+      return false;
+    }
+
+    if (!allowedNameRegex.test(normalizedValue)) {
+      alert(
+        "Member name can only contain letters, numbers, Japanese characters, and some emojis."
+      );
+      return false;
+    }
+
+    return true;
+  }, []);
+
+  // Handle group name change
+  const handleGroupNameChange = useCallback((value: string) => {
+    setGroupName(value);
+  }, []);
+
+  // Handle member name change
+  const handleMemberNameChange = useCallback(
+    (index: number, value: string) => {
+      const newMembers = [...members];
       newMembers[index] = value;
       setMembers(newMembers);
-    }, [members]);
+    },
+    [members]
+  );
 
-    // Handle form submission
-    const handleSubmit = async (e: React.FormEvent) => {
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-            // Perform validation for each field before submission
-            if (!validateGroupName(groupName)) {
-                setIsLoading(false);
-                return;
-            }
-            for (const member of members) {
-                if (!validateMemberName(member)) {
-                    setIsLoading(false);
-                    return;
-                }
-            }
+      // Perform validation for each field before submission
+      if (!validateGroupName(groupName)) {
+        setIsLoading(false);
+        return;
+      }
+      for (const member of members) {
+        if (!validateMemberName(member)) {
+          setIsLoading(false);
+          return;
+        }
+      }
 
-            const token = await getToken();
-            if (!token) throw new Error('No authentication token found.');
+      const token = await getToken();
+      if (!token) throw new Error("No authentication token found.");
 
-            const method = groupId ? 'PUT' : 'POST';
-            const url = groupId ? `${API_BASE_URL}/groups/${groupId}` : `${API_BASE_URL}/groups`;
-            const body = {
-                groupName,
-                members,
-            };
+      const method = groupId ? "PUT" : "POST";
+      const url = groupId
+        ? `${API_BASE_URL}/groups/${groupId}`
+        : `${API_BASE_URL}/groups`;
+      const body = {
+        groupName,
+        members,
+      };
 
       const res = await fetch(url, {
         method,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(`Failed to ${groupId ? 'update' : 'create'} group: ${errorData.message}`);
+        throw new Error(
+          `Failed to ${groupId ? "update" : "create"} group: ${
+            errorData.message
+          }`
+        );
       }
-      
-      alert(`Group ${groupId ? 'updated' : 'created'} successfully!`);
-      router.push('/groups');
+
+      alert(`Group ${groupId ? "updated" : "created"} successfully!`);
+      router.push("/groups");
     } catch (error: any) {
       console.error(error);
       alert(error.message);
@@ -202,16 +220,20 @@ const GroupRegisterPage: React.FC = () => {
     }
   };
 
-if (!isLoaded || !isSignedIn || isLoading) {
-  return <LoadingPage />;
-}
+  if (!isLoaded || !isSignedIn || isLoading) {
+    return <LoadingPage />;
+  }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">{groupId ? 'Edit Group' : 'Create New Group'}</h1>
+    <div className="container mx-auto p-4 px-10 my-6">
+      <h1 className="text-4xl font-bold mb-4 hand_font">
+        {groupId ? "Edit Group" : "Create New Group"}
+      </h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="groupName" className="block text-gray-700">Group Name</label>
+          <label htmlFor="groupName" className="block text-gray-700 font-bold">
+            Group Name
+          </label>
           <input
             type="text"
             id="groupName"
@@ -223,7 +245,9 @@ if (!isLoaded || !isSignedIn || isLoading) {
           />
         </div>
         <div>
-          <label htmlFor="numMembers" className="block text-gray-700">Number of Members</label>
+          <label htmlFor="numMembers" className="block text-gray-700 font-bold">
+            Number of Members
+          </label>
           <select
             id="numMembers"
             value={numMembers}
@@ -231,14 +255,21 @@ if (!isLoaded || !isSignedIn || isLoading) {
             className="w-full mt-1 p-2 border rounded-md"
           >
             {[2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-              <option key={num} value={num}>{num}</option>
+              <option key={num} value={num}>
+                {num}
+              </option>
             ))}
           </select>
         </div>
-        
+
         {members.map((member, index) => (
           <div key={index}>
-            <label htmlFor={`member-${index}`} className="block text-gray-700">Player {index + 1} Name</label>
+            <label
+              htmlFor={`member-${index}`}
+              className="block text-gray-700 font-bold"
+            >
+              Player {index + 1} Name
+            </label>
             <input
               type="text"
               id={`member-${index}`}
@@ -256,9 +287,17 @@ if (!isLoaded || !isSignedIn || isLoading) {
           type="submit"
           className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md "
         >
-          {groupId ? 'Update Group' : 'Register Group'}
+          {groupId ? "Update Group" : "Register Group"}
         </button>
       </form>
+      {/* Return to Group page button */}
+      <div className="self-start">
+        <Link href="/groups" passHref>
+          <button className="py-2 px-2 rounded-lg text-xl hand_font mt-2">
+            ← Return to Group
+          </button>
+        </Link>
+      </div>
     </div>
   );
 };

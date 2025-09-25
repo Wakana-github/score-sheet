@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import  Group  from '../server/models/group'; 
 import { useAuth, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'; 
 import he from 'he'; 
+import Link from 'next/link';
 
 interface Group {
   _id: string;
@@ -16,6 +17,7 @@ interface Group {
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL|| 'http://localhost:8080/api/groups'; 
+const MAX_GROUPS = 10; // Define the maximum number of groups.
 
 const GroupListPage: React.FC = () => {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -117,36 +119,47 @@ const GroupListPage: React.FC = () => {
     );
   }
 
+  const canCreateGroup = groups.length < MAX_GROUPS;
+
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-4xl font-bold my-6 hand_font">Your Groups</h1>
+      <h1 className="text-4xl font-bold my-6 hand_font">Your Groups
+        <span className="text-2xl"> ({groups.length}/{MAX_GROUPS})</span>
+      </h1>
       <button
         onClick={() => router.push('/groups/register')}
-        className="mb-4 px-4 py-2 bg-gray-600 hover:bg-gray-700 hand_font rounded-md text-white text-2xl"
+        className={`mb-1 px-4 py-2 hand_font rounded-md text-white text-2xl ${
+          canCreateGroup ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-400 cursor-not-allowed'
+        }`}
+        disabled={!canCreateGroup}
       >
         Create New Group
       </button>
+
+      {!canCreateGroup && (
+        <p className="text-black mb-4">{`You have reached the maximum number of groups (${MAX_GROUPS}).`}</p>
+        )}
 
       {groups.length === 0 ? (
         <p>You have no groups yet. Create one!</p>
       ) : (
         <ul className="space-y-4">
           {groups.map((group) => (
-            <li key={group._id} className="bg-[#424911] text-white p-4 rounded-md shadow-sm flex justify-between items-center">
+            <li key={group._id} className="dark_green text-black px-4 py-2 rounded-md shadow-sm flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-semibold">{group.groupName}</h2>
-                <p className="text-white">Members: {group.members.length}</p>
+                <p className="text-black">Members: {group.members.length}</p>
               </div>
               <div className="space-x-2">
                 <button
                   onClick={() => handleEdit(group._id)}
-                  className="px-3 py-1 bg-yellow-600 text-white rounded-md hover:bg-yellow-600"
+                  className="px-3 py-1 bg-yellow-600 text-white rounded-md hover:bg-yellow-800"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(group._id)}
-                  className="px-3 py-1 bg-red-700 text-white rounded-md hover:bg-red-700"
+                  className="px-3 py-1 bg-red-700 text-white rounded-md hover:bg-red-900"
                 >
                   Delete
                 </button>
@@ -155,7 +168,19 @@ const GroupListPage: React.FC = () => {
           ))}
         </ul>
       )}
+
+       {/* Return to Home page button */}
+    <div className="self-start">
+        <Link href="/" passHref>
+          <button className="py-4 px-2 rounded-lg text-xl hand_font mt-2">
+            ← Return to Home
+          </button>
+        </Link>
+      </div>
+
     </div>
+     
+    
   );
 };
 
