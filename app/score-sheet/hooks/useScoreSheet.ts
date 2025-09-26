@@ -630,6 +630,7 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
         scores,
         numPlayers,
         numScoreItems,
+        groupId,
     } = scoreData;
 
        // validation for gametitle
@@ -677,8 +678,9 @@ if (!isTotalScoreValid) {
   numPlayers,
   numScoreItems,
   custom: scoreData.custom,
-  groupId: scoreData.groupId || null,
+  groupId: groupId || null,
 };
+
 
     try {
       const token = await getToken({ template: "long_lasting" });
