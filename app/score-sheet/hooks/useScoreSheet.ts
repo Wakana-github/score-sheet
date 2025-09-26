@@ -23,10 +23,6 @@ export default function useScoreSheet() {
   const recordIdFromUrl = searchParams.get("recordId");
   const { isLoaded, isSignedIn, userId, getToken } = useAuth();
   const { user } = useUser();
-  const [maxScores, setMaxScores] = useState<string[][]>(() => 
-  Array.from({ length: MAX_SCORE_ITEMS }, () => Array(MAX_PLAYERS).fill(""))
-);
-
 
   const userPlan = user?.publicMetadata?.subscriptionStatus || "free";
 
@@ -54,7 +50,7 @@ const {
     return {
     _id: uuidv4(),
     gameTitle: "",
-    playerNames: Array(3).fill("").map((_, i) => `Player ${i + 1}`),
+    playerNames: initialPlayerNames,
     scoreItemNames: Array(3).fill("").map((_, i) => `Round ${i + 1}`),
     scores: Array.from({ length: 3 }, () => Array(3).fill("")),
     numPlayers: 3,
@@ -73,8 +69,12 @@ const {
   const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false);
 
   const originalNumScoreItems = useRef<number>(0);
-  const originalNumPlayers = useRef<number>(0); 
+  const originalNumPlayers = useRef<number>(0);
+  const originalPlayerNames = useRef<string[]>([]); 
   const composingRefs = useRef<{ [key: string]: boolean }>({});
+
+  //Ref for max scores to retain data.
+  const allScores = useRef<string[][]>(Array(MAX_SCORE_ITEMS).fill(0).map(() => Array(MAX_PLAYERS).fill("")));
   
 
   const calculateTotalScores = useMemo(() => {
@@ -150,6 +150,13 @@ const {
             return;
           }
 
+          const scoresAsString = recordToLoad.scores.map((row) => row.map(String));
+
+          //copy all scores when it first loaded
+          allScores.current = Array(MAX_SCORE_ITEMS).fill(0).map((_, i) => 
+              Array(MAX_PLAYERS).fill("").map((_, j) => scoresAsString[i]?.[j] || "")
+          );
+
           setScoreData({
             _id: recordToLoad._id,
             gameTitle: he.decode(recordToLoad.gameTitle),
@@ -162,22 +169,12 @@ const {
             lastSavedAt: recordToLoad.lastSavedAt,
             userId: recordToLoad.userId,
             custom: recordToLoad.custom,
-            groupId: recordToLoad.groupId || null,
+            groupId: recordToLoad.groupId || null, 
           });
-
-          setMaxScores(prev => {
-           const newMaxScores = prev.map((row) => [...row]);
-           recordToLoad.scores.forEach((row, rowIdx) => {
-           row.forEach((score, colIdx) => {
-           if (newMaxScores[rowIdx] && newMaxScores[rowIdx][colIdx] !== undefined) {
-         newMaxScores[rowIdx][colIdx] = String(score); // DBから来た数値は文字列に     
-         }
-         });
-         });
-           return newMaxScores;         });
 
           originalNumScoreItems.current = recordToLoad.numScoreItems;
           originalNumPlayers.current = recordToLoad.numPlayers;
+          originalPlayerNames.current = recordToLoad.playerNames.map(name => he.decode(name));
           setShowTotal(true);
         } catch (error) {
           console.error("Error loading record:", error);
@@ -228,8 +225,6 @@ const {
             });
               initialScoreItemNames = selectedGame.score_items;
               customSheet = false;
-              originalNumPlayers.current = initialNumPlayers;
-              originalNumScoreItems.current = initialNumScoreItems;
 
             } else {
               console.error("Game not found.");
@@ -276,20 +271,26 @@ const {
         });
           initialScoreItemNames = Array.from({ length: parsedRows - 1 }, (_, i) => `Item ${i + 1}`);
           customSheet = true; 
-          originalNumScoreItems.current = initialNumScoreItems; 
-          originalNumPlayers.current = initialNumPlayers;
         } else {
           router.push("/custom-sheet");
           setLoading(false);
           return;
         }
 
+        originalNumScoreItems.current = initialNumScoreItems; 
+        originalNumPlayers.current = initialNumPlayers;
+        originalPlayerNames.current = initialPlayerNames;
+
+        //allScores
+        allScores.current = Array(MAX_SCORE_ITEMS).fill(0).map(() => Array(MAX_PLAYERS).fill(""));
+
+
         setScoreData({
           _id: uuidv4(),
           gameTitle: initialGameTitle,
           playerNames: initialPlayerNames,
           scoreItemNames: initialScoreItemNames,
-          scores: Array.from({ length: initialNumScoreItems }, () => Array(initialNumPlayers).fill("")),
+         scores: Array(initialNumScoreItems).fill(0).map(() => Array(initialNumPlayers).fill("")),
           numPlayers: initialNumPlayers,
           numScoreItems: initialNumScoreItems,
           createdAt: new Date().toISOString(),
@@ -303,7 +304,7 @@ const {
       }
     }
     initializeSheet();
-  }, [isLoaded, recordIdFromUrl, searchParams, router, getToken, userId, user]);
+  }, [isLoaded, recordIdFromUrl, searchParams, router, getToken, userId]);
 
  // When group is selected
   useEffect(() => {
@@ -313,9 +314,10 @@ const {
 
         setScoreData(prev => {
             // set number of players with number of members
-            const newScores = Array.from({ length: prev.numScoreItems }, (_, rowIdx) =>
-               Array.from({ length: newNumPlayers }, (_, colIdx) => maxScores[rowIdx]?.[colIdx] || "") 
-              );
+            const newScores = prev.scores.map((_, i) =>
+                Array.from({ length: newNumPlayers }, (_, colIdx) => allScores.current[i]?.[colIdx] || "")
+            );
+
 
             return {
                 ...prev,
@@ -326,29 +328,28 @@ const {
             };
         });
         setPlayerRanks(Array(newNumPlayers).fill(0));
-    } else if (scoreData.groupId && !recordIdFromUrl) {
-      // グループが解除された場合（レコードロード中でない場合のみ、groupIdをnullにリセット）
-      setScoreData(prev => { 
-          const originalNum = originalNumPlayers.current;
-           const originalPlayerNames = Array.from({ length: originalNum }, (_, i) => {
-           if (i === 0 && user?.publicMetadata?.nickname && typeof user.publicMetadata.nickname === 'string') {
-             return user.publicMetadata.nickname;
-            }
-             return `Player ${i + 1}`;
-          });
-            const scoresAfterGroupReset = Array.from({ length: prev.numScoreItems }, (_, rowIdx) =>
-             Array.from({ length: originalNum }, (_, colIdx) =>  maxScores[rowIdx]?.[colIdx] || "")
-          );
+    } else if (scoreData.groupId) { 
+      // === グループが解除された場合 (groupIdが残っている場合) ===
+      const originalNum = originalNumPlayers.current;
+      const originalNames = originalPlayerNames.current;
+
+      setScoreData(prev => {
+        // スコアを元の人数に戻す
+       const scoresAfterGroupReset = prev.scores.map((_, i) =>
+          Array.from({ length: originalNum }, (_, colIdx) => allScores.current[i]?.[colIdx] || "")
+        );
+
         return { 
-           ...prev, 
-            groupId: null,
-            numPlayers: originalNum,
-            playerNames: originalPlayerNames,
-            scores: scoresAfterGroupReset,
-          };
-        });
+          ...prev, 
+          groupId: null,
+          numPlayers: originalNum,
+          playerNames: originalNames,
+          scores: scoresAfterGroupReset,
+        };
+      });
+      setPlayerRanks(Array(originalNum).fill(0));
     }
-  }, [selectedGroup, recordIdFromUrl, maxScores, user]); 
+  }, [selectedGroup]);
 
 
 
@@ -417,7 +418,7 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
       updatedPlayerNames[index] = newName;
       return { ...prev, playerNames: updatedPlayerNames };
     });
-  }, []);
+  }, [isGroupSelected]);
 
   // Update Score Item Name in state
   const handleScoreItemNameChange = useCallback((index: number, newName: string) => {
@@ -452,6 +453,8 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
   
   // Update a specific score cell
   const handleScoreChange = useCallback((row: number, col: number, value: string) => {
+
+    allScores.current[row][col] = value;
 
 // allow empty string
     if (value === "") {
@@ -507,15 +510,6 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
   setScoreData((prev) => {
     const newScores = prev.scores.map((r) => [...r]);
      newScores[row][col] = sanitizedValue;
-    
-
-    setMaxScores(prevMax => {
-      const newMaxScores = prevMax.map(r => [...r]);
-      if (newMaxScores[row] && newMaxScores[row][col] !== undefined) {
-        newMaxScores[row][col] = sanitizedValue;
-      }
-      return newMaxScores;
-    });
 
     return { ...prev, scores: newScores };
   });
@@ -538,12 +532,13 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
       alert("invalid player numbers");
       return;
     }
+
     setScoreData((prev) => {
       const newPlayerNames = Array.from({ length: newNum }, (_, i) =>
         i < prev.playerNames.length ? prev.playerNames[i] : `Player ${i + 1}`
       );
-      const newScores = Array.from({ length: prev.numScoreItems }, (_, rowIdx) =>
-     Array.from({ length: newNum }, (_, colIdx) => maxScores[rowIdx]?.[colIdx] || "")
+      const newScores = prev.scores.map((_, i) =>
+        Array.from({ length: newNum }, (_, j) => allScores.current[i]?.[j] || "")
       );
 
       setPlayerRanks(Array(newNum).fill(0));
@@ -554,7 +549,12 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
         scores: newScores,
       };
     });
-  }, [isGroupSelected, maxScores]);
+
+    originalNumPlayers.current = newNum;
+    originalPlayerNames.current = Array.from({ length: newNum }, (_, i) =>
+        i < scoreData.playerNames.length ? scoreData.playerNames[i] : `Player ${i + 1}`
+    );
+  }, [isGroupSelected, scoreData.playerNames]);
 
   // Handler for changing the number of score items
   const handleNumScoreItemsChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -563,13 +563,13 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
       alert("invalid score item numbers");
       return;
     }
+
     setScoreData((prev) => {
       const newScoreItemNames = Array.from({ length: newNum }, (_, i) =>
  i < prev.scoreItemNames.length ? prev.scoreItemNames[i] : `Round ${i + 1}`
  );
       const newScores = Array.from({ length: newNum }, (_, i) => {
-      const existingRow =  maxScores[i] || [];
-      return Array.from({ length: prev.numPlayers }, (_, j) => existingRow[j] || "");
+      return Array.from({ length: prev.numPlayers }, (_, j) => allScores.current[i]?.[j] || "");
       });
 
  // Update custom status and title
@@ -663,7 +663,7 @@ if (!isTotalScoreValid) {
     return; 
   }
 
-    const scoresAsNumbers = scores.map(row => row.map(val => parseInt(val) || 0));
+   const scoresAsNumbers = scores.map(row => row.map(val => parseInt(val) || 0));
 
  
    const dataToSave = {
