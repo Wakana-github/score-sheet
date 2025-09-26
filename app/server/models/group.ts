@@ -1,6 +1,5 @@
-import mongoose from 'mongoose';
-
-const { Schema, model, models } = mongoose;
+import mongoosePkg from 'mongoose';
+const { default: mongoose, Schema, model, models} = mongoosePkg;
 
 const GroupSchema = new Schema({
     groupName: {
@@ -13,7 +12,7 @@ const GroupSchema = new Schema({
     type: [String],
     required: true
   },
-  ownerId: {
+  userId: {
     type: String,
     required: true
   },

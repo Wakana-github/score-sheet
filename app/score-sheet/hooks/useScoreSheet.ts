@@ -6,54 +6,16 @@ import { v4 as uuidv4 } from "uuid";
 import { allowedTitleRegex, allowedNameRegex, allowedScoreRegex, MAX_SCORE_ITEMS, MAX_PLAYERS, MAX_TITLE_LENGTH, MAX_NAME_LENGTH } from '../../lib/constants.ts'; 
 import { useAuth, useUser } from "@clerk/nextjs";
 import he from 'he';
+import useGroupSelection from './useGroupSelection.ts';
+import { ScoreData, ScoreRecord, GroupData, InitialGameData } from '../score-types.ts';
 
-// Interface for the score data as it is stored in the database.
-interface ScoreRecord {
-  _id: string; // Unique ID generated on the application side (UUID)
-  gameTitle: string;
-  playerNames: string[];
-  scoreItemNames: string[];
-  scores: number[][]; // 2D array of numbers
-  numPlayers: number;
-  numScoreItems: number;
-  createdAt: string; // ISO 8601 formatted string (e.g., "2023-10-27T10:00:00.000Z")
-  lastSavedAt: string; // ISO 8601 formatted string
-  userId: string;
-  custom: boolean; 
-}
-
-// Interface for the state of the score sheet in the form.
-// Scores are stored as strings to handle direct user input from text fields.
-interface ScoreData {
-  _id: string;
-  gameTitle: string;
-  playerNames: string[];
-  scoreItemNames: string[];
-  scores: string[][]; // 2D array of strings for input field values
-  numPlayers: number;
-  numScoreItems: number;
-  createdAt: string;
-  lastSavedAt: string;
-  userId: string;
-  custom: boolean;
-}
 
 // API endpoint URL for database operations
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/scores";
 
 
-
 const segmenter = new Intl.Segmenter('ja', { granularity: 'grapheme' });
-
-// Temporary interface for initializing a new sheet from a game template
-interface InitialGameData {
-  id: number;
-  title: string;
-  column: number;
-  row: number;
-  score_items: string[];
-}
 
 export default function useScoreSheet() {
   const searchParams = useSearchParams();
@@ -61,9 +23,22 @@ export default function useScoreSheet() {
   const recordIdFromUrl = searchParams.get("recordId");
   const { isLoaded, isSignedIn, userId, getToken } = useAuth();
   const { user } = useUser();
+  const [maxScores, setMaxScores] = useState<string[][]>(() => 
+  Array.from({ length: MAX_SCORE_ITEMS }, () => Array(MAX_PLAYERS).fill(""))
+);
+
 
   const userPlan = user?.publicMetadata?.subscriptionStatus || "free";
-  
+
+  //import state from group selection 
+const { 
+    availableGroups, 
+    selectedGroupId, 
+    selectedGroup, 
+    handleGroupSelect,
+    isGroupSelected,
+  } = useGroupSelection();
+
 
   const [scoreData, setScoreData] = useState<ScoreData>(() => {
   // fetch username, set null if it does not exist.
@@ -81,13 +56,14 @@ export default function useScoreSheet() {
     gameTitle: "",
     playerNames: Array(3).fill("").map((_, i) => `Player ${i + 1}`),
     scoreItemNames: Array(3).fill("").map((_, i) => `Round ${i + 1}`),
-    scores: Array(3).fill(0).map(() => Array(3).fill("")),
+    scores: Array.from({ length: 3 }, () => Array(3).fill("")),
     numPlayers: 3,
     numScoreItems: 3,
     createdAt: new Date().toISOString(),
     lastSavedAt: new Date().toISOString(),
     userId: userId || "",
     custom: false,
+    groupId: null,
     };
   });
 
@@ -97,7 +73,9 @@ export default function useScoreSheet() {
   const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false);
 
   const originalNumScoreItems = useRef<number>(0);
+  const originalNumPlayers = useRef<number>(0); 
   const composingRefs = useRef<{ [key: string]: boolean }>({});
+  
 
   const calculateTotalScores = useMemo(() => {
     const totals = Array(scoreData.numPlayers).fill(0);
@@ -184,8 +162,10 @@ export default function useScoreSheet() {
             lastSavedAt: recordToLoad.lastSavedAt,
             userId: recordToLoad.userId,
             custom: recordToLoad.custom,
+            groupId: recordToLoad.groupId || null,
           });
           originalNumScoreItems.current = recordToLoad.numScoreItems;
+          originalNumPlayers.current = recordToLoad.numPlayers;
           setShowTotal(true);
         } catch (error) {
           console.error("Error loading record:", error);
@@ -236,7 +216,8 @@ export default function useScoreSheet() {
             });
               initialScoreItemNames = selectedGame.score_items;
               customSheet = false;
-              
+              originalNumPlayers.current = initialNumPlayers;
+              originalNumScoreItems.current = initialNumScoreItems;
 
             } else {
               console.error("Game not found.");
@@ -284,6 +265,7 @@ export default function useScoreSheet() {
           initialScoreItemNames = Array.from({ length: parsedRows - 1 }, (_, i) => `Item ${i + 1}`);
           customSheet = true; 
           originalNumScoreItems.current = initialNumScoreItems; 
+          originalNumPlayers.current = initialNumPlayers;
         } else {
           router.push("/custom-sheet");
           setLoading(false);
@@ -295,22 +277,72 @@ export default function useScoreSheet() {
           gameTitle: initialGameTitle,
           playerNames: initialPlayerNames,
           scoreItemNames: initialScoreItemNames,
-          scores: Array(initialNumScoreItems).fill(0).map(() => Array(initialNumPlayers).fill("")),
+          scores: Array.from({ length: initialNumScoreItems }, () => Array(initialNumPlayers).fill("")),
           numPlayers: initialNumPlayers,
           numScoreItems: initialNumScoreItems,
           createdAt: new Date().toISOString(),
           lastSavedAt: new Date().toISOString(),
           userId: userId || "",
-          custom: customSheet
+          custom: customSheet,
+          groupId: null,
         });
         setShowTotal(false);
         setLoading(false);
       }
     }
     initializeSheet();
-  }, [isLoaded, recordIdFromUrl, searchParams, router, getToken, userId]);
+  }, [isLoaded, recordIdFromUrl, searchParams, router, getToken, userId, user]);
+
+ // When group is selected
+  useEffect(() => {
+    if (selectedGroup) {
+        const newNumPlayers = selectedGroup.members.length;
+        const newPlayerNames = selectedGroup.members.map(name => he.decode(name));
+
+        setScoreData(prev => {
+            // set number of players with number of members
+            const newScores = Array.from({ length: prev.numScoreItems }, (_, rowIdx) =>
+               Array.from({ length: newNumPlayers }, (_, colIdx) => maxScores[rowIdx]?.[colIdx] || "") 
+              );
+
+            return {
+                ...prev,
+                numPlayers: newNumPlayers,
+                playerNames: newPlayerNames,
+                scores: newScores,
+                groupId: selectedGroup._id,
+            };
+        });
+        setPlayerRanks(Array(newNumPlayers).fill(0));
+    } else if (scoreData.groupId && !recordIdFromUrl) {
+      // グループが解除された場合（レコードロード中でない場合のみ、groupIdをnullにリセット）
+      setScoreData(prev => { 
+          const originalNum = originalNumPlayers.current;
+           const originalPlayerNames = Array.from({ length: originalNum }, (_, i) => {
+           if (i === 0 && user?.publicMetadata?.nickname && typeof user.publicMetadata.nickname === 'string') {
+             return user.publicMetadata.nickname;
+            }
+             return `Player ${i + 1}`;
+          });
+            const scoresAfterGroupReset = Array.from({ length: prev.numScoreItems }, (_, rowIdx) =>
+             Array.from({ length: originalNum }, (_, colIdx) => maxScores[rowIdx]?.[colIdx] || "")
+          );
+        return { 
+           ...prev, 
+            groupId: null,
+            numPlayers: originalNum,
+            playerNames: originalPlayerNames,
+            scores: scoresAfterGroupReset,
+          };
+        });
+    }
+  }, [selectedGroup, recordIdFromUrl, maxScores, user]); 
+
+
+
 
   useEffect(() => {
+    
     if (showTotal && scoreData.numPlayers > 0 && scoreData.numScoreItems > 0) {
       calculateRanks();
     }
@@ -349,6 +381,11 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
 
   // Update Player Name in state
   const handlePlayerNameChange = useCallback((index: number, newName: string) => {
+
+     if (isGroupSelected) {
+        alert("Cannot change player names while a group is selected.");
+        return;
+    }
 
      if (!allowedNameRegex.test(newName)) {
       alert("Player names can only contain letters, numbers, Japanese characters, and some emojis.");
@@ -458,6 +495,16 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
   setScoreData((prev) => {
     const newScores = prev.scores.map((r) => [...r]);
     newScores[row][col] = String(parsedValue);
+    
+
+    setMaxScores(prevMax => {
+      const newMaxScores = prevMax.map(r => [...r]);
+      if (newMaxScores[row] && newMaxScores[row][col] !== undefined) {
+        newMaxScores[row][col] = String(parsedValue);
+      }
+      return newMaxScores;
+    });
+
     return { ...prev, scores: newScores };
   });
 }, []);
@@ -467,6 +514,13 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
 
   // Handler for changing the number of players
   const handleNumPlayersChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    
+    //Can't change while group is selected
+    if (isGroupSelected) {
+        alert("Cannot change the number of players while a group is selected.");
+        return;
+    }
+    
     const newNum = parseInt(e.target.value);
     if (isNaN(newNum) || newNum < 1 || newNum > MAX_PLAYERS) {
       alert("invalid player numbers");
@@ -476,8 +530,8 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
       const newPlayerNames = Array.from({ length: newNum }, (_, i) =>
         i < prev.playerNames.length ? he.decode(prev.playerNames[i]) : `Player ${i + 1}`
       );
-      const newScores = prev.scores.map((row) =>
-        Array.from({ length: newNum }, (_, i) => row[i] || "")
+      const newScores = Array.from({ length: prev.numScoreItems }, (_, rowIdx) =>
+     Array.from({ length: newNum }, (_, colIdx) => maxScores[rowIdx]?.[colIdx] || "")
       );
 
       setPlayerRanks(Array(newNum).fill(0));
@@ -488,7 +542,7 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
         scores: newScores,
       };
     });
-  }, []);
+  }, [isGroupSelected, maxScores]);
 
   // Handler for changing the number of score items
   const handleNumScoreItemsChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -501,10 +555,10 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
       const newScoreItemNames = Array.from({ length: newNum }, (_, i) =>
  i < prev.scoreItemNames.length ? he.decode(prev.scoreItemNames[i]) : `Round ${i + 1}`
  );
-     const newScores = Array.from({ length: newNum }, (_, i) => {
-     const existingRow = prev.scores[i] || [];
-return Array.from({ length: prev.numPlayers }, (_, j) => existingRow[j] || "");
- });
+      const newScores = Array.from({ length: newNum }, (_, i) => {
+      const existingRow = maxScores[i] || [];
+      return Array.from({ length: prev.numPlayers }, (_, j) => existingRow[j] || "");
+      });
 
  // Update custom status and title
       const isCustomNow = newNum !== originalNumScoreItems.current;
@@ -611,6 +665,7 @@ if (!isTotalScoreValid) {
   numPlayers,
   numScoreItems,
   custom: scoreData.custom,
+  groupId: scoreData.groupId || null,
 };
 
     try {
@@ -688,5 +743,9 @@ if (!isTotalScoreValid) {
     allowedNameRegex,
     allowedScoreRegex,
     composingRefs,
+    groupOptions: availableGroups,
+    selectedGroupId,
+    handleGroupSelect,
+    isGroupSelected,
   };
 }

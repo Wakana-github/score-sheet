@@ -109,7 +109,7 @@ router.post(
       const newGroup = await Group.create({
         groupName: sanitizedGroupName.value,
         members: finalMembers,
-        ownerId: userId,
+        userId: userId,
       });
 
       res.status(201).json({ message: "Group created successfully", group: newGroup });
@@ -133,7 +133,7 @@ router.get(
         return res.status(401).json({ message: "Unauthorized" });
       }
       // Find groups
-      const groups = await Group.find({ ownerId: userId }).sort({
+      const groups = await Group.find({ userId: userId }).sort({
         createdAt: -1,
       });
       res.status(200).json(groups);
@@ -159,7 +159,7 @@ router.get(
 
       const group = await Group.findOne({
         _id: req.params.id,
-        ownerId: userId,
+        userId: userId,
       });
       if (!group) {
         return res.status(404).json({ message: "Group not found." });
@@ -223,7 +223,7 @@ router.put(
 
       //update a record
       const updatedGroup = await Group.findOneAndUpdate(
-        { _id: req.params.id, ownerId: userId },
+        { _id: req.params.id, userId: userId },
         {
           groupName: sanitizedGroupName.value,
           members: finalMembers,
@@ -258,7 +258,7 @@ router.delete(
 
       const result = await Group.deleteOne({
         _id: req.params.id,
-        ownerId: userId,
+        userId: userId,
       });
 
       if (result.deletedCount === 0) {

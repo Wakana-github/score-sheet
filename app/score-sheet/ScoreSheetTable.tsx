@@ -1,21 +1,8 @@
 // ScoreSheetTable.tsx
 import React, { useEffect, useState } from "react";
 import he from "he";
+import { ScoreData } from "./score-types"; 
 
-// ScoreData state interface (for form management).
-interface ScoreData {
-  _id: string;
-  gameTitle: string;
-  playerNames: string[];
-  scoreItemNames: string[];
-  scores: string[][];
-  numPlayers: number;
-  numScoreItems: number;
-  createdAt: string;
-  lastSavedAt: string;
-  userId: string;
-  groupId?: string; 
-}
 
 interface ScoreSheetTableProps {
   scoreData: ScoreData;
@@ -37,6 +24,9 @@ interface ScoreSheetTableProps {
   handleScoreChange: (row: number, col: number, value: string) => void;
   handleNumPlayersChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   handleNumScoreItemsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  groupOptions: { _id: string; groupName: string }[]; 
+  handleGroupSelect: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  isGroupSelected: boolean;
   allowedTitleRegex: RegExp;
   allowedNameRegex: RegExp;
   allowedScoreRegex: RegExp;
@@ -57,6 +47,9 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
   handleScoreChange,
   handleNumPlayersChange,
   handleNumScoreItemsChange,
+   groupOptions = [], 
+  handleGroupSelect,
+  isGroupSelected, 
   allowedTitleRegex,
   allowedNameRegex,
   allowedScoreRegex,
@@ -99,8 +92,31 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
             className="w-full text-center bg-transparent border-b-2 border-gray-400 focus:outline-none focus:border-blue-500 text-black font-bold text-2xl py-1 px-2"
           />
         </h1>
-        {/* munber of score items and players */}
+        {/* number of score items and players */}
         <div className="flex justify-end items-center text-lg hand_font text-gray-700 w-full mb-4">
+          {/* group selection*/}
+           {groupOptions.length > 0 && (
+            <>
+              <label htmlFor="groupSelect" className="mr-2 whitespace-nowrap">
+                Group:
+              </label>
+              <select
+                id="groupSelect"
+                value={scoreData.groupId || ""} // グループIDがない場合は空文字列
+                onChange={handleGroupSelect}
+                className="p-1 border border-gray-400 rounded-md bg-white text-gray-800 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">-- No Group --</option>
+                {groupOptions.map((group) => (
+                  <option key={group._id} value={group._id}>
+                    {group.groupName}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
+          
+          {/* Score Item selection */}
           <label htmlFor="numScoreItems" className="mr-2 whitespace-nowrap">
             Score Items:
           </label>
@@ -116,6 +132,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
               </option>
             ))}
           </select>
+          {/* Number of players selection */}
           <label htmlFor="numPlayers" className="ml-4 mr-2 whitespace-nowrap">
             Players:
           </label>
@@ -182,6 +199,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                           onChange={(e) => {
                             handlePlayerNameChange(i, e.target.value);
                           }}
+                          disabled={isGroupSelected} 
                           className="w-full bg-transparent border-b border-gray-400 focus:outline-none focus:border-gray-400 text-center text-base text-white"
                         />
                       </th>
@@ -273,7 +291,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                       )}
                     </tr>
                   ))}
-                {/* Toal */}
+                {/* Total */}
                 <tr className="text-xl font-bold hand_font text-white text-center table_green">
                   <td className="px-2 py-1 border-r hand_font border-gray-400">
                     Total

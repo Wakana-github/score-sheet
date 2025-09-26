@@ -17,7 +17,7 @@ interface Group {
   _id: string;
   groupName: string;
   members: string[];
-  ownerId: string;
+  userId: string;
   createdAt?: string; // Add optional createdAt field
 }
 

@@ -39,6 +39,10 @@ export default function ScoreSheetPage() {
     allowedNameRegex,
     allowedScoreRegex,
     composingRefs,
+    groupOptions,
+    selectedGroupId,
+    handleGroupSelect,
+    isGroupSelected,
   } = useScoreSheet();
 
    
@@ -69,6 +73,9 @@ export default function ScoreSheetPage() {
               handleScoreChange={handleScoreChange}
               handleNumPlayersChange={handleNumPlayersChange}
               handleNumScoreItemsChange={handleNumScoreItemsChange}
+              groupOptions={groupOptions}
+              handleGroupSelect={handleGroupSelect}
+              isGroupSelected={isGroupSelected} 
               allowedTitleRegex={allowedTitleRegex}
               allowedNameRegex={allowedNameRegex}
               allowedScoreRegex={allowedScoreRegex}
