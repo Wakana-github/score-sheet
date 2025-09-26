@@ -164,6 +164,18 @@ const {
             custom: recordToLoad.custom,
             groupId: recordToLoad.groupId || null,
           });
+
+          setMaxScores(prev => {
+           const newMaxScores = prev.map((row) => [...row]);
+           recordToLoad.scores.forEach((row, rowIdx) => {
+           row.forEach((score, colIdx) => {
+           if (newMaxScores[rowIdx] && newMaxScores[rowIdx][colIdx] !== undefined) {
+         newMaxScores[rowIdx][colIdx] = String(score); // DBから来た数値は文字列に     
+         }
+         });
+         });
+           return newMaxScores;         });
+
           originalNumScoreItems.current = recordToLoad.numScoreItems;
           originalNumPlayers.current = recordToLoad.numPlayers;
           setShowTotal(true);
@@ -325,7 +337,7 @@ const {
              return `Player ${i + 1}`;
           });
             const scoresAfterGroupReset = Array.from({ length: prev.numScoreItems }, (_, rowIdx) =>
-             Array.from({ length: originalNum }, (_, colIdx) => maxScores[rowIdx]?.[colIdx] || "")
+             Array.from({ length: originalNum }, (_, colIdx) =>  maxScores[rowIdx]?.[colIdx] || "")
           );
         return { 
            ...prev, 
@@ -494,13 +506,13 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
   // update state only after pass all validations
   setScoreData((prev) => {
     const newScores = prev.scores.map((r) => [...r]);
-    newScores[row][col] = String(parsedValue);
+     newScores[row][col] = sanitizedValue;
     
 
     setMaxScores(prevMax => {
       const newMaxScores = prevMax.map(r => [...r]);
       if (newMaxScores[row] && newMaxScores[row][col] !== undefined) {
-        newMaxScores[row][col] = String(parsedValue);
+        newMaxScores[row][col] = sanitizedValue;
       }
       return newMaxScores;
     });
@@ -528,7 +540,7 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
     }
     setScoreData((prev) => {
       const newPlayerNames = Array.from({ length: newNum }, (_, i) =>
-        i < prev.playerNames.length ? he.decode(prev.playerNames[i]) : `Player ${i + 1}`
+        i < prev.playerNames.length ? prev.playerNames[i] : `Player ${i + 1}`
       );
       const newScores = Array.from({ length: prev.numScoreItems }, (_, rowIdx) =>
      Array.from({ length: newNum }, (_, colIdx) => maxScores[rowIdx]?.[colIdx] || "")
@@ -553,10 +565,10 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
     }
     setScoreData((prev) => {
       const newScoreItemNames = Array.from({ length: newNum }, (_, i) =>
- i < prev.scoreItemNames.length ? he.decode(prev.scoreItemNames[i]) : `Round ${i + 1}`
+ i < prev.scoreItemNames.length ? prev.scoreItemNames[i] : `Round ${i + 1}`
  );
       const newScores = Array.from({ length: newNum }, (_, i) => {
-      const existingRow = maxScores[i] || [];
+      const existingRow =  maxScores[i] || [];
       return Array.from({ length: prev.numPlayers }, (_, j) => existingRow[j] || "");
       });
 
