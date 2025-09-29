@@ -10,6 +10,8 @@ import {
   allowedGroupRegex,
   MAX_GROUP_NAME_LENGTH,
   MAX_NAME_LENGTH,
+  MAX_GROUPS,
+  MAX_NUM_MEMBERS,
 } from "../../lib/constants.ts";
 
 // Initialize JSDOM and pass it to DOMPurify
@@ -71,6 +73,15 @@ router.post(
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      // Limit number of records 
+      const groupCount = await Group.countDocuments({ userId: userId }); //count number of groups by userId
+      //check  number of records
+      if (groupCount >= MAX_GROUPS) {
+        return res.status(403).json({ 
+          message: `Group limit reached. You can only create up to ${MAX_GROUPS} groups.` 
+        });
+      }
+
       //fetch data from req.body
       const { groupName, members } = req.body;
 
@@ -85,12 +96,14 @@ router.post(
         return res.status(400).json({ message: sanitizedGroupName.error });
       }
 
-      // Validate and sanitize members array
-      if (!Array.isArray(members) || members.length === 0) {
+      // Validate and sanitize members array (number of members)
+      if (!Array.isArray(members) || members.length === 0 ||members.length > MAX_NUM_MEMBERS) {
         return res
           .status(400)
-          .json({ message: "Member name is invalid or empty." });
+          .json({ message: `Member count must be between 1 and ${MAX_NUM_MEMBERS}.` });
       }
+
+      // Validate and sanitize member's name
       const sanitizedMembers = members.map((name: string) =>
         sanitizeAndValidateString(name, MAX_NAME_LENGTH, "memberName", allowedNameRegex)
       );
@@ -200,13 +213,13 @@ router.put(
       }
 
       // Validate and sanitize members array
-      if (!Array.isArray(members) || members.length === 0) {
+      if (!Array.isArray(members) || members.length === 0 || members.length > MAX_NUM_MEMBERS) {
         return res
           .status(400)
-          .json({ message: "Member name is invalid or empty." });
+          .json({ message: `Member count must be between 1 and ${MAX_NUM_MEMBERS}.` });
       }
 
-
+      // Validate and sanitize member's name
       const sanitizedMembers = members.map((name: string) =>
         sanitizeAndValidateString(name, MAX_NAME_LENGTH, "memberName", allowedNameRegex)
       );

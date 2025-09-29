@@ -19,4 +19,6 @@ export const PAGENATION_LIMIT = 10;
 
 //Max limit for Groups
 export const MAX_GROUPS = 10;
+export const MAX_NUM_MEMBERS = 10;
+
 
