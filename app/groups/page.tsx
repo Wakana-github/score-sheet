@@ -7,6 +7,7 @@ import  Group  from '../server/models/group';
 import { useAuth, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'; 
 import he from 'he'; 
 import Link from 'next/link';
+import { MAX_GROUPS } from "../lib/constants.ts";
 
 interface Group {
   _id: string;
@@ -17,7 +18,6 @@ interface Group {
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL|| 'http://localhost:8080/api/groups'; 
-const MAX_GROUPS = 10; // Define the maximum number of groups.
 
 const GroupListPage: React.FC = () => {
   const [groups, setGroups] = useState<Group[]>([]);

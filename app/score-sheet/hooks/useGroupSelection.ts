@@ -32,12 +32,18 @@ export default function useGroupSelection() {
         }
     }, [userId, getToken]);
 
-    // 初期化時にグループを取得
+    //Fetch available groups on initial load.
     useEffect(() => {
         fetchAvailableGroups();
     }, [fetchAvailableGroups]);
 
-    // ハンドラ
+    //set group when a score sheet is loaded from a record
+    const initializeSelectedGroup = useCallback((groupId: string | null) => {
+        setSelectedGroupId(groupId); 
+    }, []);
+    
+
+    // group selection handler
     const handleGroupSelect = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         const newGroupId = e.target.value === "" ? null : e.target.value;
         setSelectedGroupId(newGroupId);
@@ -50,6 +56,7 @@ export default function useGroupSelection() {
         selectedGroupId,
         selectedGroup, 
         handleGroupSelect,
+        initializeSelectedGroup,
         isGroupSelected: !!selectedGroupId,
     };
 }

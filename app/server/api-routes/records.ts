@@ -87,10 +87,8 @@ router.post(
       }
 
       //fetch data from req.body
-      const { id, gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, custom } = req.body;
-
-
-      
+      const { id, gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, custom, groupId } = req.body;
+    
        // === Validation and sanitization using DOMPurify ===
       const sanitizedTitle = sanitizeAndValidateString(gameTitle, MAX_TITLE_LENGTH, 'gameTitle');
       if (sanitizedTitle.error) return res.status(400).json({ message: sanitizedTitle.error });
@@ -139,12 +137,13 @@ router.post(
         numPlayers,
         numScoreItems,
         userId: userId,
+        groupId: typeof groupId === 'string' ? groupId : undefined,
         createdAt: new Date(),
         lastSavedAt: new Date(),
-        custom: typeof custom === 'boolean' ? custom : false,
+        custom: typeof custom === 'boolean' ? custom : false, 
       };
-
       const record: IScoreRecord = await ScoreRecord.create(newRecordData);
+
       res.status(201).json({ message: "Record saved successfully", record });
     } catch (error) {
       console.error("Error saving new record:", error);
@@ -263,7 +262,7 @@ router.put(
       const recordId = req.params.id;
 
  // Only get the necessary data from the request body
-      const { gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, custom } = req.body;
+      const { gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, custom, groupId } = req.body;
 
       // === Add validation and sanitization using DOMPurify===
       const sanitizedTitle = sanitizeAndValidateString(gameTitle, MAX_TITLE_LENGTH, 'gameTitle');
@@ -309,6 +308,7 @@ router.put(
         scores: sanitizedScores,
         numPlayers,
         numScoreItems,
+        groupId: typeof groupId === 'string' ? groupId : undefined,
         lastSavedAt: new Date(),
         custom: typeof custom === 'boolean' ? custom : false, 
       };

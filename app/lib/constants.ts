@@ -17,3 +17,6 @@ export const MAX_FREE_RECORDS = 5;
 export const MAX_ACTIVE_RECORDS = 500;
 export const PAGENATION_LIMIT = 10;
 
+//Max limit for Groups
+export const MAX_GROUPS = 10;
+

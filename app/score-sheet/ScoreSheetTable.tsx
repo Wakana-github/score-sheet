@@ -102,7 +102,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
               </label>
               <select
                 id="groupSelect"
-                value={scoreData.groupId || ""} // グループIDがない場合は空文字列
+                value={scoreData.groupId || ""} //  Empty string if groupId is null
                 onChange={handleGroupSelect}
                 className="p-1 border border-gray-400 rounded-md bg-white text-gray-800 focus:ring-blue-500 focus:border-blue-500"
               >
@@ -140,6 +140,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
             id="numPlayers"
             value={scoreData.numPlayers}
             onChange={handleNumPlayersChange}
+            disabled={isGroupSelected}
             className="p-1 border border-gray-400 rounded-md bg-white text-gray-800 focus:ring-blue-500 focus:border-blue-500"
           >
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (

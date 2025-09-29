@@ -32,6 +32,7 @@ const {
     selectedGroupId, 
     selectedGroup, 
     handleGroupSelect,
+    initializeSelectedGroup,
     isGroupSelected,
   } = useGroupSelection();
 
@@ -67,7 +68,7 @@ const {
   const [showTotal, setShowTotal] = useState(false);
   const [playerRanks, setPlayerRanks] = useState<number[]>([]);
   const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false);
-
+ 
   const originalNumScoreItems = useRef<number>(0);
   const originalNumPlayers = useRef<number>(0);
   const originalPlayerNames = useRef<string[]>([]); 
@@ -175,6 +176,7 @@ const {
           originalNumScoreItems.current = recordToLoad.numScoreItems;
           originalNumPlayers.current = recordToLoad.numPlayers;
           originalPlayerNames.current = recordToLoad.playerNames.map(name => he.decode(name));
+          initializeSelectedGroup(recordToLoad.groupId || null);
           setShowTotal(true);
         } catch (error) {
           console.error("Error loading record:", error);
@@ -304,7 +306,7 @@ const {
       }
     }
     initializeSheet();
-  }, [isLoaded, recordIdFromUrl, searchParams, router, getToken, userId]);
+  }, [isLoaded, recordIdFromUrl, searchParams, router, getToken, userId,initializeSelectedGroup]);
 
  // When group is selected
   useEffect(() => {
@@ -329,12 +331,12 @@ const {
         });
         setPlayerRanks(Array(newNumPlayers).fill(0));
     } else if (scoreData.groupId) { 
-      // === グループが解除された場合 (groupIdが残っている場合) ===
+      // === Handle group reset===
       const originalNum = originalNumPlayers.current;
       const originalNames = originalPlayerNames.current;
 
       setScoreData(prev => {
-        // スコアを元の人数に戻す
+        // Revert scores back to the original number of players
        const scoresAfterGroupReset = prev.scores.map((_, i) =>
           Array.from({ length: originalNum }, (_, colIdx) => allScores.current[i]?.[colIdx] || "")
         );
@@ -395,7 +397,8 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
   // Update Player Name in state
   const handlePlayerNameChange = useCallback((index: number, newName: string) => {
 
-     if (isGroupSelected) {
+     if (isGroupSelected
+     ) {
         alert("Cannot change player names while a group is selected.");
         return;
     }
