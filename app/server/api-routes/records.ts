@@ -1,4 +1,5 @@
 import express, { Request, Response, Router } from "express";
+import mongoose from "mongoose";
 import rateLimit from 'express-rate-limit';
 import ScoreRecord, { IScoreRecord } from "../models/score-record.ts";
 import User from "../models/user.model.ts";
@@ -18,11 +19,14 @@ interface SanitizeResult {
   value?: string;
 }
 
-
 const router = express.Router();
 
+// Helper function to validate MongoDB ObjectId format 
+const isValidMongoId = (id: string): boolean => {
+    return mongoose.Types.ObjectId.isValid(id);
+};
 
-
+// Helper function to sanitize and validate strings
 const sanitizeAndValidateString = (input: string, maxLength: number, fieldName: string): SanitizeResult => {
   if (typeof input !== 'string') {
     return { error: `Invalid type for ${fieldName}.` };
@@ -212,7 +216,7 @@ router.get(
     } catch (error: unknown) {
       const err = error as Error;
       console.error("Error fetching all user records:", err);
-      res.status(500).json({ message: "Server error", error: err.message });
+      res.status(500).json({ message: "An unexpected server error occurred."});
     }
   }
 );
@@ -231,6 +235,11 @@ router.get(
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      //Check Id format
+      if (!isValidMongoId(req.params.id)) {
+        return res.status(400).json({ message: "Invalid record ID format." });
+      }
+
       const record = await ScoreRecord.findOne({
         _id: req.params.id,
         userId: userId,
@@ -241,7 +250,7 @@ router.get(
       res.status(200).json(record);
     } catch (error: unknown) {
       console.error("Error fetching single record:", error);
-      res.status(500).json({ message: "Failed to fetch score record." });
+      res.status(500).json({ message: "An unexpected server error occurred." });
     }
   }
 );
@@ -260,6 +269,11 @@ router.put(
         return res.status(401).json({ message: "Unauthorized" });
       }
       const recordId = req.params.id;
+
+      //Check Id format
+      if (!isValidMongoId(recordId)) {
+        return res.status(400).json({ message: "Invalid record ID format." });
+      }
 
  // Only get the necessary data from the request body
       const { gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, custom, groupId } = req.body;
@@ -336,10 +350,7 @@ router.put(
         console.error("Error updating score record:", error);
         res
           .status(500)
-          .json({
-            message: "Failed to update score record.",
-            error: error.message,
-          });
+          .json({ message: "An unexpected server error occurred."});
       }
     }
   }
@@ -359,6 +370,11 @@ router.delete(
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      //Id format check
+      if (!isValidMongoId(req.params.id)) {
+         return res.status(400).json({ message: "Invalid record ID format." });
+        }
+
       const result = await ScoreRecord.deleteOne({
         _id: req.params.id,
         userId: userId,
@@ -371,7 +387,7 @@ router.delete(
     } catch (error: unknown) {
       const err = error as Error;
       console.error("Error deleting record:", error);
-      res.status(500).json({ message: "Server error", error: err.message });
+      res.status(500).json({  message: "An unexpected server error occurred." });
     }
   }
 );
