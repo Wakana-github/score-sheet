@@ -1,4 +1,5 @@
 import express, { Request, Response, Router } from "express";
+import mongoose from "mongoose";
 import rateLimit from "express-rate-limit";
 import { JSDOM } from "jsdom";
 import DOMPurify from "dompurify";
@@ -24,6 +25,11 @@ interface SanitizeResult {
 }
 
 const router = express.Router();
+
+// Helper function to validate MongoDB ObjectId format 
+const isValidMongoId = (id: string): boolean => {
+    return mongoose.Types.ObjectId.isValid(id);
+};
 
 // Helper function to sanitize and validate strings
 const sanitizeAndValidateString = (
@@ -128,7 +134,7 @@ router.post(
       res.status(201).json({ message: "Group created successfully", group: newGroup });
     } catch (error: any) {
       console.error("Error creating group:", error);
-      res.status(500).json({ message: "Server error", error: error.message });
+      res.status(500).json({ message: "An unexpected server error occurred."});
     }
   }
 );
@@ -152,7 +158,7 @@ router.get(
       res.status(200).json(groups);
     } catch (error: any) {
       console.error("Error fetching groups:", error);
-      res.status(500).json({ message: "Server error", error: error.message });
+      res.status(500).json({ message: "An unexpected server error occurred."});
     }
   }
 );
@@ -170,6 +176,12 @@ router.get(
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      //Check ID format
+      if (!isValidMongoId(req.params.id)) {
+         return res.status(400).json({ message: "Invalid group ID format." });
+        }
+
+
       const group = await Group.findOne({
         _id: req.params.id,
         userId: userId,
@@ -180,7 +192,7 @@ router.get(
       res.status(200).json(group);
     } catch (error: any) {
       console.error("Error fetching group:", error);
-      res.status(500).json({ message: "Server error", error: error.message });
+      res.status(500).json({message: "An unexpected server error occurred." });
     }
   }
 );
@@ -197,8 +209,13 @@ router.put(
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
-      const { groupName, members } = req.body;
 
+      //Check ID format
+      if (!isValidMongoId(req.params.id)) {
+         return res.status(400).json({ message: "Invalid group ID format." });
+        }
+
+        const { groupName, members } = req.body;
 
       // Validate and sanitize groupName
       const sanitizedGroupName = sanitizeAndValidateString(
@@ -252,7 +269,7 @@ router.put(
       res.status(200).json({ message: "Group updated successfully", group: updatedGroup });
     } catch (error: any) {
       console.error("Error updating group:", error);
-      res.status(500).json({ message: "Server error", error: error.message });
+      res.status(500).json({ message: "An unexpected server error occurred." });
     }
   }
 );
@@ -269,6 +286,11 @@ router.delete(
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      //Check ID format
+      if (!isValidMongoId(req.params.id)) {
+         return res.status(400).json({ message: "Invalid group ID format." });
+      }
+
       const result = await Group.deleteOne({
         _id: req.params.id,
         userId: userId,
@@ -281,7 +303,7 @@ router.delete(
       res.status(200).json({ message: "Group deleted successfully" });
     } catch (error: any) {
       console.error("Error deleting group:", error);
-      res.status(500).json({ message: "Server error", error: error.message });
+      res.status(500).json({ message: "An unexpected server error occurred." });
     }
   }
 );
