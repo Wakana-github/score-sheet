@@ -7,6 +7,7 @@
   --dark_green: rgba(157, 179, 32, 0.6);
   --table_green: rgba(73, 83, 12, 0.8);
   --clerk-font-family: Arial, Helvetica, sans-serif;
+  --stats_green: #41490e;
 }
 
 @theme inline {
@@ -52,23 +53,27 @@ body {
 .table_green{
   background-color: var(--table_green);
 }
+.stats_green{
+  background-color: var(--stats_green);
+}
+
 /* .first-color{
   background-color: #B6A014;
 } */
 .first-color{
-   background: linear-gradient(45deg, #917E0F 25%, #B6A014  70%, #D1AD64 75%, #B6A014  80%, #917E0F 100%);
+   background: linear-gradient(45deg, #917E0F 25%, #B6A014  70%, #D1AD64 75%, #B6A014  80%, #917E0F 100%) !important; 
 }
 /* .second-color{
   background-color: #AFAFB0;
 } */
-.second-color{
-   background: linear-gradient(45deg, #757575 25%, #9C9A9A 70%, #C2BCBC 75%, #9C9A9A 80%, #757575 90% 100%)
+.second-color{ 
+   background: linear-gradient(45deg, #757575 25%, #9C9A9A 70%, #C2BCBC 75%, #9C9A9A 80%, #757575 90% 100%) !important;
 }
 /* .third-color{
   background-color: #8F6939;
 } */
 .third-color{
-  background: linear-gradient(45deg, #735532 25%, #8F6939, #A87B3E 75%, #8F6939 80%, #735532 90% 100%)
+  background: linear-gradient(45deg, #735532 25%, #8F6939, #A87B3E 75%, #8F6939 80%, #735532 90% 100%) !important;
 }
 /* .total-btn-color{
   background-color: #4A4A46;

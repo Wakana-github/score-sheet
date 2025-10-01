@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import LoadingPage from '@/components/lodingPage';
 import { useUser } from '@clerk/nextjs';
+import StatCard from '@/components/statCard';
+import RankCard from '@/components/rankCard';
 
 //define stats types
 interface GameStats {
@@ -78,7 +80,7 @@ export default function StatsPage() {
     <div className="mt-4 p-4 md:p-8">
       {/* title */}
       <h1 className="text-3xl md:text-4xl font-bold mb-4 hand_font">Personal Stats for 
-        <span className="text-4xl md:text-5xl   text-[#41490e]">
+        <span className="text-4xl md:text-5xl  text-[#41490e]">
           <br/>{user?.publicMetadata?.nickname && typeof user.publicMetadata.nickname === 'string'
         ? user.publicMetadata.nickname
         : user?.username}
@@ -101,9 +103,9 @@ export default function StatsPage() {
     {/* Total rankkings */}
     <h2 className="text-2xl md:text-3xl font-bold hand_font mb-2 md:mb-4">Total Rankings</h2>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
-      <StatCard title="Total 1st Places" value={stats?.totalRankings.first || 0} />
-      <StatCard title="Total 2nd Places" value={stats?.totalRankings.second || 0} />
-      <StatCard title="Total 3rd Places" value={stats?.totalRankings.third || 0} />
+      <RankCard title="Total 1st Places" value={stats?.totalRankings.first || 0} className="first-color"/>
+      <RankCard  title="Total 2nd Places" value={stats?.totalRankings.second || 0} className="second-color"/>
+      <RankCard  title="Total 3rd Places" value={stats?.totalRankings.third || 0} className="third-color"/>
     </div>
       
      {/* Choose game */}
@@ -126,24 +128,40 @@ export default function StatsPage() {
       </div>
 
       {/* Stats for selected game */}
-      {selectedGame && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          <StatCard title="Total Plays" value={selectedGame.plays} />
-          <StatCard title="Average Score" value={selectedGame.averageScore.toFixed(2)} />
-          <StatCard title="Highest Score" value={selectedGame.highestScore} />
-          <StatCard title="Lowest Score" value={selectedGame.lowestScore} />    
-          <StatCard title="1st Place" value={selectedGame.ranks.first} />
-          <StatCard title="2nd Place" value={selectedGame.ranks.second} />
-          <StatCard title="3rd Place" value={selectedGame.ranks.third} />
-        </div>
-      )}
+{selectedGame &&(
+        <div className="border p-4 rounded-lg shadow-md table_green text-white">
+          {/* Score Details */}
+          <div className="sm:grid sm:grid-cols-2 gap-2 ">
+            <div className="p-1 px-3">
+                <span className="font-semibold block text-xl md:text-2xl">Total Plays</span>
+                <span className="text-2xl md:text-3xl">{selectedGame.plays}</span>
+            </div>
+            <div className="p-1 px-4">
+                <span className="font-semibold block text-xl md:text-2xl">Average Score</span>
+                <span className="text-2xl md:text-3xl">{selectedGame.averageScore.toFixed(2)}</span>
+            </div>
+            <div className="p-1 px-4">
+                <span className="font-semibold block text-xl md:text-2xl">Highest</span>
+                <span className="text-2xl md:text-3xl">{selectedGame.highestScore}</span>
+            </div>
+            <div className="p-1 px-4">
+                <span className="font-semibold block text-xl md:text-2xl">Lowest</span>
+                <span className="text-2xl md:text-3xl">{selectedGame.lowestScore}</span>
+            </div>
+          </div>
+
+          {/* Rank Details */}
+          <div className="col-span-3 mt-2 pt-2 border-t text-xl md:text-2xl">
+              <span className="font-semibold block mb-1">Ranks Achieved</span>
+              <div className="flex justify-between font-semibold text-white mx-3 text-xl">
+                  <span>🏆 1st: <span className="text-2xl md:text-3xl ml-5"> {selectedGame.ranks.first}</span></span>
+                  <span>🥈 2nd: <span className="text-2xl md:text-3xl ml-5"> {selectedGame.ranks.second}</span></span>
+                  <span>🥉 3rd: <span className="text-2xl md:text-3xl ml-5"> {selectedGame.ranks.third}</span></span>
+              </div>
+          </div>
+      </div>
+)}
     </div>
   );
 }
 
-const StatCard = ({ title, value }: { title: string; value: string | number }) => (
-  <div className="bg-[#424911] p-2 md:p-4 lg:p-5 rounded-lg shadow-md">
-    <h3 className="text-lg md:text-xl lg:text-2xl font-medium text-white">{title}</h3>
-    <p className="text-xl md:text-3xl lg:text-4xl font-bold text-white mt-2">{value}</p>
-  </div>
-);

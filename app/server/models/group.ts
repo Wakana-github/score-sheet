@@ -1,5 +1,14 @@
-import mongoosePkg from 'mongoose';
+import mongoosePkg,  { Document } from 'mongoose';
 const { default: mongoose, Schema, model, models} = mongoosePkg;
+
+export interface IGroup extends mongoosePkg.Document {
+    _id:string;
+    groupName: string;
+    members: string[]; 
+    userId: string; 
+    createdAt: Date;
+    updatedAt: Date; 
+}
 
 const GroupSchema = new Schema({
     groupName: {
@@ -22,6 +31,6 @@ const GroupSchema = new Schema({
   }
 });
 
-const Group = models.Group || model('Group', GroupSchema);
+const Group = (models.Group) ||model<IGroup>('Group', GroupSchema);
 
 export default Group;
