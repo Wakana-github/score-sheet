@@ -88,7 +88,7 @@ export default function StatsPage() {
       </h1>
         
       {/* Total and most played game */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8 text-2xl md:text-3xl">
         <StatCard title="Total Plays" value={stats?.totalPlays || 0} />
         <StatCard
           title="Most Played Game"

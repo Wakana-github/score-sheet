@@ -133,7 +133,7 @@ export default function GroupStatsPage() {
         <h2 className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2">
             {stats.groupName}
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
             <StatCard title="Total Plays" value={stats?.totalPlays} />
             <StatCard title="Most Played Game:" value={`${stats?.mostPlayedGame.title} (${stats?.mostPlayedGame.plays} plays)`} />
         </div>
@@ -199,7 +199,7 @@ export default function GroupStatsPage() {
             
             <div className="mt-4">
             <h4 className="text-2xl md:text-3xl font-bold hand_font mb-2">{stats.selectedGameStats.gameTitle} Stats</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <StatCard title="Total Plays" value={stats.selectedGameStats.totalPlays} />
                 <StatCard title="Avg Score" value= {stats.selectedGameStats.averageScore.toFixed(2)} />
                 <StatCard title="Highest Score" value= {stats.selectedGameStats.highestScore} />
@@ -216,31 +216,31 @@ export default function GroupStatsPage() {
                     .map((p, index) => (
                         <div key={p.playerName} className="border p-4 rounded-lg shadow-md table_green text-white">
                             <div className="flex justify-between items-center mb-2 pb-2 border-b">
-                                <h4 className="text-xl font-bold">{p.playerName}</h4>
+                                <h4 className="text-lg md:text-xl lg:text-2xl font-bold">{p.playerName}</h4>
                             </div>
 
                             <div className="grid grid-cols-3 gap-2 text-sm ">
                                 {/* Score Details */}
                                 <div className="p-1 border-r">
-                                    <span className="font-semibold block">Average Score</span>
+                                    <span className="font-semibold block md:text-lg">Average</span>
                                     <span className="text-xl ">{p.averageScore.toFixed(2)}</span>
                                 </div>
                                 <div className="p-1 border-r">
-                                    <span className="font-semibold  block">Highest</span>
+                                    <span className="font-semibold block md:text-lg">Highest</span>
                                     <span className="text-xl">{p.highestScore}</span>
                                 </div>
                                 <div className="p-1">
-                                    <span className="font-semibold block">Lowest</span>
+                                    <span className="font-semibold block md:text-lg">Lowest</span>
                                     <span className="text-xl">{p.lowestScore}</span>
                                 </div>
 
                                 {/* Rank Details */}
                                 <div className="col-span-3 mt-2 pt-2 border-t">
-                                    <span className="font-semibold block mb-1">Ranks Achieved</span>
-                                    <div className="flex justify-between text-base font-semibold text-white mx-3">
-                                        <span>🏆 1st: <span className="text-xl"> {p.ranks.first}</span></span>
-                                        <span>🥈 2nd: <span className="text-xl"> {p.ranks.second}</span></span>
-                                        <span>🥉 3rd: <span className="text-xl"> {p.ranks.third}</span></span>
+                                    <span className="font-semibold block mb-1 md:text-lg">Ranks Achieved</span>
+                                    <div className="flex justify-between text-base font-semibold text-white mx-3 md:text-lg">
+                                        <span>🏆 1st: <span className="text-xl md:text-2xl pl-2"> {p.ranks.first}</span></span>
+                                        <span>🥈 2nd: <span className="text-xl md:text-2xl pl-2"> {p.ranks.second}</span></span>
+                                        <span>🥉 3rd: <span className="text-xl md:text-2xl pl-2"> {p.ranks.third}</span></span>
                                     </div>
                                 </div>
                             </div>
