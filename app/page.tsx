@@ -121,10 +121,7 @@ export default function Home() {
 
           {/* my record button */}
           <div className="my-4">
-            <button
-            onClick={handleViewRecords} 
-            className="hand_font text-3xl"
-          >
+            <button onClick={handleViewRecords} className="hand_font text-3xl">
             My Record
           </button>
           </div>

@@ -49,7 +49,7 @@ export default function SubscriptionButton({ subscriptionStatus, stripeCustomerI
     return (
       <button
         onClick={editPaymentDetails}
-        className="bg-[#f1490c] hover:bg-[#991d1d] text-white text-base  py-2 px-4 rounded"
+        className="bg-[#f1490c] hover:bg-[#991d1d] text-white text-sm md:text-base  py-2 px-4 rounded"
       >
         Edit payment details
       </button>
@@ -58,7 +58,7 @@ export default function SubscriptionButton({ subscriptionStatus, stripeCustomerI
     return (
       <button
         onClick={handleClickSubscribeButton}
-        className="bg-[#f1490c] hover:bg-[#991d1d] text-white text-base  py-1 px-4 rounded"
+        className="bg-[#f1490c] hover:bg-[#991d1d] text-white text-sm md:text-base  py-1 px-4 rounded"
       >
         Subscribe
       </button>

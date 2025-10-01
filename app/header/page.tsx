@@ -86,7 +86,7 @@ export default function Header() {
             </Link>
             <Link href="/records" passHref>
               <button className=" hover:text-blue-800 text-xl  font-medium px-1 md:px-2 py-2 rounded-md transition-colors duration-200">
-                <span className="hand_font">My Records</span>
+                <span className="hand_font">Records</span>
               </button>
             </Link>
             <Link href="/stats" passHref>
@@ -130,7 +130,7 @@ export default function Header() {
           <li>
             <Link href="/records" passHref onClick={handleLinkClick}>
               <span className="anchor-link text-white hand_font ">
-                My Records
+                Records
               </span>
             </Link>
           </li>
