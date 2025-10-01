@@ -179,7 +179,7 @@ export async function GET(
 
           if (selectedGameTitle && gameTitle === selectedGameTitle) {
               const gameStats = selectedGamePlayerStatsMap[name];
-        gameStats.totalPlays++;
+                    gameStats.totalPlays++;
                     gameStats.totalScore += score;
                     gameStats.highestScore = Math.max(gameStats.highestScore, score);
                     gameStats.lowestScore = Math.min(gameStats.lowestScore, score);
@@ -268,7 +268,7 @@ export async function GET(
             selectedGameStats = {
                 gameTitle: selectedGameTitle,
                 totalPlays: stats.plays,
-                averageScore: stats.plays > 0 ? totalScore / stats.plays : 0,
+                averageScore: stats.plays > 0 ? totalScore / scores.length : 0,
                 highestScore: scores.length > 0 ? Math.max(...scores) : 0,
                 lowestScore: scores.length > 0 ? Math.min(...scores) : 0,
                 ranks: {

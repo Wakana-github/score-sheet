@@ -100,35 +100,35 @@ export default function StatsPage() {
         />
       </div>
     
-    {/* Total rankkings */}
-    <h2 className="text-2xl md:text-3xl font-bold hand_font mb-2 md:mb-4">Total Rankings</h2>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
-      <RankCard title="Total 1st Places" value={stats?.totalRankings.first || 0} className="first-color"/>
-      <RankCard  title="Total 2nd Places" value={stats?.totalRankings.second || 0} className="second-color"/>
-      <RankCard  title="Total 3rd Places" value={stats?.totalRankings.third || 0} className="third-color"/>
-    </div>
-      
-     {/* Choose game */}
-      <div className="mb-5 md:mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold hand_font mb-2 md:mb-4">Game Title</h2>
-        <select
-          onChange={(e) => {
-            const game = stats?.gameDetails.find(g => g.gameTitle === e.target.value);
-            setSelectedGame(game || null);
-          }}
-          value={selectedGame?.gameTitle || ''}
-          className="w-full md:w-1/2 p-2 border border-gray-500 rounded"
-        >
-          {stats?.gameDetails.map(game => (
-            <option key={game.gameTitle} value={game.gameTitle}>
-              {game.gameTitle} ({game.plays} plays)
-            </option>
-          ))}
-        </select>
+      {/* Total rankkings */}
+      <h2 className="text-2xl md:text-3xl font-bold hand_font mb-2 md:mb-4">Total Rankings</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
+        <RankCard title="Total 1st Places" value={stats?.totalRankings.first || 0} className="first-color"/>
+        <RankCard  title="Total 2nd Places" value={stats?.totalRankings.second || 0} className="second-color"/>
+        <RankCard  title="Total 3rd Places" value={stats?.totalRankings.third || 0} className="third-color"/>
       </div>
+        
+      {/* Choose game */}
+        <div className="mb-5 md:mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold hand_font mb-2 md:mb-4">Game Title</h2>
+          <select
+            onChange={(e) => {
+              const game = stats?.gameDetails.find(g => g.gameTitle === e.target.value);
+              setSelectedGame(game || null);
+            }}
+            value={selectedGame?.gameTitle || ''}
+            className="w-full md:w-1/2 p-2 border border-gray-500 rounded"
+          >
+            {stats?.gameDetails.map(game => (
+              <option key={game.gameTitle} value={game.gameTitle}>
+                {game.gameTitle} ({game.plays} plays)
+              </option>
+            ))}
+          </select>
+        </div>
 
       {/* Stats for selected game */}
-{selectedGame &&(
+      {selectedGame &&(
         <div className="border p-4 rounded-lg shadow-md table_green text-white">
           {/* Score Details */}
           <div className="sm:grid sm:grid-cols-2 gap-2 ">
@@ -159,8 +159,8 @@ export default function StatsPage() {
                   <span>🥉 3rd: <span className="text-2xl md:text-3xl ml-5"> {selectedGame.ranks.third}</span></span>
               </div>
           </div>
-      </div>
-)}
+        </div>
+      )}
     </div>
   );
 }
