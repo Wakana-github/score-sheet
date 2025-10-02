@@ -221,7 +221,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
 
       {/* Apply table styles depending on number of players */}
       <div
-        className={`flex overflow-x-auto w-full${
+        className={`flex overflow-x-auto w-full ${
           scoreData.numPlayers >= 8 && !isLargeScreen? "justify-start" : "justify-center"
         }`}
       >
@@ -248,7 +248,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                     .map((name, i) => (
                       <th
                         key={i}
-                        className={`table_green px-1 py-1 hand_font border-r border-gray-400 text-center min-w-[70px] max-w-[80px] lg:min-w-[80px] 
+                        className={`table_green px-1 py-1 hand_font border-r border-gray-400 text-center min-w-[80px] max-w-[80px] lg:min-w-[80px] 
                       ${getRankBackgroundColor(i)}`}
                       >
                         <input
