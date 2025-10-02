@@ -53,7 +53,7 @@ export default function ScoreSheetPage() {
       <div
         className={`flex flex-col items-center${
           scoreData.numPlayers >= 8 ? "justify-start" : "justify-center"
-        } min-h-screen py-3 px-2 bg-cover bg-center bg-no-repeat`}
+        } min-h-screen px-2 bg-cover bg-center bg-no-repeat`}
       >
         <ScoreSheetTable
           scoreData={scoreData}
@@ -114,7 +114,7 @@ export default function ScoreSheetPage() {
         {/* Return to Home button */}
         <div className="self-start">
           <Link href="/" passHref>
-            <button className="py-1 lg:pl-15 px-2 rounded-lg text-xl lg:text-2xl hand_font mt-2">
+            <button className="py-1 px-6 rounded-lg text-xl lg:text-2xl hand_font mt-2">
               ← Return to Home
             </button>
           </Link>

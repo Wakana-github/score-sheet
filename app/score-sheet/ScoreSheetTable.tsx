@@ -178,7 +178,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
           {/* group selection*/}
           {groupOptions.length > 0 && (
             <>
-              <div className="w-full flex justify-end items-center mb-1 text-lg lg:text-xl sm:w-auto sm:justify-start hand_font text-gray-700">
+              <div className="w-full flex justify-end items-center mb-1 text-lg lg:text-xl sm:w-auto sm:justify-start sm:px-3 hand_font text-gray-700">
                 <label htmlFor="groupSelect" className="mr-2 whitespace-nowrap">
                   Group:
                 </label>
