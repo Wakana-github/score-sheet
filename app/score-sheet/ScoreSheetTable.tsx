@@ -1,9 +1,8 @@
 // ScoreSheetTable.tsx
 import React, { useEffect, useState } from "react";
 import he from "he";
-import { ScoreData } from "./score-types"; 
-import Select from "react-select"; 
-
+import { ScoreData } from "./score-types";
+import Select from "react-select";
 
 interface ScoreSheetTableProps {
   scoreData: ScoreData;
@@ -25,7 +24,7 @@ interface ScoreSheetTableProps {
   handleScoreChange: (row: number, col: number, value: string) => void;
   handleNumPlayersChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   handleNumScoreItemsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  groupOptions: { _id: string; groupName: string }[]; 
+  groupOptions: { _id: string; groupName: string }[];
   handleGroupSelect: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   isGroupSelected: boolean;
   allowedTitleRegex: RegExp;
@@ -48,9 +47,9 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
   handleScoreChange,
   handleNumPlayersChange,
   handleNumScoreItemsChange,
-   groupOptions = [], 
+  groupOptions = [],
   handleGroupSelect,
-  isGroupSelected, 
+  isGroupSelected,
   allowedTitleRegex,
   allowedNameRegex,
   allowedScoreRegex,
@@ -58,7 +57,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
 }) => {
   //check if creen size is small
   const [isSmallScreen, setIsSmallScreen] = useState(false);
-  const [isLargeScreen, setIsLargeScreen] = useState(false); 
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
 
   //Checl if the screen is small
   useEffect(() => {
@@ -74,24 +73,23 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
 
   //Check if the screen is large
   useEffect(() => {
-  const checkLgScreen = () => {
-    setIsLargeScreen(window.innerWidth >= 1024);
-  };
-  // check screen size when first rendering or resize
-  checkLgScreen();
-  window.addEventListener("resize", checkLgScreen);
-  return () => window.removeEventListener("resize", checkLgScreen);
+    const checkLgScreen = () => {
+      setIsLargeScreen(window.innerWidth >= 1024);
+    };
+    // check screen size when first rendering or resize
+    checkLgScreen();
+    window.addEventListener("resize", checkLgScreen);
+    return () => window.removeEventListener("resize", checkLgScreen);
   }, []);
-  
-  
-  // Functions for react-select compoment (select number of items/players)
+
+  // Functions for react-select compoment (select groups, number of items/players)
   // Score Items options
-  const scoreItemOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(
-    (num) => ({
-      value: num,
-      label: num.toString(), 
-    })
-  );
+  const scoreItemOptions = [
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+  ].map((num) => ({
+    value: num,
+    label: num.toString(),
+  }));
 
   // Players options
   const playerOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => ({
@@ -99,40 +97,57 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
     label: num.toString(),
   }));
 
-  // 親関数の引数に合うように、ネイティブな Event オブジェクトを合成するヘルパー関数
-  // ReactのonChangeハンドラーが期待する最低限の target.value を提供する。
+  // Group Options for react-select
+  const groupSelectOptions = groupOptions.map((group) => ({
+    value: group._id,
+    label: group.groupName,
+  }));
+  //No group option
+  const noGroupOption = { value: "", label: "-- No Group --" };
+  const allGroupOptions = [noGroupOption, ...groupSelectOptions];
+
+  //Helper function to create a synthetic native Event object to match the parent function's arguments.
   const createSyntheticChangeEvent = (
     value: number
   ): React.ChangeEvent<HTMLSelectElement> => {
-    const stringValue = value.toString();// ネイティブの <select> は値を文字列として渡すため、toString() が必要
-    // ネイティブなイベントオブジェクトのフリをするオブジェクトを生成
+    const stringValue = value.toString(); // change values to string as <select> passes the value as a string.
+    // Creates an object that pworks like an event object.
     return {
       target: { value: stringValue },
-      // 型チェックを回避するために 'as any' を使用
-    } as any;
+    } as any; // Using 'as any' to bypass TypeScript type checking.
   };
 
-  // Score Items 用のラッパー
+  // Wrapper for Score Items
   const handleScoreSelectChange = (
     selectedOption: { value: number; label: string } | null
   ) => {
     if (selectedOption) {
       const syntheticEvent = createSyntheticChangeEvent(selectedOption.value);
-      handleNumScoreItemsChange(syntheticEvent); // 親から渡された元の関数を呼び出す
+      handleNumScoreItemsChange(syntheticEvent); // Calls the original function passed from the parent.
     }
   };
 
-  // Players 用のラッパー
+  // Wrapper for Players
   const handlePlayerSelectChange = (
     selectedOption: { value: number; label: string } | null
   ) => {
     if (selectedOption) {
       const syntheticEvent = createSyntheticChangeEvent(selectedOption.value);
-      handleNumPlayersChange(syntheticEvent); // 親から渡された元の関数を呼び出す
+      handleNumPlayersChange(syntheticEvent); // Calls the original function passed from the parent.
     }
   };
 
-  
+  // Wrapper for Group Selection
+  const handleGroupReactSelectChange = (
+    selectedOption: { value: string; label: string } | null
+  ) => {
+    const value = selectedOption ? selectedOption.value : ""; // null or option object
+    const syntheticEvent = {
+      target: { value: value },
+    } as React.ChangeEvent<HTMLSelectElement>;
+    handleGroupSelect(syntheticEvent); // Calls the original function passed from the parent.
+  };
+
   return (
     <div className="flex flex-col items-center justify-start py-3 px-2 bg-cover bg-center bg-no-repeat">
       <div className="flex flex-wrap justify-center items-center px-2">
@@ -159,62 +174,73 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
         </h1>
 
         {/* Groups, number of score items and players selections */}
-        <div className="flex justify-end items-center text-lg lg:text-xl hand_font text-gray-700 w-full mb-4">
+        <div className="flex flex-col sm:flex-row justify-end items-center text-lg lg:text-xl hand_font text-gray-700 w-full mb-4">
           {/* group selection*/}
-           {groupOptions.length > 0 && (
+          {groupOptions.length > 0 && (
             <>
-              <label htmlFor="groupSelect" className="mr-2 whitespace-nowrap">
-                Group:
-              </label>
-              <select
-                id="groupSelect"
-                value={scoreData.groupId || ""} //  Empty string if groupId is null
-                onChange={handleGroupSelect}
-                className="p-1 border border-gray-400 rounded-md bg-white text-gray-800 focus:ring-blue-500 focus:border-blue-500 "
-              >
-                <option value="">-- No Group --</option>
-                {groupOptions.map((group) => (
-                  <option key={group._id} value={group._id}>
-                    {group.groupName}
-                  </option>
-                ))}
-              </select>
+              <div className="w-full flex justify-end items-center mb-1 text-lg lg:text-xl sm:w-auto sm:justify-start hand_font text-gray-700">
+                <label htmlFor="groupSelect" className="mr-2 whitespace-nowrap">
+                  Group:
+                </label>
+                <div className="w-[150px]">
+                  <Select
+                    id="groupSelect"
+                    options={allGroupOptions}
+                    // Finds the option that matches scoreData.groupId. If not found, defaults to "No Group".
+                    value={
+                      allGroupOptions.find(
+                        (opt) => opt.value === scoreData.groupId
+                      ) || allGroupOptions[0]
+                    }
+                    onChange={handleGroupReactSelectChange} // Wrapper for Group Selection
+                    isSearchable={false}
+                    classNamePrefix="react-select"
+                    className="text-base lg:text-xl border text-gray-800 border-gray-400 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    components={{ DropdownIndicator: () => null }}
+                  />
+                </div>
+              </div>
             </>
           )}
-          
-          {/* Score Item selection */}
-          <label htmlFor="numScoreItems" className="mr-2 ml-3 whitespace-nowrap">
-            Score Items:
-          </label>
-          <div className="w-10"> {/* adjust select width */}
-            <Select
-             id="numScoreItems"
-             options={scoreItemOptions}
-             value={scoreItemOptions.find(opt => opt.value === scoreData.numScoreItems)}
-             onChange={handleScoreSelectChange} 
-             isSearchable={false}
-             classNamePrefix="react-select"
-             className="text-base lg:text-xl border text-gray-800 border-gray-400 rounded-md focus:ring-blue-500 focus:border-blue-500"
-             components={{ DropdownIndicator: () => null }}
-            />
-          </div>
 
-          {/* Number of players selection */}
-          <label htmlFor="numPlayers" className="ml-4 mr-2 whitespace-nowrap">
-            Players:
-          </label>
-          <div className="w-10"> {/* adjust select width */}
-           <Select
-             id="numPlayers"
-             options={playerOptions}
-             value={playerOptions.find(opt => opt.value === scoreData.numPlayers)}
-             onChange={handlePlayerSelectChange} 
-             isSearchable={false}
-             isDisabled={isGroupSelected}
-             classNamePrefix="react-select"
-             className="text-base lg:text-xl border text-gray-800 border-gray-400 rounded-md focus:ring-blue-500 focus:border-blue-500"
-             components={{ DropdownIndicator: () => null }}
-           />
+          <div className="w-full flex justify-end items-center mb-1  text-lg lg:text-xl hand_font text-gray-700">
+            {/* Score Item selection */}
+            <label
+              htmlFor="numScoreItems" className="mr-2 ml-3 whitespace-nowrap">
+              Score Items:
+            </label>
+            <div className="w-10"> {/* adjust select width */}
+              <Select
+                id="numScoreItems"
+                options={scoreItemOptions}
+                value={scoreItemOptions.find(
+                  (opt) => opt.value === scoreData.numScoreItems
+                )}
+                onChange={handleScoreSelectChange}
+                isSearchable={false}
+                classNamePrefix="react-select"
+                className="text-base lg:text-xl border text-gray-800 border-gray-400 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                components={{ DropdownIndicator: () => null }}
+              />
+            </div>
+
+            {/* Number of players selection */}
+            <label htmlFor="numPlayers" className="ml-4 mr-2 whitespace-nowrap">
+              Players:
+            </label>
+            <div className="w-10">{/* adjust select width */}
+              <Select
+                id="numPlayers"
+                options={playerOptions}
+                value={playerOptions.find((opt) => opt.value === scoreData.numPlayers)}
+                onChange={handlePlayerSelectChange}
+                isSearchable={false}
+                isDisabled={isGroupSelected}
+                classNamePrefix="react-select"
+                className="text-base lg:text-xl border text-gray-800 border-gray-400 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                components={{ DropdownIndicator: () => null }}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -222,7 +248,9 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
       {/* Apply table styles depending on number of players */}
       <div
         className={`flex overflow-x-auto w-full ${
-          scoreData.numPlayers >= 8 && !isLargeScreen? "justify-start" : "justify-center"
+          scoreData.numPlayers >= 8 && !isLargeScreen
+            ? "justify-start"
+            : "justify-center"
         }`}
       >
         <div
@@ -232,7 +260,6 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
               : ""
           }`}
         >
-
           {/* Table component */}
           <div className="inline-block min-w-max bg-transparent ">
             <table className="tableWidth divide-gray-400 border border-gray-400 text-base lg:text-lg text-white min-w-max ">
@@ -270,7 +297,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                           onChange={(e) => {
                             handlePlayerNameChange(i, e.target.value);
                           }}
-                          disabled={isGroupSelected} 
+                          disabled={isGroupSelected}
                           className="w-full bg-transparent border-b border-gray-400 focus:outline-none focus:border-gray-400 text-center text-white"
                         />
                       </th>
