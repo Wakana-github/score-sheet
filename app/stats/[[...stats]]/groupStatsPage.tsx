@@ -93,7 +93,7 @@ export default function GroupStatsPage() {
         value: group._id, 
         label: group.groupName, 
     }));
-  }, [groups]); //- Reset group options only when groups changed
+  }, [groups]); //Reset group options only when groups changed
 
   // Set game options for react select component
   const gameOptions = useMemo(() => {
@@ -102,7 +102,7 @@ export default function GroupStatsPage() {
         value:  gameTitle,
         label:  gameTitle,
     }));
-  }, [stats]); //- Reset game options only when stats changed
+  }, [stats]); //Reset game options only when stats changed
 
 
 
@@ -140,7 +140,7 @@ export default function GroupStatsPage() {
             }
             setSelectedGame(""); //reset game selection when group selection is changed.
           }}
-          placeholder="-- Choose Group --"
+          placeholder="-- Choose a Group --"
           className="w-full md:w-1/2"
         />
       </div>
@@ -192,14 +192,14 @@ export default function GroupStatsPage() {
       {/* Game Selection */}
       {stats && stats.availableGames.length > 0 && (
           <div className="mb-2">
-            <h2 className="text-xl md:text-2xl hand_font mt-8 mb-2 md:my-4">Select Game Title</h2>
+            <h2 className="text-xl md:text-2xl hand_font mt-8 mb-2 md:mb-4">Select Game Title</h2>
             <Select
               options={gameOptions}
               value={gameOptions.find(option => option.value === selectedGame) || null} //return selected
               onChange={(selectedOption) => {
                   setSelectedGame(selectedOption ? selectedOption.value : ""); //set selected game as selectedgame 
               }}
-              placeholder="-- All Games --"
+              placeholder="-- Choose a Game --"
               className="w-full md:w-1/2"
             />
           </div>
