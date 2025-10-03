@@ -4,6 +4,7 @@ import StatCard from "@/components/statCard";
 import RankCard from "@/components/rankCard";
 import { useEffect, useState, useMemo } from "react";
 import Select from 'react-select';
+import ReturnHomeBtn from "@/components/returnToHomeBtn";
 
 interface Group {
   _id: string;
@@ -128,7 +129,7 @@ export default function GroupStatsPage() {
 
       {/* Group Selection */}
       <div>
-        <label className="block text-xl md:text-2xl hand_font">Select Group:</label>
+        <label className="block text-xl md:text-3xl hand_font ">Select Group:</label>
         <Select
           options={groupOptions}
           value={groupOptions.find(option => option.value === selectedGroup) || null}
@@ -148,7 +149,7 @@ export default function GroupStatsPage() {
       {/* Total and most played game */}
       {stats &&  
         <div>
-          <h2 className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2">
+          <h2 className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2 ">
               {stats.groupName}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
@@ -158,7 +159,7 @@ export default function GroupStatsPage() {
 
           {/* Overall Rankings Top 3 (Sorted by 1st Place Count) */}
           <div className="mt-8">
-              <h2 className="text-2xl md:text-3xl font-bold hand_font mb-4 md:mb-4">Group Rankings </h2>
+              <h2 className="text-2xl md:text-3xl font-bold hand_font mb-3 md:mb-4">Group Rankings </h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                   {stats.playerDetails
                       .sort((a, b) => b.ranks.first - a.ranks.first)
@@ -192,7 +193,7 @@ export default function GroupStatsPage() {
       {/* Game Selection */}
       {stats && stats.availableGames.length > 0 && (
           <div className="mb-2">
-            <h2 className="text-xl md:text-2xl hand_font mt-8 mb-2 md:mb-4">Select Game Title</h2>
+            <h2 className="text-xl md:text-3xl hand_font mt-8">Select Game Title</h2>
             <Select
               options={gameOptions}
               value={gameOptions.find(option => option.value === selectedGame) || null} //return selected
@@ -213,7 +214,7 @@ export default function GroupStatsPage() {
           {stats.selectedGameStats && (
             
             <div className="mt-4">
-            <h4 className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2">{stats.selectedGameStats.gameTitle}</h4>
+            <h2 className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2">{stats.selectedGameStats.gameTitle}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <StatCard title="Total Plays" value={stats.selectedGameStats.totalPlays} />
                 <StatCard title="Avg Score" value= {stats.selectedGameStats.averageScore.toFixed(2)} />
@@ -265,6 +266,9 @@ export default function GroupStatsPage() {
           )}
         </div>
     )}
+    <div className="mt-20 my-5">
+            <ReturnHomeBtn/>
+          </div>
     </div>
   );
 }

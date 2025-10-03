@@ -5,6 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import StatCard from "@/components/statCard";
 import RankCard from "@/components/rankCard";
 import Select from "react-select";
+import ReturnHomeBtn from "@/components/returnToHomeBtn";
 
 //define stats types
 interface GameStats {
@@ -96,8 +97,9 @@ export default function StatsPage() {
       {/* title */}
       <h1 className="text-3xl md:text-4xl font-bold mb-4 hand_font">
         Personal Stats for
-        <span className="text-4xl md:text-5xl  text-[#41490e]">
-          <br />
+        <br />
+        <span className="text-4xl md:text-5xl text-[#41490e]">
+          
           {user?.publicMetadata?.nickname &&
           typeof user.publicMetadata.nickname === "string"
             ? user.publicMetadata.nickname
@@ -119,7 +121,7 @@ export default function StatsPage() {
       </div>
 
       {/* Total rankkings */}
-      <h2 className="text-2xl md:text-3xl font-bold hand_font mb-2 md:mb-4">
+      <h2 className="text-2xl md:text-3xl font-bold hand_font mb-3 md:mb-4">
         Total Rankings
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
@@ -141,10 +143,8 @@ export default function StatsPage() {
       </div>
 
       {/* Choose game */}
-      <div className="mb-5 md:mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold hand_font mb-2 md:mb-4">
-          Game Title
-        </h2>
+      <div>
+        <h2 className="text-xl md:text-3xl hand_font mt-8">Select Game Title</h2>
         <Select
           options={gameOptions}
           onChange={(selectedOption) => {
@@ -165,14 +165,16 @@ export default function StatsPage() {
             ) || null
           }
           placeholder="Select a Game..."
-          className="w-full md:w-1/2 p-2" // Set width for the wrapper
+          className="w-full md:w-1/2" // Set width for the wrapper
           isClearable
         />
       </div>
 
       {/* Stats for selected game */}
       {selectedGame && (
-        <div className="border p-4 rounded-lg shadow-md table_green text-white">
+      <>
+        <h2 className="text-4xl md:text-5xl hand_font font-bold text-[#41490e] pt-4 mb-2">{selectedGame.gameTitle}</h2>
+        <div className="border p-4 pt-0 rounded-lg shadow-md table_green text-white">
           {/* Score Details */}
           <div className="sm:grid sm:grid-cols-2 gap-2 ">
             <div className="p-1 px-3">
@@ -235,7 +237,11 @@ export default function StatsPage() {
             </div>
           </div>
         </div>
+      </>
       )}
+      <div className="my-8">
+        <ReturnHomeBtn/>
+      </div>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import LoadingPage from '@/components/lodingPage';
 import { useAuth, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'; 
 import he from 'he'; 
 import { MAX_NUM_FREE_RECORDS, PAGENATION_LIMIT } from '../lib/constants';
+import ReturnHomeBtn from '@/components/returnToHomeBtn';
 
 //End point URL for API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/scores'; 
@@ -167,12 +168,12 @@ export default function RecordsPage() {
     if (endPage - startPage + 1 < maxPageButtons) {
         startPage = Math.max(1, endPage - maxPageButtons + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
         pageNumbers.push(i);
     }
      return (
-        <div className="flex justify-center items-center my-4 normal_font text-gray-800">
+        <div className="flex justify-center items-center my-4 normal_font text-sm lg:text-lg text-black">
             <button
                 onClick={() => setCurrentPage(prev => prev - 1)}
                 disabled={currentPage === 1}
@@ -184,7 +185,7 @@ export default function RecordsPage() {
                 <button
                     key={number}
                     onClick={() => setCurrentPage(number)}
-                    className={`mx-1 px-3 py-1 rounded-lg ${currentPage === number ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}
+                    className={`mx-1 px-3 py-1 rounded-lg ${currentPage === number ? 'bg-gray-600 text-white' : 'bg-gray-300 hover:bg-gray-800 hover:text-white'}`}
                 >
                     {number}
                 </button>
@@ -212,39 +213,39 @@ export default function RecordsPage() {
   return (
     <main className="flex flex-col items-center justify-start min-h-screen py-8 px-2 overflow-x-auto bg-cover bg-center bg-no-repeat">
       {/* My Records Title - Using default font */}
-      <h1 className="text-4xl font-bold mb-4 hand_font">My Records</h1> 
+      <h1 className="text-4xl md:text-5xl font-bold mb-4 hand_font">My Records</h1> 
 
       {/* Filter by game title label - Using default font */}
-     <div className="mb-4 w-full flex flex-col items-center px-2"> 
-  <label htmlFor="filter" className="block text-xl  mb-2">
-    Filter by game title:
-  </label>
-  <input
-    type="text"
-    id="filter"
-    value={filterKeyword}
-    onChange={(e) => setFilterKeyword(e.target.value)}
-    placeholder="Enter game title keyword..."
-    className="w-full max-w-sm p-2 border border-gray-700 rounded-md focus:outline-none focus:ring-2 text-gray-800 normal_font" // Added max-w-sm
-  />
-</div>
+     <div className="mb-2 w-full flex flex-col items-center px-2"> 
+        <label htmlFor="filter" className="block text-xl  mb-2">
+          Filter by game title:
+        </label>
+        <input
+          type="text"
+          id="filter"
+          value={filterKeyword}
+          onChange={(e) => setFilterKeyword(e.target.value)}
+          placeholder="Enter game title keyword..."
+          className="w-full max-w-sm p-2 border border-gray-700 rounded-md focus:outline-none focus:ring-2 text-gray-800" 
+        />
+      </div>
 
       {/* Saved Records count - Using default font */}
-     <div className="mb-8 text-xl text-gray-700">
+      <div className="mb-4 lg:mb-8 text-lg lg:text-xl text-gray-700">
         {`Saved Records: ${totalRecords} / ${maxRecords}(${isActiveUser ? ' ' : 'Free Plan '}Max)`}
       </div>
 
       {filteredRecords.length === 0 ? (
-        <p className="text-xl normal_font"> 
+        <p className="text-xl"> 
           {filterKeyword ? `No records found matching "${filterKeyword}".` : 'No records found. Save a sheet to see your history!'}
         </p>
       ) : (
         <div className="w-full max-w-xl sm:max-w-3xl px-2">
           {/* Table headers for record information - Using default font */}
-          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 font-bold text-lg text-white table_green p-2 rounded-t-lg shadow-md">
+          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 font-bold text-lg md:text-xl  text-white table_green p-2 rounded-t-lg shadow-md">
             <div className="col-span-2 sm:col-span-2">Game Name</div>
             <div className="text-center hidden sm:block">Players</div>
-            <div className="col-span-1 text-center">Last Saved</div>
+            <div className="col-span-1 md:col-span-2 text-center">Last Saved</div>
             <div className="col-span-1 text-right">Actions</div>
           </div>
 
@@ -255,17 +256,17 @@ export default function RecordsPage() {
                 key={record._id}
                 className="p-3 border-b border-gray-400 flex justify-between items-center group hover:bg-gray-50 transition-colors duration-200"
               >
-                <div onClick={() => handleRecordClick(record._id)} className="cursor-pointer flex-grow grid grid-cols-4 sm:grid-cols-5 gap-2 items-center">
-                  {/* Game Name - Using dark-green and normal_font for record content */}
-                  <div className="col-span-2 sm:col-span-2 text- font-bold text-dark-green normal_font truncate">
+                <div onClick={() => handleRecordClick(record._id)} className="cursor-pointer flex-grow grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 items-center">
+                  {/* Game Name*/}
+                  <div className="col-span-2 font-bold text-base lg:text-lg text-dark-green truncate">
                     {record.gameTitle}
                   </div>
-                  {/* Players - Using normal_font for record content */}
-                  <div className="col-span-1 text-center  hidden sm:block normal_font"> 
+                  {/* Players */}
+                  <div className="col-span-1 text-center hidden sm:block lg:text-lg"> 
                     {record.numPlayers}
                   </div>
                   {/* Last Saved Date/Time - Using normal_font for record content */}
-                  <div className="col-span-1 text-center text-gray-700 normal_font text-sm"> 
+                  <div className="col-span-1 md:col-span-2 text-center text-gray-800 text-sm lg:text-base"> 
                     {new Date(record.lastSavedAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     {' '}
                     {new Date(record.lastSavedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -274,7 +275,7 @@ export default function RecordsPage() {
                     {/* Delete button moves to the right */}
                     <button
                       onClick={(e) => { e.stopPropagation(); handleDeleteRecord(record._id); }} // Prevent parent click
-                      className="bg-gray-300 hover:bg-gray-500 font-bold py-1 px-2 rounded-md text-sm group-hover:opacity-100 transition-opacity duration-200"
+                      className="bg-gray-300 hover:bg-gray-500 font-bold py-1 px-2 rounded-md text-sm sm:text-lg group-hover:opacity-100 transition-opacity duration-200"
                       title="Delete Record"
                     >
                       <RiDeleteBinLine/>
@@ -287,17 +288,17 @@ export default function RecordsPage() {
         </div>
       )}
 
-{/* rendering pagination UI */}
+      {/* rendering pagination UI */}
       {renderPagination()}
 
       {/* Back to Home button - Using default font */}
-      <div className="mt-8">
-        <button
+      <div className="mt-3 lg:mt-5">
+        <div
           onClick={() => router.push("/")}
-          className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg text-xl hand_font"
+          className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg"
         >
-          ← Return to Home
-        </button>
+          <ReturnHomeBtn/>
+        </div>
       </div>
     </main>
   );

@@ -59,7 +59,7 @@ export default function RootLayout({
           {/* display main contents from the top when mobile screen */}
           <div className="relative w-full h16">
               <Header />
-            <div className="pt-10">
+            <div className="pt-8 md:pt-16">
               <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
                 {children}
               </div>

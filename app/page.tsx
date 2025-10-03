@@ -87,7 +87,7 @@ export default function Home() {
           <h1 className=" hand_font text-4xl lg:text-6xl font-bold">Score Sheet</h1>
 
           {/* game select form */}
-          <div className="dark_green py-1 lg:py-4 my-3 lg:my-6 px-3 flex items-center">
+          <div className="dark_green lg:py-2 my-4 lg:my-10 px-3 flex items-center rounded-lg">
             <label htmlFor="game" className="hand_font text-2xl lg:text-4xl">Choose a game: </label>
             <Select
               id="game"
@@ -106,7 +106,7 @@ export default function Home() {
           <button
             // call handleGoToCustomSheet when selectedGameId = null、otherwise call handleGoToScoreSheet
             onClick={selectedGameId === null ? handleGoToCustomSheet : handleGoToScoreSheet}
-            className="dark_green py-1 lg:py-4 px-6 lg:px-8"
+            className="dark_green py-2 lg:py-3 px-6 lg:px-8 rounded-lg "
           >
             <span className="hand_font text-2xl lg:text-4xl">
               {/* display Custom Sheet when selectedGameId = nul、otherwise display Go to the Score Sheet */}
@@ -115,7 +115,7 @@ export default function Home() {
           </button>
 
           {/* my record button */}
-          <div className="mt-3 lg:my-8">
+          <div className="mt-2 lg:my-8">
             <button onClick={handleViewRecords} className="hand_font text-2xl lg:text-4xl">
             My Record
           </button>

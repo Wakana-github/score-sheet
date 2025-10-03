@@ -225,13 +225,13 @@ const GroupRegisterPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 px-10 my-6">
-      <h1 className="text-4xl font-bold mb-4 hand_font">
+    <div className="container mx-auto px-10 my-6 max-w-3xl">
+      <h1 className="text-4xl md:text-5xl font-bold mb-4 hand_font">
         {groupId ? "Edit Group" : "Create New Group"}
       </h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3 text-base lg:text-xl  ">
         <div>
-          <label htmlFor="groupName" className="block text-gray-700 font-bold">
+          <label htmlFor="groupName" className="block font-semibold">
             Group Name
           </label>
           <input
@@ -245,7 +245,7 @@ const GroupRegisterPage: React.FC = () => {
           />
         </div>
         <div>
-          <label htmlFor="numMembers" className="block text-gray-700 font-bold">
+          <label htmlFor="numMembers" className="block font-semibold">
             Number of Members
           </label>
           <select
@@ -266,7 +266,7 @@ const GroupRegisterPage: React.FC = () => {
           <div key={index}>
             <label
               htmlFor={`member-${index}`}
-              className="block text-gray-700 font-bold"
+              className="block font-semibold"
             >
               Player {index + 1} Name
             </label>
@@ -285,7 +285,7 @@ const GroupRegisterPage: React.FC = () => {
 
         <button
           type="submit"
-          className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md "
+          className="px-4 py-2 lg:mt-6 bg-gray-600 hover:bg-gray-700 text-white rounded-md "
         >
           {groupId ? "Update Group" : "Register Group"}
         </button>
@@ -293,7 +293,7 @@ const GroupRegisterPage: React.FC = () => {
       {/* Return to Group page button */}
       <div className="self-start">
         <Link href="/groups" passHref>
-          <button className="py-2 px-2 rounded-lg text-xl hand_font mt-2">
+          <button className="py-2 px-2 lg:py-4 text-xl lg:text-2xl hand_font mt-2">
             ← Return to Group
           </button>
         </Link>

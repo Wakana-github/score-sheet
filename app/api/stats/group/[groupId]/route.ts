@@ -220,8 +220,7 @@ export async function GET(
         }
     }
 
-    // Construct the final statistics object
-    
+    // Construct the final statistics object  
     //  Format Overall Player Details
     const playerDetails: OverallPlayerDetail[] = Object.entries(overallPlayerStatsMap)
         .map(([playerName, stats]) => ({

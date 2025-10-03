@@ -66,31 +66,31 @@ export default function Header() {
           </div>
 
           {/* Desktop navigation links (hidden on mobile) */}
-          <div className="pl-10 hidden lg:flex items-center gap-3 ">
+          <div className="pl-10 hidden lg:flex items-center gap-3 text-[23px]">
             {" "}
             {/* Hidden by default, flex on large screens and up */}
             <Link href="/" passHref>
-              <button className=" hover:text-blue-800 text-xl  font-medium px-1 md:px-2 py-2 rounded-md transition-colors duration-200">
+              <button className=" hover:text-blue-800  font-medium px-1 py-2 rounded-md transition-colors duration-200">
                 <span className="hand_font">Home</span>
               </button>
             </Link>
             <Link href="/custom-sheet" passHref>
-              <button className=" hover:text-blue-800 text-xl font-medium px-1 md:px-2  py-2 rounded-md transition-colors duration-200">
+              <button className=" hover:text-blue-800  font-medium px-1 py-2 rounded-md transition-colors duration-200">
                 <span className="hand_font">Custom Sheet</span>
               </button>
             </Link>
             <Link href="/groups" passHref>
-              <button className=" hover:text-blue-800 text-xl font-medium px-1 md:px-2  py-2 rounded-md transition-colors duration-200">
+              <button className=" hover:text-blue-800 font-medium px-1 py-2 rounded-md transition-colors duration-200">
                 <span className="hand_font">Group</span>
               </button>
             </Link>
             <Link href="/records" passHref>
-              <button className=" hover:text-blue-800 text-xl  font-medium px-1 md:px-2 py-2 rounded-md transition-colors duration-200">
+              <button className=" hover:text-blue-800 font-medium px-1 py-2 rounded-md transition-colors duration-200">
                 <span className="hand_font">Records</span>
               </button>
             </Link>
             <Link href="/stats" passHref>
-              <button className=" hover:text-blue-800 text-xl  font-medium px-1 md:px-2 py-2 rounded-md transition-colors duration-200">
+              <button className=" hover:text-blue-800 font-medium px-1 py-2 rounded-md transition-colors duration-200">
                 <span className="hand_font">Statistics</span>
               </button>
             </Link>

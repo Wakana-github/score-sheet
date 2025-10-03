@@ -7,6 +7,7 @@ import { useAuth } from "@clerk/nextjs";
 import LoadingPage from "@/components/lodingPage";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import ReturnHomeBtn from "@/components/returnToHomeBtn";
 
 export default function ScoreSheetPage() {
   const { isLoaded, isSignedIn } = useAuth(); // Authentication state from Clerk
@@ -112,12 +113,8 @@ export default function ScoreSheetPage() {
           </button>
         </div>
         {/* Return to Home button */}
-        <div className="self-start">
-          <Link href="/" passHref>
-            <button className="py-1 px-6 rounded-lg text-xl lg:text-2xl hand_font mt-2">
-              ← Return to Home
-            </button>
-          </Link>
+        <div className="self-start px-2 lg:px-6 mt-4 lg:mt-15">
+          <ReturnHomeBtn/>
         </div>
       </div>
 

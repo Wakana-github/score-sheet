@@ -1,0 +1,1 @@
+declare module '*.css' {} //permit to import css files
