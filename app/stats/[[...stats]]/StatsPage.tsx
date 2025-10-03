@@ -1,9 +1,10 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import LoadingPage from '@/components/lodingPage';
-import { useUser } from '@clerk/nextjs';
-import StatCard from '@/components/statCard';
-import RankCard from '@/components/rankCard';
+import React, { useEffect, useState } from "react";
+import LoadingPage from "@/components/lodingPage";
+import { useUser } from "@clerk/nextjs";
+import StatCard from "@/components/statCard";
+import RankCard from "@/components/rankCard";
+import Select from "react-select";
 
 //define stats types
 interface GameStats {
@@ -42,15 +43,15 @@ export default function StatsPage() {
 
       setLoading(true);
       try {
-        const response = await fetch('/api/stats/personal');
-        if (!response.ok) throw new Error('Failed to fetch stats');
+        const response = await fetch("/api/stats/personal");
+        if (!response.ok) throw new Error("Failed to fetch stats");
         const data = await response.json();
         setStats(data);
         if (data.gameDetails.length > 0) {
           setSelectedGame(data.gameDetails[0]); // select first game as default
         }
       } catch (error) {
-        console.error('Error:', error);
+        console.error("Error:", error);
       } finally {
         setLoading(false);
       }
@@ -58,6 +59,16 @@ export default function StatsPage() {
     fetchStats();
   }, [isLoaded, isSignedIn]);
 
+  // Game title options - Calculate options only when stats change
+  const gameOptions = React.useMemo(() => {
+    if (!stats || stats.gameDetails.length === 0) return [];
+    return stats.gameDetails.map((game) => ({
+      value: game.gameTitle,
+      label: `${game.gameTitle} (${game.plays} plays)`,
+    }));
+  }, [stats]);
+
+  //Loading page
   if (loading || !isLoaded) {
     return <LoadingPage />;
   }
@@ -66,27 +77,34 @@ export default function StatsPage() {
     return <div>Please sign in to view your stats.</div>;
   }
 
-   // DIsplay message when there are no records
+  // Display message when there are no records
   if (!stats || stats.totalPlays === 0) {
-    return <div className="p-4 md:p-8">No records found. Please save some scores to view your stats.</div>;
+    return (
+      <div className="p-4 md:p-8">
+        No records found. Please save some scores to view your stats.
+      </div>
+    );
   }
 
   // Find most played game details for display with play count
   const mostPlayedGameDetails = stats.gameDetails.find(
-    g => g.gameTitle === stats.mostPlayedGame
+    (g) => g.gameTitle === stats.mostPlayedGame
   );
 
   return (
     <div className="mt-4 p-4 md:p-8">
       {/* title */}
-      <h1 className="text-3xl md:text-4xl font-bold mb-4 hand_font">Personal Stats for 
+      <h1 className="text-3xl md:text-4xl font-bold mb-4 hand_font">
+        Personal Stats for
         <span className="text-4xl md:text-5xl  text-[#41490e]">
-          <br/>{user?.publicMetadata?.nickname && typeof user.publicMetadata.nickname === 'string'
-        ? user.publicMetadata.nickname
-        : user?.username}
-          </span>
+          <br />
+          {user?.publicMetadata?.nickname &&
+          typeof user.publicMetadata.nickname === "string"
+            ? user.publicMetadata.nickname
+            : user?.username}
+        </span>
       </h1>
-        
+
       {/* Total and most played game */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8 text-2xl md:text-3xl">
         <StatCard title="Total Plays" value={stats?.totalPlays || 0} />
@@ -99,69 +117,125 @@ export default function StatsPage() {
           }
         />
       </div>
-    
+
       {/* Total rankkings */}
-      <h2 className="text-2xl md:text-3xl font-bold hand_font mb-2 md:mb-4">Total Rankings</h2>
+      <h2 className="text-2xl md:text-3xl font-bold hand_font mb-2 md:mb-4">
+        Total Rankings
+      </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
-        <RankCard title="Total 1st Places" value={stats?.totalRankings.first || 0} className="first-color"/>
-        <RankCard  title="Total 2nd Places" value={stats?.totalRankings.second || 0} className="second-color"/>
-        <RankCard  title="Total 3rd Places" value={stats?.totalRankings.third || 0} className="third-color"/>
+        <RankCard
+          title="Total 1st Places"
+          value={stats?.totalRankings.first || 0}
+          className="first-color"
+        />
+        <RankCard
+          title="Total 2nd Places"
+          value={stats?.totalRankings.second || 0}
+          className="second-color"
+        />
+        <RankCard
+          title="Total 3rd Places"
+          value={stats?.totalRankings.third || 0}
+          className="third-color"
+        />
       </div>
-        
+
       {/* Choose game */}
-        <div className="mb-5 md:mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold hand_font mb-2 md:mb-4">Game Title</h2>
-          <select
-            onChange={(e) => {
-              const game = stats?.gameDetails.find(g => g.gameTitle === e.target.value);
+      <div className="mb-5 md:mb-8">
+        <h2 className="text-2xl md:text-3xl font-bold hand_font mb-2 md:mb-4">
+          Game Title
+        </h2>
+        <Select
+          options={gameOptions}
+          onChange={(selectedOption) => {
+            if (selectedOption) {
+              // Use the value (gameTitle) to find the original GameStats object and set it to the state.
+              const game = stats?.gameDetails.find(
+                (g) => g.gameTitle === selectedOption.value 
+              );
               setSelectedGame(game || null);
-            }}
-            value={selectedGame?.gameTitle || ''}
-            className="w-full md:w-1/2 p-2 border border-gray-500 rounded"
-          >
-            {stats?.gameDetails.map(game => (
-              <option key={game.gameTitle} value={game.gameTitle}>
-                {game.gameTitle} ({game.plays} plays)
-              </option>
-            ))}
-          </select>
-        </div>
+            } else {
+              setSelectedGame(null); // When selection is cleared/deselected
+            }
+          }}
+          // Search for and pass the option object that matches the currently selected game's gameTitle
+          value={
+            gameOptions.find(
+              (option) => option.value === selectedGame?.gameTitle
+            ) || null
+          }
+          placeholder="Select a Game..."
+          className="w-full md:w-1/2 p-2" // Set width for the wrapper
+          isClearable
+        />
+      </div>
 
       {/* Stats for selected game */}
-      {selectedGame &&(
+      {selectedGame && (
         <div className="border p-4 rounded-lg shadow-md table_green text-white">
           {/* Score Details */}
           <div className="sm:grid sm:grid-cols-2 gap-2 ">
             <div className="p-1 px-3">
-                <span className="font-semibold block text-xl md:text-2xl">Total Plays</span>
-                <span className="text-2xl md:text-3xl">{selectedGame.plays}</span>
+              <span className="font-semibold block text-xl md:text-2xl">
+                Total Plays
+              </span>
+              <span className="text-2xl md:text-3xl">{selectedGame.plays}</span>
             </div>
             <div className="p-1 px-4">
-                <span className="font-semibold block text-xl md:text-2xl">Average Score</span>
-                <span className="text-2xl md:text-3xl">{selectedGame.averageScore.toFixed(2)}</span>
+              <span className="font-semibold block text-xl md:text-2xl">
+                Average Score
+              </span>
+              <span className="text-2xl md:text-3xl">
+                {selectedGame.averageScore.toFixed(2)}
+              </span>
             </div>
             <div className="p-1 px-4">
-                <span className="font-semibold block text-xl md:text-2xl">Highest</span>
-                <span className="text-2xl md:text-3xl">{selectedGame.highestScore}</span>
+              <span className="font-semibold block text-xl md:text-2xl">
+                Highest
+              </span>
+              <span className="text-2xl md:text-3xl">
+                {selectedGame.highestScore}
+              </span>
             </div>
             <div className="p-1 px-4">
-                <span className="font-semibold block text-xl md:text-2xl">Lowest</span>
-                <span className="text-2xl md:text-3xl">{selectedGame.lowestScore}</span>
+              <span className="font-semibold block text-xl md:text-2xl">
+                Lowest
+              </span>
+              <span className="text-2xl md:text-3xl">
+                {selectedGame.lowestScore}
+              </span>
             </div>
           </div>
 
           {/* Rank Details */}
           <div className="col-span-3 mt-2 pt-2 border-t text-xl md:text-2xl">
-              <span className="font-semibold block mb-1">Ranks Achieved</span>
-              <div className="flex justify-between font-semibold text-white mx-3 text-xl">
-                  <span>🏆 1st: <span className="text-2xl md:text-3xl ml-5"> {selectedGame.ranks.first}</span></span>
-                  <span>🥈 2nd: <span className="text-2xl md:text-3xl ml-5"> {selectedGame.ranks.second}</span></span>
-                  <span>🥉 3rd: <span className="text-2xl md:text-3xl ml-5"> {selectedGame.ranks.third}</span></span>
-              </div>
+            <span className="font-semibold block mb-1">Ranks Achieved</span>
+            <div className="flex justify-between font-semibold text-white mx-3 text-xl">
+              <span>
+                🏆 1st:{" "}
+                <span className="text-2xl md:text-3xl ml-5">
+                  {" "}
+                  {selectedGame.ranks.first}
+                </span>
+              </span>
+              <span>
+                🥈 2nd:{" "}
+                <span className="text-2xl md:text-3xl ml-5">
+                  {" "}
+                  {selectedGame.ranks.second}
+                </span>
+              </span>
+              <span>
+                🥉 3rd:{" "}
+                <span className="text-2xl md:text-3xl ml-5">
+                  {" "}
+                  {selectedGame.ranks.third}
+                </span>
+              </span>
+            </div>
           </div>
         </div>
       )}
     </div>
   );
 }
-
