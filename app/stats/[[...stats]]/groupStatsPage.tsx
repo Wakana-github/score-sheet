@@ -2,7 +2,8 @@
 
 import StatCard from "@/components/statCard";
 import RankCard from "@/components/rankCard";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import Select from 'react-select';
 
 interface Group {
   _id: string;
@@ -66,41 +67,59 @@ export default function GroupStatsPage() {
   // Fetch stats when a group or game is selected
   useEffect(() => {
   if (!selectedGroup) return;
+    const fetchStats = async () => {
+      try {
+        let url = `/api/stats/group/${selectedGroup}`;
+        // Add query parameter only if selectedGame is set
+        if (selectedGame) url += `?gameTitle=${encodeURIComponent(selectedGame)}`; 
 
-  const fetchStats = async () => {
-    try {
-      let url = `/api/stats/group/${selectedGroup}`;
-       // Add query parameter only if selectedGame is set
-      if (selectedGame) url += `?gameTitle=${encodeURIComponent(selectedGame)}`; 
-
-      const res = await fetch(url, { credentials: "include" });
-      if (!res.ok) throw new Error(`Failed to fetch stats: ${res.status}`);
-      const data = await res.json();
-      setStats(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
+        const res = await fetch(url, { credentials: "include" });
+        if (!res.ok) throw new Error(`Failed to fetch stats: ${res.status}`);
+        const data = await res.json();
+        setStats(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
     fetchStats();
   }, [selectedGroup, selectedGame]);
 
 
+  
+  // Set group options for react select component
+  const groupOptions = useMemo(() => {
+    if (groups.length === 0) return [];
+    return groups.map((group) => ({
+        value: group._id, 
+        label: group.groupName, 
+    }));
+  }, [groups]); //- Reset group options only when groups changed
 
-    // Helper function to return overall PlayerDetails or selected game's PlayerDetail
-    const getPlayerDetailsToDisplay = () => {
-        if (selectedGame && stats?.selectedGameStats) {
-           // If a game is selected, return the player details for that game
-            return stats.selectedGameStats.playerDetails;
-        }
-        // If no game is selected, return the overall player details
-        return stats?.playerDetails || [];
-    };
+  // Set game options for react select component
+  const gameOptions = useMemo(() => {
+     if (!stats || stats.availableGames.length === 0) return [];
+     return stats.availableGames.map(gameTitle => ({
+        value:  gameTitle,
+        label:  gameTitle,
+    }));
+  }, [stats]); //- Reset game options only when stats changed
 
-    const playerDetails = getPlayerDetailsToDisplay();
-    const tableTitle = selectedGame ? 
-        `Player's Stats for ${selectedGame}` : 
-        'Player Stats for all games';
+
+
+  // Helper function to return overall PlayerDetails or selected game's PlayerDetail
+  const getPlayerDetailsToDisplay = () => {
+      if (selectedGame && stats?.selectedGameStats) {
+          // If a game is selected, return the player details for that game
+          return stats.selectedGameStats.playerDetails;
+      }
+      // If no game is selected, return the overall player details
+      return stats?.playerDetails || [];
+  };
+
+  const playerDetails = getPlayerDetailsToDisplay();
+  const tableTitle = selectedGame ? 
+      `Player's Stats for ${selectedGame}` : 
+      'Player Stats for all games';
 
 
   return (
@@ -109,86 +128,82 @@ export default function GroupStatsPage() {
 
       {/* Group Selection */}
       <div>
-        <label className="block text-xl md:text-2xl">Select Group:</label>
-        <select
-          value={selectedGroup}
-          onChange={(e) => {
-            setSelectedGroup(e.target.value);
-            setSelectedGame(""); // reset game selection
+        <label className="block text-xl md:text-2xl hand_font">Select Group:</label>
+        <Select
+          options={groupOptions}
+          value={groupOptions.find(option => option.value === selectedGroup) || null}
+          onChange={(selectedOption) => {
+            if (selectedOption) {          
+              setSelectedGroup(selectedOption.value); //reset groupId
+            } else {
+              setSelectedGroup(""); //// Clear group when selection is cleared
+            }
+            setSelectedGame(""); //reset game selection when group selection is changed.
           }}
-          className="border px-2 py-1 rounded"
-        >
-          <option value="">-- Choose Group --</option>
-          {groups.map((group) => (
-            <option key={group._id} value={group._id}>
-              {group.groupName}
-            </option>
-          ))}
-        </select>
+          placeholder="-- Choose Group --"
+          className="w-full md:w-1/2"
+        />
       </div>
 
-    {/* Total and most played game */}
-    {stats &&  
-      <div>
-        <h2 className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2">
-            {stats.groupName}
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-            <StatCard title="Total Plays" value={stats?.totalPlays} />
-            <StatCard title="Most Played Game:" value={`${stats?.mostPlayedGame.title} (${stats?.mostPlayedGame.plays} plays)`} />
-        </div>
+      {/* Total and most played game */}
+      {stats &&  
+        <div>
+          <h2 className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2">
+              {stats.groupName}
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              <StatCard title="Total Plays" value={stats?.totalPlays} />
+              <StatCard title="Most Played Game:" value={`${stats?.mostPlayedGame.title} (${stats?.mostPlayedGame.plays} plays)`} />
+          </div>
 
-        {/* Overall Rankings Top 3 (Sorted by 1st Place Count) */}
-        <div className="mt-8">
-            <h2 className="text-2xl md:text-3xl font-bold hand_font mb-2 md:mb-4">Group Rankings </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                {stats.playerDetails
-                    .sort((a, b) => b.ranks.first - a.ranks.first)
-                    .slice(0, 3) 
-                    .map((player, index) => {
-                        let rankClass = '';
-                        /// Determine class based on rank (index+1)
-                        if (index === 0) {
-                            rankClass = 'first-color'; 
-                        } else if (index === 1) {
-                            rankClass = 'second-color'; 
-                        } else if (index === 2) {
-                            rankClass = 'third-color'; 
-                        }
-                        return (
-                        <RankCard 
-                            key={player.playerName} 
-                            title={`TOP ${index + 1}`}
-                            value={`${player.playerName} (${player.ranks.first})`}
-                            className={rankClass}
-                        />
-                        );
-                    })}
-            </div>
+          {/* Overall Rankings Top 3 (Sorted by 1st Place Count) */}
+          <div className="mt-8">
+              <h2 className="text-2xl md:text-3xl font-bold hand_font mb-4 md:mb-4">Group Rankings </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                  {stats.playerDetails
+                      .sort((a, b) => b.ranks.first - a.ranks.first)
+                      .slice(0, 3) 
+                      .map((player, index) => {
+                          let rankClass = '';
+                          /// Determine class based on rank (index+1)
+                          if (index === 0) {
+                              rankClass = 'first-color'; 
+                          } else if (index === 1) {
+                              rankClass = 'second-color'; 
+                          } else if (index === 2) {
+                              rankClass = 'third-color'; 
+                          }
+                          return (
+                          <RankCard 
+                              key={player.playerName} 
+                              title={`TOP ${index + 1}`}
+                              value={`${player.playerName} (${player.ranks.first})`}
+                              className={rankClass}
+                          />
+                          );
+                      })}
+              </div>
+          </div>
         </div>
-      </div>
-    }
+      }
 
       
 
-    {/* Game Selection */}
-    {stats && stats.availableGames.length > 0 && (
-        <div>
-          <h2 className="text-3xl md:text-4xl font-bold hand_font mb-2 md:mb-4">Game Title</h2>
-          <select
-            value={selectedGame}
-            onChange={(e) => setSelectedGame(e.target.value)}
-            className="border px-2 py-1 rounded"
-          >
-            <option value="">-- All Games --</option>
-            {stats.availableGames.map((game) => (
-              <option key={game} value={game}>
-                {game}
-              </option>
-            ))}
-          </select>
-        </div>
-    )}
+      {/* Game Selection */}
+      {stats && stats.availableGames.length > 0 && (
+          <div className="mb-2">
+            <h2 className="text-xl md:text-2xl hand_font mt-8 mb-2 md:my-4">Select Game Title</h2>
+            <Select
+              options={gameOptions}
+              value={gameOptions.find(option => option.value === selectedGame) || null} //return selected
+              onChange={(selectedOption) => {
+                  setSelectedGame(selectedOption ? selectedOption.value : ""); //set selected game as selectedgame 
+              }}
+              placeholder="-- All Games --"
+              className="w-full md:w-1/2"
+            />
+          </div>
+      )}
 
       {/* Statistics */}
       {stats && (
@@ -198,7 +213,7 @@ export default function GroupStatsPage() {
           {stats.selectedGameStats && (
             
             <div className="mt-4">
-            <h4 className="text-2xl md:text-3xl font-bold hand_font mb-2">{stats.selectedGameStats.gameTitle} Stats</h4>
+            <h4 className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2">{stats.selectedGameStats.gameTitle}</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <StatCard title="Total Plays" value={stats.selectedGameStats.totalPlays} />
                 <StatCard title="Avg Score" value= {stats.selectedGameStats.averageScore.toFixed(2)} />
