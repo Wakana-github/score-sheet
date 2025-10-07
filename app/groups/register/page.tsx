@@ -12,6 +12,7 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import he from "he";
 import LoadingPage from "@/components/lodingPage";
 import Link from "next/link";
+import Select from "react-select";
 
 interface Group {
   _id: string;
@@ -56,23 +57,37 @@ const GroupRegisterPage: React.FC = () => {
       } else {
         setGroupName("");
         setNumMembers(2);
-        // メンバー1をログインユーザーの名前に設定
+        // fetch username or nickname
         const userDisplayName =
-          user?.publicMetadata?.nickname &&
-          typeof user.publicMetadata.nickname === "string"
+          user?.publicMetadata?.nickname && typeof user.publicMetadata.nickname === "string"
             ? user.publicMetadata.nickname
             : user?.username;
+        //Set login uername as member1 name 
         const initialMembers = [userDisplayName, ...Array(1).fill("")];
         setMembers(initialMembers);
-
         setIsLoading(false);
       }
     }
     initData();
   }, [groupId, isLoaded, isSignedIn, router, user]);
 
+  // Number of players options for React select component
+  const numPlayerOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => ({
+    value: num,
+    label: num.toString(),
+  }));
+
+  // Wrapper for num of players
+  const handleNumPlayerSelectChange = (
+    selectedOption: { value: number; label: string } | null
+  ) => {
+    if (selectedOption) {
+        setNumMembers(selectedOption.value);// set selected number
+       }
+  };
+
+  // Resize the member list based on the number of members
   useEffect(() => {
-    // Resize the member list based on the number of members
     setMembers((prevMembers) => {
       const newMembers = [...prevMembers];
       while (newMembers.length < numMembers) {
@@ -124,7 +139,6 @@ const GroupRegisterPage: React.FC = () => {
       alert("Group name can only contain allowed characters.");
       return false;
     }
-
     return true;
   }, []);
 
@@ -144,7 +158,6 @@ const GroupRegisterPage: React.FC = () => {
       );
       return false;
     }
-
     return true;
   }, []);
 
@@ -179,10 +192,8 @@ const GroupRegisterPage: React.FC = () => {
           return;
         }
       }
-
       const token = await getToken();
       if (!token) throw new Error("No authentication token found.");
-
       const method = groupId ? "PUT" : "POST";
       const url = groupId
         ? `${API_BASE_URL}/groups/${groupId}`
@@ -191,7 +202,6 @@ const GroupRegisterPage: React.FC = () => {
         groupName,
         members,
       };
-
       const res = await fetch(url, {
         method,
         headers: {
@@ -209,7 +219,6 @@ const GroupRegisterPage: React.FC = () => {
           }`
         );
       }
-
       alert(`Group ${groupId ? "updated" : "created"} successfully!`);
       router.push("/groups");
     } catch (error: any) {
@@ -245,21 +254,29 @@ const GroupRegisterPage: React.FC = () => {
           />
         </div>
         <div>
-          <label htmlFor="numMembers" className="block font-semibold">
-            Number of Members
+          <label htmlFor="numMembers" className="block font-semibold mt-1">
+           Number of Members
           </label>
-          <select
+          <Select
             id="numMembers"
-            value={numMembers}
-            onChange={(e) => setNumMembers(Number(e.target.value))}
-            className="w-full mt-1 p-2 border rounded-md"
-          >
-            {[2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-              <option key={num} value={num}>
-                {num}
-              </option>
-            ))}
-          </select>
+            options={numPlayerOptions} 
+            onChange={handleNumPlayerSelectChange}
+            value={numPlayerOptions.find(
+                    (opt) => opt.value === numMembers
+                )}
+            
+            isSearchable={false}
+            classNamePrefix="react-select"
+            className="w-full border rounded-md" //styles inside the component
+            styles={{
+              //classNames: control: wrapper for the select box
+               control: (baseStyles, state) => ({
+                ...baseStyles,                      
+                backgroundColor: 'transparent',
+              }),
+            }}
+            components={{ DropdownIndicator: () => null }}
+          />
         </div>
 
         {members.map((member, index) => (
@@ -276,7 +293,7 @@ const GroupRegisterPage: React.FC = () => {
               value={member}
               onChange={(e) => handleMemberNameChange(index, e.target.value)}
               onBlur={(e) => validateMemberName(e.target.value)}
-              className="w-full mt-1 p-2 border rounded-md"
+              className="w-full mt-2 p-2 border rounded-md"
               required
               disabled={index === 0}
             />

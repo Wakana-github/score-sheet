@@ -169,7 +169,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                 "Game titles can only contain allowed characters."
               )
             }
-            className="w-full lg:text-4xl text-center bg-transparent border-b-2 border-gray-400 focus:outline-none focus:border-blue-500 text-black font-bold text-2xl py-1 lg:pt-5 lg:pb-3 px-2"
+            className="w-full lg:text-4xl text-center bg-transparent border-b-2 border-gray-400 focus:outline-none focus:border-blue-500 text-black font-bold text-2xl py-1 lg:pt-5 lg:pb-3 px-1"
           />
         </h1>
 
