@@ -1,13 +1,22 @@
-import mongoosePkg from "mongoose";
-import { ServerApiVersion } from "mongodb";
 import dotenv from 'dotenv';
 dotenv.config();
+import mongoose from "mongoose"; 
+import { ServerApiVersion } from "mongodb";
 
-const { default: mongoose } = mongoosePkg;
 type MongooseType = typeof mongoose; // when requires types
 
-  // connection URL in .env
+  // connection URL in.env
   const MONGODB_URI = process.env.MONGO_URI as string;
+
+  // DEBUG
+console.log("--- DB Connection Debug ---");
+console.log("MONGO_URI loaded:", !!MONGODB_URI);
+if (MONGODB_URI) {
+    console.log("MONGO_URI check passed.");
+}
+console.log("---------------------------");
+
+
   //check if URL is set
     if (!MONGODB_URI) {
     throw new Error("Please define the MONGO_URI environment variable inside .env.local");

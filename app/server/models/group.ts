@@ -1,24 +1,39 @@
-import mongoosePkg,  { Document } from 'mongoose';
-const { default: mongoose, Schema, model, models} = mongoosePkg;
+import mongoose, { Schema, model, models, Document } from 'mongoose';
+import { MAX_NAME_LENGTH, MAX_GROUP_NAME_LENGTH } from "../../lib/constants.ts";
 
-export interface IGroup extends mongoosePkg.Document {
+// Member Interface
+export interface IMember {
+    memberId: string; 
+    name: string;     
+}
+
+//Group Interface
+export interface IGroup extends Document {
     _id:string;
     groupName: string;
-    members: string[]; 
+    members: IMember[];
     userId: string; 
     createdAt: Date;
     updatedAt: Date; 
 }
 
+// Member Schema
+const MemberSchema = new Schema({
+    memberId: { type: String, required: true },
+    name: { type: String, required: true, trim: true, maxlength: MAX_NAME_LENGTH },
+}, { _id: false });
+
+
+//Group Schema
 const GroupSchema = new Schema({
-    groupName: {
+  groupName: {
     type: String,
     required: true,
     trim: true,
-    maxlength:50
+    maxlength:MAX_GROUP_NAME_LENGTH
   },
   members: {
-    type: [String],
+    type: [MemberSchema],
     required: true
   },
   userId: {
@@ -31,6 +46,6 @@ const GroupSchema = new Schema({
   }
 });
 
-const Group = (models.Group) ||model<IGroup>('Group', GroupSchema);
+const Group = (models.Group as mongoose.Model<IGroup>) || model<IGroup>('Group', GroupSchema);
 
 export default Group;

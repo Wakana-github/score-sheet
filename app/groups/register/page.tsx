@@ -13,18 +13,26 @@ import he from "he";
 import LoadingPage from "@/components/lodingPage";
 import Link from "next/link";
 import Select from "react-select";
+import { v4 as uuidv4 } from "uuid"; 
 
+// Interface for member
+interface MemberData {
+  memberId: string;
+  name: string;
+}
+
+// interface for Group
 interface Group {
   _id: string;
   groupName: string;
-  members: string[];
+  members: MemberData[]; //use MemberData type
   userId: string;
   createdAt?: string; // Add optional createdAt field
 }
 
 //End point URL for API
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
+  process.env.NEXT_PUBLIC_API_BASE_URL||"http://localhost:8080/api";
 
 // Segmenter for correct character counting in Japanese
 const segmenter = new Intl.Segmenter("ja", { granularity: "grapheme" });
@@ -39,7 +47,7 @@ const GroupRegisterPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [groupName, setGroupName] = useState("");
   const [numMembers, setNumMembers] = useState(2);
-  const [members, setMembers] = useState<string[]>(Array(2).fill(""));
+  const [members, setMembers] = useState<MemberData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Data initialization process
@@ -58,13 +66,18 @@ const GroupRegisterPage: React.FC = () => {
         setGroupName("");
         setNumMembers(2);
         // fetch username or nickname
-        const userDisplayName =
-          user?.publicMetadata?.nickname && typeof user.publicMetadata.nickname === "string"
+        const userDisplayName: string = (
+          (user?.publicMetadata?.nickname && typeof user.publicMetadata.nickname === "string"
             ? user.publicMetadata.nickname
-            : user?.username;
+            : user?.username) ?? "Player 1" // 💡 null/undefined の場合は "Player 1" を使用
+         ) as string;
         //Set login uername as member1 name 
-        const initialMembers = [userDisplayName, ...Array(1).fill("")];
+        const initialMembers: MemberData[] = [
+          { memberId: uuidv4(), name: userDisplayName }, // login user
+          { memberId: uuidv4(), name: "" }, 
+        ];
         setMembers(initialMembers);
+        setLoading(false);
         setIsLoading(false);
       }
     }
@@ -91,7 +104,7 @@ const GroupRegisterPage: React.FC = () => {
     setMembers((prevMembers) => {
       const newMembers = [...prevMembers];
       while (newMembers.length < numMembers) {
-        newMembers.push("");
+        newMembers.push({ memberId: uuidv4(), name: "" });
       }
       return newMembers.slice(0, numMembers);
     });
@@ -111,11 +124,15 @@ const GroupRegisterPage: React.FC = () => {
       });
 
       if (!res.ok) throw new Error("Failed to fetch group data");
-      const data = await res.json();
+       const data: Group = await res.json();
 
       setGroupName(he.decode(data.groupName));
       setNumMembers(data.members.length);
-      setMembers(data.members.map((member: string) => he.decode(member)));
+      setMembers(data.members.map((member) => ({
+        memberId: member.memberId,
+        name: he.decode(member.name),
+        }))
+      );
     } catch (error) {
       console.error(error);
       alert("Failed to load group data.");
@@ -169,11 +186,12 @@ const GroupRegisterPage: React.FC = () => {
   // Handle member name change
   const handleMemberNameChange = useCallback(
     (index: number, value: string) => {
-      const newMembers = [...members];
-      newMembers[index] = value;
-      setMembers(newMembers);
-    },
-    [members]
+      setMembers((prevMembers) => {
+      const newMembers = [...prevMembers];
+      newMembers[index] = { ...newMembers[index], name: value }; 
+      return newMembers;
+      });
+    },[]
   );
 
   // Handle form submission
@@ -187,7 +205,7 @@ const GroupRegisterPage: React.FC = () => {
         return;
       }
       for (const member of members) {
-        if (!validateMemberName(member)) {
+        if (!validateMemberName(member.name)) {
           setIsLoading(false);
           return;
         }
@@ -280,7 +298,7 @@ const GroupRegisterPage: React.FC = () => {
         </div>
 
         {members.map((member, index) => (
-          <div key={index}>
+          <div key={member.memberId || index}>
             <label
               htmlFor={`member-${index}`}
               className="block font-semibold"
@@ -290,7 +308,7 @@ const GroupRegisterPage: React.FC = () => {
             <input
               type="text"
               id={`member-${index}`}
-              value={member}
+              value={member.name}
               onChange={(e) => handleMemberNameChange(index, e.target.value)}
               onBlur={(e) => validateMemberName(e.target.value)}
               className="w-full mt-2 p-2 border rounded-md"

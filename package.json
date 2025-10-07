@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "dev:api": "nodemon --watch app/server --ext ts --exec node --loader ts-node/esm app/server/app.ts",
+    "dev:api": "dotenv -e .env.local nodemon --watch app/server --ext ts --exec node --loader ts-node/esm app/server/app.ts",
     "stripe:listen": "stripe listen --- localhost:3000/api/webhooks/stripe",
     "ngrok:open": "ngrok http http://localhost:3000"
   },
@@ -50,6 +50,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
+    "dotenv-cli": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.4.3",
     "nodemon": "^3.1.10",

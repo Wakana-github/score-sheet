@@ -14,6 +14,7 @@ import {
   MAX_GROUPS,
   MAX_NUM_MEMBERS,
 } from "../../lib/constants.ts";
+import { v4 as uuidv4 } from "uuid";
 
 // Initialize JSDOM and pass it to DOMPurify
 const { window } = new JSDOM("");
@@ -109,10 +110,11 @@ router.post(
           .json({ message: `Member count must be between 1 and ${MAX_NUM_MEMBERS}.` });
       }
 
-      // Validate and sanitize member's name
-      const sanitizedMembers = members.map((name: string) =>
+       const memberNamesToValidate: string[] = members.map((m: any) => m.name);
+       const sanitizedMembers = memberNamesToValidate.map((name: string) =>
         sanitizeAndValidateString(name, MAX_NAME_LENGTH, "memberName", allowedNameRegex)
       );
+
       if (sanitizedMembers.some((result: SanitizeResult) => result.error)) {
         return res
           .status(400)
@@ -122,7 +124,11 @@ router.post(
             )?.error,
           });
       }
-      const finalMembers = sanitizedMembers.map((result) => result.value);
+      // asign UUID for each member
+      const finalMembers = sanitizedMembers.map((result) => ({
+        memberId: uuidv4(), 
+        name: result.value!,
+      }));
 
       // === Create and save group object ===
       const newGroup = await Group.create({
@@ -236,20 +242,23 @@ router.put(
           .json({ message: `Member count must be between 1 and ${MAX_NUM_MEMBERS}.` });
       }
 
-      // Validate and sanitize member's name
-      const sanitizedMembers = members.map((name: string) =>
-        sanitizeAndValidateString(name, MAX_NAME_LENGTH, "memberName", allowedNameRegex)
-      );
-      if (sanitizedMembers.some((result: SanitizeResult) => result.error)) {
-        return res.status(400).json({
-            message: sanitizedMembers.find(
-              (result: SanitizeResult) => result.error
-            )?.error,
-          });
-      }
-      const finalMembers = sanitizedMembers.map((result) => result.value);
+      //
+      const finalMembers = [];
 
-      
+      for (const member of members) {
+         if (!member.memberId || typeof member.name !== 'string') {
+          return res.status(400).json({ message: "Each member must have a valid memberId and name." });
+        }
+        // Validate and sanitize member's name
+        const  result = sanitizeAndValidateString(member.name, MAX_NAME_LENGTH, "memberName", allowedNameRegex);
+        if (result.error) {
+         return res.status(400).json({ message: result.error });
+        }
+       finalMembers.push({
+          memberId: member.memberId, // use existing mrmberID. Can't be changed
+          name: result.value!,
+        });
+      }
 
       //update a record
       const updatedGroup = await Group.findOneAndUpdate(

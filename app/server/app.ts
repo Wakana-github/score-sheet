@@ -5,10 +5,8 @@ import { ClerkExpressRequireAuth, ClerkExpressWithAuth } from '@clerk/clerk-sdk-
 import scoreRoutes from './api-routes/index.ts';
 import gameRoutes from './api-routes/games.ts';
 import groupsRouter from './api-routes/groups.ts';
-import dotenv from 'dotenv';
 import path from 'path'; 
 
-dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 8080;

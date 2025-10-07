@@ -3,22 +3,26 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import  Group  from '../server/models/group'; 
 import { useAuth, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'; 
 import he from 'he'; 
 import Link from 'next/link';
 import { MAX_GROUPS } from "../lib/constants.ts";
 import ReturnHomeBtn from '@/components/returnToHomeBtn.tsx';
 
+interface MemberData {
+  memberId: string;
+  name: string;
+}
+
 interface Group {
   _id: string;
   groupName: string;
-  members: string[];
+  members: MemberData[]
   userId: string;
   createdAt?: string; // Add optional createdAt field
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL|| 'http://localhost:8080/api/groups'; 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL||'http://localhost:8080/api/groups';
 
 const GroupListPage: React.FC = () => {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -51,11 +55,14 @@ const GroupListPage: React.FC = () => {
           throw new Error(`Failed to fetch groups: ${errorData.message}`);
         }
 
-        const data = await res.json();
+        const data: Group[] = await res.json();
         const decodedGroups = data.map((group: Group) => ({
           ...group,
           groupName: he.decode(group.groupName),
-          members: group.members.map(member => he.decode(member)),
+          members: group.members.map(member => ({
+             memberId: member.memberId, 
+             name: he.decode(member.name) 
+          })),
         }));
         setGroups(decodedGroups);
       } catch (error) {
@@ -65,7 +72,6 @@ const GroupListPage: React.FC = () => {
         setLoading(false);
       }
     }
-
     fetchGroups();
   }, [isLoaded, isSignedIn, getToken]);
 
