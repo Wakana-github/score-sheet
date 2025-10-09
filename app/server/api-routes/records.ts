@@ -1,12 +1,13 @@
 import express, { Request, Response, Router } from "express";
 import mongoose from "mongoose";
 import rateLimit from 'express-rate-limit';
-import ScoreRecord, { IScoreRecord } from "../models/score-record.ts";
+import ScoreRecord, { IScoreRecord, IPlayer } from "../models/score-record.ts";
 import User from "../models/user.model.ts";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 import { AuthenticatedRequest } from "../types/express.d";
 import { JSDOM } from 'jsdom';
 import DOMPurify from 'dompurify';
+import { v4 as uuidv4 } from 'uuid';
 
 // Initialize JSDOM and pass it to DOMPurify
 const { window } = new JSDOM('');
@@ -41,7 +42,7 @@ const sanitizeAndValidateString = (input: string, maxLength: number, fieldName: 
 
   const trimmedInput = input.trim();
 
-   // Count visible characters before sanitizing 
+  // Count visible characters before sanitizing 
   const segmenter = new Intl.Segmenter('ja', { granularity: 'grapheme' });
   const realLength = [...segmenter.segment(trimmedInput)].length;
   if (realLength > maxLength) {
@@ -69,7 +70,7 @@ const apiLimiter = rateLimit({
 router.post(
   "/",
   ClerkExpressRequireAuth(),
-   apiLimiter,
+  apiLimiter,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const userId = req.auth?.userId; // fetch userId from req.auth
@@ -98,7 +99,7 @@ router.post(
       }
 
       //fetch data from req.body
-      const { id, gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, custom, groupId } = req.body;
+      const { gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, custom, groupId, ...rest } = req.body;
     
        // === Validation and sanitization using DOMPurify ===
       const sanitizedTitle = sanitizeAndValidateString(gameTitle, MAX_TITLE_LENGTH, 'gameTitle');
@@ -108,10 +109,41 @@ router.post(
       if (!Array.isArray(playerNames)) {
         return res.status(400).json({ message: "Invalid playerNames data." });
       }
-      const sanitizedPlayerNames = playerNames.map((name: string) => sanitizeAndValidateString(name, MAX_NAME_LENGTH, 'playerNames'));
-      // Explicitly specify the type for the `find` method's callback
-      if (sanitizedPlayerNames.some((result: SanitizeResult) => result.error)) {
-        return res.status(400).json({ message: sanitizedPlayerNames.find((result: SanitizeResult) => result.error)?.error });
+
+      // メンバーIDの重複をチェックするためのSet
+      const usedMemberIds = new Set<string>();
+      const processedPlayerNames = [];
+      
+      for (const player of playerNames) {
+        const isMemberIdValid = (typeof player.memberId === 'string' || player.memberId === null || typeof player.memberId === 'undefined'); 
+          if (typeof player !== 'object' || player === null || typeof player.name !== 'string' || !isMemberIdValid) {
+               return res.status(400).json({ message: "Invalid structure for playerNames element." });
+          }
+          // sanitize and validate player name
+          const sanitizedName = sanitizeAndValidateString(player.name, MAX_NAME_LENGTH, 'playerName');
+          if (sanitizedName.error) {
+              return res.status(400).json({ message: sanitizedName.error });
+          }
+
+          const finalMemberId = player.memberId;
+          let memberIdToSave: string;
+          if (finalMemberId && typeof finalMemberId === 'string') {
+             memberIdToSave = finalMemberId;
+            // CHECK if memberId exist
+          if (usedMemberIds.has(memberIdToSave)) {
+            return res.status(400).json({ 
+              message: `Duplicate member ID found for player: ${sanitizedName.value}. Each member can only appear once in a sheet.` 
+            });
+          }
+          usedMemberIds.add(memberIdToSave);
+          } else {
+            memberIdToSave = `temp-player-${uuidv4()}`; 
+          }
+
+          processedPlayerNames.push({
+              memberId: memberIdToSave,
+              name: sanitizedName.value,
+          });
       }
 
       // Validate that scoreItemNames is an array
@@ -140,9 +172,8 @@ router.post(
 
       // === Create and save data object ===
       const newRecordData = {
-        id,
         gameTitle: sanitizedTitle.value,
-        playerNames: sanitizedPlayerNames.map(name => name.value),
+        playerNames: processedPlayerNames,
         scoreItemNames: sanitizedScoreItemNames.map(name => name.value),
         scores: sanitizedScores,
         numPlayers,
@@ -208,7 +239,10 @@ router.get(
       const sanitizedRecords = records.map(record => ({
         ...record.toObject(),
         gameTitle: domPurify.sanitize(record.gameTitle),
-        playerNames: record.playerNames.map(name => domPurify.sanitize(name)),
+        playerNames: record.playerNames.map((player: IPlayer) => ({
+            memberId: player.memberId,
+            name: domPurify.sanitize(player.name),
+        })),
         scoreItemNames: record.scoreItemNames.map(name => domPurify.sanitize(name)),
       }));
 
@@ -220,6 +254,7 @@ router.get(
       isActiveUser,
       maxRecords:isActiveUser ? MAX_ACTIVE_RECORDS : MAX_FREE_RECORDS,
     });
+    console.log("Received POST body:", req.body); //debug
     } catch (error: unknown) {
       const err = error as Error;
       console.error("Error fetching all user records:", err);
@@ -254,7 +289,21 @@ router.get(
       if (!record) {
         return res.status(404).json({ message: "Record not found or access denied." });
       }
-      res.status(200).json(record);
+
+      // 💡 修正: レスポンスをサニタイズする
+      const sanitizedRecord = {
+          ...record.toObject(),
+          gameTitle: domPurify.sanitize(record.gameTitle),
+          playerNames: record.playerNames.map((player: IPlayer) => ({
+              memberId: player.memberId,
+              name: domPurify.sanitize(player.name),
+          })),
+          scoreItemNames: record.scoreItemNames.map((name: string) => domPurify.sanitize(name)),
+      };
+
+
+
+      res.status(200).json(sanitizedRecord);
     } catch (error: unknown) {
       console.error("Error fetching single record:", error);
       res.status(500).json({ message: "An unexpected server error occurred." });
@@ -282,7 +331,7 @@ router.put(
         return res.status(400).json({ message: "Invalid record ID format." });
       }
 
- // Only get the necessary data from the request body
+     // Only get the necessary data from the request body
       const { gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, custom, groupId } = req.body;
 
       // === Add validation and sanitization using DOMPurify===
@@ -293,10 +342,47 @@ router.put(
       if (!Array.isArray(playerNames)) {
         return res.status(400).json({ message: "Invalid playerNames data." });
       }
-      const sanitizedPlayerNames = playerNames.map((name: string) => sanitizeAndValidateString(name, MAX_NAME_LENGTH, 'playerNames'));
-      if (sanitizedPlayerNames.some((result: SanitizeResult) => result.error)) {
-        return res.status(400).json({ message: sanitizedPlayerNames.find((result: SanitizeResult) => result.error)?.error });
+
+
+       //validate player object
+      const usedMemberIds = new Set<string>();
+      const processedPlayerNames = [];
+      for (const player of playerNames) {
+        const isMemberIdValid = (typeof player.memberId === 'string' || player.memberId === null|| typeof player.memberId === 'undefined'); 
+         if (typeof player !== 'object' || player === null || typeof player.name !== 'string' || !isMemberIdValid) {
+          return res.status(400).json({ message: "Invalid structure for playerNames element." });
+        }
+      //validate player name
+      const sanitizedName = sanitizeAndValidateString(player.name, MAX_NAME_LENGTH, 'playerName');
+      if (sanitizedName.error) {
+         return res.status(400).json({ message: sanitizedName.error });
       }
+
+      const finalMemberId = player.memberId;
+      let memberIdToSave: string;
+
+      if (finalMemberId && typeof finalMemberId === 'string') {
+          // when memberId exists
+          memberIdToSave = finalMemberId;
+          // check if memberIds are duplicated
+          if (usedMemberIds.has(memberIdToSave)) {
+            return res.status(400).json({ 
+              message: `Duplicate player ID found for player: ${sanitizedName.value}. Each player can only appear once in a sheet.` 
+            });
+          }
+          usedMemberIds.add(memberIdToSave);
+          
+        } else {
+          // when there is no existing memberId (null/undefined)
+          memberIdToSave = `temp-player-${uuidv4()}`; 
+        }
+
+      processedPlayerNames.push({
+         memberId: memberIdToSave,
+         name: sanitizedName.value,
+      })  
+     }
+
 
       // Validate that scoreItemNames is an array
       if (!Array.isArray(scoreItemNames)) {
@@ -324,7 +410,7 @@ router.put(
       // Explicitly specify the fields to be updated
       const updatedData = {
         gameTitle: sanitizedTitle.value,
-        playerNames: sanitizedPlayerNames.map(name => name.value),
+        playerNames: processedPlayerNames,
         scoreItemNames: sanitizedScoreItemNames.map(name => name.value),
         scores: sanitizedScores,
         numPlayers,

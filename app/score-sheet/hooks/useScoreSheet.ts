@@ -7,7 +7,7 @@ import { allowedTitleRegex, allowedNameRegex, allowedScoreRegex, MAX_SCORE_ITEMS
 import { useAuth, useUser } from "@clerk/nextjs";
 import he from 'he';
 import useGroupSelection from './useGroupSelection.ts';
-import { ScoreData, ScoreRecord, GroupData, InitialGameData } from '../score-types.ts';
+import { ScoreData, ScoreRecord, GroupData, InitialGameData, PlayerData } from '../score-types.ts';
 
 
 // API endpoint URL for database operations
@@ -44,14 +44,16 @@ const {
     : null;
 
   // set first playername as nickname
-  const initialPlayerNames = [
-    userNickname || "Player 1",
-    ...Array(2).fill("").map((_, i) => `Player ${i + 2}`)
-  ];
+ const initialPlayers: PlayerData[] = [
+     { id: null, name: userNickname || "Player 1" }, // IDは一旦空で初期化
+     { id: null, name: "Player 2" },
+     { id: null, name: "Player 3" },    
+    ];
+
     return {
     _id: uuidv4(),
     gameTitle: "",
-    playerNames: initialPlayerNames,
+    playerNames: initialPlayers,
     scoreItemNames: Array(3).fill("").map((_, i) => `Round ${i + 1}`),
     scores: Array.from({ length: 3 }, () => Array(3).fill("")),
     numPlayers: 3,
@@ -152,6 +154,12 @@ const {
           }
 
           const scoresAsString = recordToLoad.scores.map((row) => row.map(String));
+          // DBのplayersをPlayerData[]に変換
+           const loadedPlayers: PlayerData[] = recordToLoad.playerNames.map(member => ({
+             id: member.memberId,
+             name: he.decode(member.name),
+           }));
+           const originalNames = loadedPlayers.map(p => p.name);
 
           //copy all scores when it first loaded
           allScores.current = Array(MAX_SCORE_ITEMS).fill(0).map((_, i) => 
@@ -161,7 +169,7 @@ const {
           setScoreData({
             _id: recordToLoad._id,
             gameTitle: he.decode(recordToLoad.gameTitle),
-            playerNames: recordToLoad.playerNames.map(name => he.decode(name)),
+            playerNames: loadedPlayers,
             scoreItemNames: recordToLoad.scoreItemNames.map(name => he.decode(name)),
             scores: recordToLoad.scores.map((row) => row.map(String)),
             numPlayers: recordToLoad.numPlayers,
@@ -175,7 +183,7 @@ const {
 
           originalNumScoreItems.current = recordToLoad.numScoreItems;
           originalNumPlayers.current = recordToLoad.numPlayers;
-          originalPlayerNames.current = recordToLoad.playerNames.map(name => he.decode(name));
+          originalPlayerNames.current = originalNames;
           initializeSelectedGroup(recordToLoad.groupId || null);
           setShowTotal(true);
         } catch (error) {
@@ -204,7 +212,7 @@ const {
         let initialGameTitle = "New Score Sheet";
         let initialNumPlayers = 3;
         let initialNumScoreItems = 3;
-        let initialPlayerNames: string[] = Array(3).fill("").map((_, i) => `Player ${i + 1}`);
+        let initialPlayers: PlayerData[] = Array(3).fill(0).map((_, i) => ({ id: null, name: `Player ${i + 1}` }));
         let initialScoreItemNames: string[] = Array(3).fill("").map((_, i) => `Round ${i + 1}`);
         let customSheet = false;
 
@@ -219,11 +227,9 @@ const {
               initialGameTitle = selectedGame.title;
               initialNumPlayers = selectedGame.column;
               initialNumScoreItems = selectedGame.row;
-              initialPlayerNames = Array.from({ length: selectedGame.column }, (_, i) => {
-              if (i === 0 && userNickname) {
-                return userNickname;
-              }
-              return `Player ${i + 1}`;
+              initialPlayers = Array.from({ length: selectedGame.column }, (_, i) => {
+              const name = (i === 0 && userNickname) ? userNickname : `Player ${i + 1}`;
+              return { id: null, name };
             });
               initialScoreItemNames = selectedGame.score_items;
               customSheet = false;
@@ -265,11 +271,9 @@ const {
           initialGameTitle = decodeURIComponent(customGameName);
           initialNumPlayers = parsedColumns;
           initialNumScoreItems = parsedRows - 1;
-          initialPlayerNames = Array.from({ length: parsedColumns }, (_, i) => {
-          if (i === 0 && userNickname) {
-            return userNickname;
-          }
-          return `Player ${i + 1}`;
+          initialPlayers = Array.from({ length: parsedColumns }, (_, i) => {
+           const name = (i === 0 && userNickname) ? userNickname : `Player ${i + 1}`;
+           return { id: "", name };
         });
           initialScoreItemNames = Array.from({ length: parsedRows - 1 }, (_, i) => `Item ${i + 1}`);
           customSheet = true; 
@@ -281,7 +285,7 @@ const {
 
         originalNumScoreItems.current = initialNumScoreItems; 
         originalNumPlayers.current = initialNumPlayers;
-        originalPlayerNames.current = initialPlayerNames;
+        originalPlayerNames.current = initialPlayers.map(p => p.name);
 
         //allScores
         allScores.current = Array(MAX_SCORE_ITEMS).fill(0).map(() => Array(MAX_PLAYERS).fill(""));
@@ -290,9 +294,9 @@ const {
         setScoreData({
           _id: uuidv4(),
           gameTitle: initialGameTitle,
-          playerNames: initialPlayerNames,
+          playerNames: initialPlayers,
           scoreItemNames: initialScoreItemNames,
-         scores: Array(initialNumScoreItems).fill(0).map(() => Array(initialNumPlayers).fill("")),
+          scores: Array(initialNumScoreItems).fill(0).map(() => Array(initialNumPlayers).fill("")),
           numPlayers: initialNumPlayers,
           numScoreItems: initialNumScoreItems,
           createdAt: new Date().toISOString(),
@@ -311,20 +315,35 @@ const {
  // When group is selected
   useEffect(() => {
     if (selectedGroup) {
-        const newNumPlayers = selectedGroup.members.length;
-        const newPlayerNames = selectedGroup.members.map(name => he.decode(name));
+
+      // メンバーオブジェクトから名前とIDを取得
+        const membersArray = selectedGroup.members ?? [];
+        const newPlayers: PlayerData[] = membersArray.map(member => ({
+           id: member.memberId,
+           name: he.decode(member.name),
+         }));
+        const newNumPlayers = newPlayers.length;
+
 
         setScoreData(prev => {
+           prev.scores.forEach((row, i) => {
+             row.forEach((score, j) => {
+                 // prev.scores のサイズ（prev.numPlayers）に合わせて保存
+                 if (i < MAX_SCORE_ITEMS && j < MAX_PLAYERS) {
+                     allScores.current[i][j] = score;
+                 }
+             });
+           });
+
             // set number of players with number of members
             const newScores = prev.scores.map((_, i) =>
                 Array.from({ length: newNumPlayers }, (_, colIdx) => allScores.current[i]?.[colIdx] || "")
             );
 
-
             return {
                 ...prev,
                 numPlayers: newNumPlayers,
-                playerNames: newPlayerNames,
+                playerNames: newPlayers, 
                 scores: newScores,
                 groupId: selectedGroup._id,
             };
@@ -340,12 +359,17 @@ const {
        const scoresAfterGroupReset = prev.scores.map((_, i) =>
           Array.from({ length: originalNum }, (_, colIdx) => allScores.current[i]?.[colIdx] || "")
         );
+        //元の人数に戻し、名前を適用し、IDを空でリセット
+         const playersAfterGroupReset: PlayerData[] = Array.from({ length: originalNum }, (_, i) => ({
+           id:null,
+           name: originalNames[i] || `Player ${i + 1}` // 参照元の名前を使用
+         }));
 
         return { 
           ...prev, 
           groupId: null,
           numPlayers: originalNum,
-          playerNames: originalNames,
+          playerNames: playersAfterGroupReset,
           scores: scoresAfterGroupReset,
         };
       });
@@ -361,7 +385,7 @@ const {
     if (showTotal && scoreData.numPlayers > 0 && scoreData.numScoreItems > 0) {
       calculateRanks();
     }
-  }, [showTotal, scoreData.scores, scoreData.playerNames, scoreData.numPlayers, scoreData.numScoreItems, calculateRanks]);
+  }, [showTotal, scoreData.scores, scoreData.numPlayers, scoreData.numScoreItems, calculateRanks]);
 
   const handleCompositionStart = (key: string) => {
     composingRefs.current[key] = true;
@@ -417,10 +441,12 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
     }
 
     setScoreData((prev) => {
-      const updatedPlayerNames = [...prev.playerNames];
-      updatedPlayerNames[index] = newName;
-      return { ...prev, playerNames: updatedPlayerNames };
-    });
+      const updatedPlayers = [...prev.playerNames];
+        if (updatedPlayers[index]) {
+        updatedPlayers[index] = { ...updatedPlayers[index], name: newName };
+      }
+       return { ...prev, playerNames: updatedPlayers };
+      });
   }, [isGroupSelected]);
 
   // Update Score Item Name in state
@@ -451,7 +477,7 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
         custom:customSheet,
        };
     });
-  }, [scoreData]);
+  }, []);
 
   
   // Update a specific score cell
@@ -536,10 +562,16 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
       return;
     }
 
+    const newPlayers: PlayerData[] = Array.from({ length: newNum }, (_, i) => {
+     const existingPlayer = scoreData.playerNames[i];
+     const name = existingPlayer ? existingPlayer.name : `Player ${i + 1}`;
+     return { id: existingPlayer ? existingPlayer.id : null, name };
+    });
+
+    originalNumPlayers.current = newNum;
+    originalPlayerNames.current = newPlayers.map((p: PlayerData) => p.name);
+
     setScoreData((prev) => {
-      const newPlayerNames = Array.from({ length: newNum }, (_, i) =>
-        i < prev.playerNames.length ? prev.playerNames[i] : `Player ${i + 1}`
-      );
       const newScores = prev.scores.map((_, i) =>
         Array.from({ length: newNum }, (_, j) => allScores.current[i]?.[j] || "")
       );
@@ -548,32 +580,31 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
       return {
         ...prev,
         numPlayers: newNum,
-        playerNames: newPlayerNames,
+        playerNames: newPlayers,
         scores: newScores,
       };
     });
 
-    originalNumPlayers.current = newNum;
-    originalPlayerNames.current = Array.from({ length: newNum }, (_, i) =>
-        i < scoreData.playerNames.length ? scoreData.playerNames[i] : `Player ${i + 1}`
-    );
-  }, [isGroupSelected, scoreData.playerNames]);
+    }, [isGroupSelected, scoreData.playerNames]);
 
-  // Handler for changing the number of score items
-  const handleNumScoreItemsChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newNum = parseInt(e.target.value);
-    if (isNaN(newNum) || newNum < 1 || newNum > MAX_SCORE_ITEMS) {
-      alert("invalid score item numbers");
-      return;
+
+    // Handler for changing the number of score items
+    const handleNumScoreItemsChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+      const newNum = parseInt(e.target.value);
+      if (isNaN(newNum) || newNum < 1 || newNum > MAX_SCORE_ITEMS) {
+        alert("invalid score item numbers");
+        return;
     }
 
+    const newScoreItemNames = Array.from({ length: newNum }, (_, i) =>
+       i < scoreData.scoreItemNames.length ? scoreData.scoreItemNames[i] : `Round ${i + 1}`
+     );
+
     setScoreData((prev) => {
-      const newScoreItemNames = Array.from({ length: newNum }, (_, i) =>
- i < prev.scoreItemNames.length ? prev.scoreItemNames[i] : `Round ${i + 1}`
- );
       const newScores = Array.from({ length: newNum }, (_, i) => {
-      return Array.from({ length: prev.numPlayers }, (_, j) => allScores.current[i]?.[j] || "");
+         return Array.from({ length: prev.numPlayers }, (_, j) => allScores.current[i]?.[j] || "");
       });
+     
 
  // Update custom status and title
       const isCustomNow = newNum !== originalNumScoreItems.current;
@@ -587,7 +618,7 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
         custom: customSheet,
       };
     });
-  }, []);
+  }, [scoreData.scoreItemNames]);
 
   const handleToggleTotal = useCallback(() => {
     setShowTotal((prev) => !prev);
@@ -643,14 +674,14 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
   }
   
   // validation for player name and score items
-  const allNames = [...scoreData.playerNames, ...scoreData.scoreItemNames];
+  const allNames = [...scoreData.playerNames.map(p => p.name), ...scoreData.scoreItemNames];
   if (!allNames.every(name => allowedNameRegex.test(name))) {
       alert("Player and item Names can only contain allowed characters.");
       return;
   }
 
 
-    const playerTotals: number[] = Array(scoreData.numPlayers).fill(0);
+  const playerTotals: number[] = Array(scoreData.numPlayers).fill(0);
   scoreData.scores.forEach(row => {
     row.forEach((score, playerIndex) => {
       playerTotals[playerIndex] += parseInt(score, 10) || 0;
@@ -662,18 +693,21 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
   const MIN_TOTAL = -10000;
 
   const isTotalScoreValid = playerTotals.every(total => total <= MAX_TOTAL && total >= MIN_TOTAL);
-if (!isTotalScoreValid) {
+  if (!isTotalScoreValid) {
     alert(`Total score for each player must be between ${MIN_TOTAL} and ${MAX_TOTAL}.`);
     return; 
   }
 
-   const scoresAsNumbers = scores.map(row => row.map(val => parseInt(val) || 0));
+  const scoresAsNumbers = scores.map(row => row.map(val => parseInt(val) || 0));
 
- 
-   const dataToSave = {
-  id: _id,
+  const playersToSave = playerNames.map(p => ({
+      memberId: (p.id === null || p.id === "") ? undefined : p.id,
+      name: p.name        
+  }));
+
+  const dataToSave = {
   gameTitle: gameTitle,
-  playerNames: playerNames,
+  playerNames: playersToSave,
   scoreItemNames: scoreItemNames,
   scores: scoresAsNumbers,
   lastSavedAt: new Date().toISOString(),

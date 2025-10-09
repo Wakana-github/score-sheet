@@ -2,12 +2,23 @@ import mongoosePkg from 'mongoose';
 
 const { default: mongoose, Schema, models, model } = mongoosePkg;
 
+
+export interface IPlayer {
+   memberId: string | null;
+   name: string;
+}
+
+const PlayerSchema = new Schema({
+    memberId: { type: String, required: false, default: null}, 
+    name: { type: String, required: true, maxlength: 30 }
+}, { _id: false });
+
+
 // 1. Define a TypeScript interface that corresponds to the schema.
 // This interface guarantees the type of the score record object.
 export interface IScoreRecord extends mongoosePkg.Document {
-  id: string;
   gameTitle: string;
-  playerNames: string[];
+  playerNames: IPlayer[];
   scoreItemNames: string[];
   scores: number[][];
   numPlayers: number;
@@ -26,9 +37,8 @@ export type IScoreRecordCreation = Omit<IScoreRecord, '_id' | 'createdAt' | 'las
 
 // define Mongoose model 
 const ScoreRecordSchema = new Schema({
-  id: { type: String, required: true, unique: true }, 
   gameTitle: { type: String, required: true },
-  playerNames: [{ type: String }],
+  playerNames: { type: [PlayerSchema], required: true },
   scoreItemNames: [{ type: String }],
   scores: { type: [[Number]], required: true }, 
   numPlayers: { type: Number, required: true },

@@ -82,6 +82,11 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
     return () => window.removeEventListener("resize", checkLgScreen);
   }, []);
 
+  //表示するプレイヤー名と人数の決定ロジック
+   const playerNamesToDisplay = scoreData.playerNames.map(p => p.name) ?? [];
+   const numPlayersToDisplay = scoreData.numPlayers; //
+   
+
   // Functions for react-select compoment (select groups, number of items/players)
   // Score Items options
   const scoreItemOptions = [
@@ -147,6 +152,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
     } as React.ChangeEvent<HTMLSelectElement>;
     handleGroupSelect(syntheticEvent); // Calls the original function passed from the parent.
   };
+
 
   return (
     <div className="flex flex-col items-center justify-start py-3 px-2 bg-cover bg-center bg-no-repeat">
@@ -232,7 +238,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
               <Select
                 id="numPlayers"
                 options={playerOptions}
-                value={playerOptions.find((opt) => opt.value === scoreData.numPlayers)}
+                value={playerOptions.find((opt) => opt.value === numPlayersToDisplay)}
                 onChange={handlePlayerSelectChange}
                 isSearchable={false}
                 isDisabled={isGroupSelected}
@@ -248,14 +254,14 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
       {/* Apply table styles depending on number of players */}
       <div
         className={`flex overflow-x-auto w-full ${
-          scoreData.numPlayers >= 8 && !isLargeScreen
+          numPlayersToDisplay >= 8 && !isLargeScreen
             ? "justify-start"
             : "justify-center"
         }`}
       >
         <div
           className={` ${
-            scoreData.numPlayers >= 4 && isSmallScreen
+            numPlayersToDisplay >= 4 && isSmallScreen
               ? "w-full overflow-x-auto sm:overflow-x-visible"
               : ""
           }`}
@@ -270,9 +276,8 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                     Score Items
                   </th>
                   {/* Player's header */}
-                  {scoreData.playerNames
-                    .slice(0, scoreData.numPlayers)
-                    .map((name, i) => (
+                  {Array.from({ length: numPlayersToDisplay })
+                    .map((_, i) => (
                       <th
                         key={i}
                         className={`table_green px-1 py-1 hand_font border-r border-gray-400 text-center min-w-[80px] max-w-[80px] lg:min-w-[80px] 
@@ -280,7 +285,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                       >
                         <input
                           type="text"
-                          value={he.decode(scoreData.playerNames[i])}
+                          value={he.decode(playerNamesToDisplay[i])}
                           placeholder={`Player ${i + 1}`}
                           onCompositionStart={() =>
                             handleCompositionStart(`player-${i}`)
@@ -289,13 +294,15 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                             handleCompositionEnd(
                               `player-${i}`,
                               e.currentTarget.value,
-                              (val) => handlePlayerNameChange(i, val),
+                              (val) => !isGroupSelected && handlePlayerNameChange(i, val),
                               allowedNameRegex,
                               "Player names can only use allowed characters."
                             )
                           }
                           onChange={(e) => {
-                            handlePlayerNameChange(i, e.target.value);
+                            if (!isGroupSelected) {
+                                handlePlayerNameChange(i, e.target.value);
+                            }
                           }}
                           disabled={isGroupSelected}
                           className="w-full bg-transparent border-b border-gray-400 focus:outline-none focus:border-gray-400 text-center text-white"
@@ -307,7 +314,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
               <tbody className="divide-y divide-gray-400">
                 {scoreData.scoreItemNames
                   .slice(0, scoreData.numScoreItems)
-                  .map((itemName, rowIdx) => (
+                  .map((itemName: string, rowIdx: number) => (
                     <tr key={rowIdx}>
                       {/* Score Items */}
                       <td className="px-1 py-1 lg:py-2 border-r hand_font border-gray-400 w-24 text-center text-black min-w-[80px] max-w-[100px] sticky left-0 z-0 bg-[#f1e9e1]">
@@ -334,7 +341,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                         />
                       </td>
                       {/* Enter scores */}
-                      {Array.from({ length: scoreData.numPlayers }).map(
+                      {Array.from({ length: numPlayersToDisplay }).map(
                         (_, colIdx) => (
                           <td
                             key={colIdx}
@@ -395,8 +402,8 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                     Total
                   </td>
                   {calculateTotalScores
-                    .slice(0, scoreData.numPlayers)
-                    .map((total, i) => (
+                    .slice(0, numPlayersToDisplay)
+                    .map((total: number, i: number) => (
                       <td
                         key={`total-${i}`}
                         className={`px-1 py-0.5 border-r hand_font border-gray-400 text-center min-w-[60px] max-w-[80px] ${getRankBackgroundColor(

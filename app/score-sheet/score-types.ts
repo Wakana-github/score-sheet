@@ -1,8 +1,13 @@
+export interface IMember {
+    memberId: string; 
+    name: string; 
+}
+
 // Interface for the score data as it is stored in the database.
 export interface ScoreRecord {
   _id: string; // Unique ID generated on the application side (UUID)
   gameTitle: string;
-  playerNames: string[];
+  playerNames: IMember[];
   scoreItemNames: string[];
   scores: number[][]; // 2D array of numbers
   numPlayers: number;
@@ -14,12 +19,17 @@ export interface ScoreRecord {
   groupId?: string | null;
 }
 
+export interface PlayerData {
+    id: string | null; // memberIdまたは空
+    name: string;
+}
+
 // Interface for the state of the score sheet in the form.
 // Scores are stored as strings to handle direct user input from text fields.
 export interface ScoreData {
   _id: string;
   gameTitle: string;
-  playerNames: string[];
+  playerNames: PlayerData[]; 
   scoreItemNames: string[];
   scores: string[][]; // 2D array of strings for input field values
   numPlayers: number;
@@ -35,7 +45,7 @@ export interface ScoreData {
 export interface GroupData {
   _id: string; 
   groupName: string;
-  members: string[]; 
+  members: IMember[];  
   userId: string;
 }
 
