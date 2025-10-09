@@ -7,7 +7,7 @@ import { RiDeleteBinLine } from 'react-icons/ri';
 import LoadingPage from '@/components/lodingPage';
 import { useAuth, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'; 
 import he from 'he'; 
-import { MAX_NUM_FREE_RECORDS, PAGENATION_LIMIT } from '../lib/constants';
+import { MAX_FREE_RECORDS, PAGENATION_LIMIT } from '../lib/constants';
 import ReturnHomeBtn from '@/components/returnToHomeBtn';
 
 //End point URL for API
@@ -36,9 +36,6 @@ interface PaginatedRecords {
   isActiveUser: boolean;
   maxRecords: number;
 }
-
-// Maximum save limit for the FREE version (should match score-sheet)
-const MAX_FREE_RECORDS = MAX_NUM_FREE_RECORDS;
 
 export default function RecordsPage() {
   const router = useRouter();

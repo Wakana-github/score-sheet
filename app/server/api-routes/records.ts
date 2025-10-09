@@ -7,7 +7,6 @@ import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 import { AuthenticatedRequest } from "../types/express.d";
 import { JSDOM } from 'jsdom';
 import DOMPurify from 'dompurify';
-import { MAX_TITLE_LENGTH, MAX_NAME_LENGTH, MAX_FREE_RECORDS, MAX_ACTIVE_RECORDS, PAGENATION_LIMIT } from '../../lib/constants.ts';
 
 // Initialize JSDOM and pass it to DOMPurify
 const { window } = new JSDOM('');
@@ -20,6 +19,14 @@ interface SanitizeResult {
 }
 
 const router = express.Router();
+
+//constants : must be same as lib/constatns.ts
+const MAX_TITLE_LENGTH = 35;
+const MAX_NAME_LENGTH = 30;
+const MAX_FREE_RECORDS = 5;
+const MAX_ACTIVE_RECORDS = 500;
+const PAGENATION_LIMIT = 10;
+
 
 // Helper function to validate MongoDB ObjectId format 
 const isValidMongoId = (id: string): boolean => {

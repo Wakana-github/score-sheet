@@ -1,8 +1,10 @@
-import mongoose, { Document, Schema, models, model } from 'mongoose';
+import mongoosePkg from 'mongoose';
+
+const { default: mongoose, Schema, models, model } = mongoosePkg;
 
 // 1. Define a TypeScript interface that corresponds to the schema.
 // This interface guarantees the type of the score record object.
-export interface IScoreRecord extends Document {
+export interface IScoreRecord extends mongoosePkg.Document {
   id: string;
   gameTitle: string;
   playerNames: string[];

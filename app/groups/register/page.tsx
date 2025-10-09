@@ -7,7 +7,7 @@ import {
   allowedGroupRegex,
   MAX_GROUP_NAME_LENGTH,
   MAX_NAME_LENGTH,
-} from "../../lib/constants.ts";
+} from "../../lib/constants";
 import { useAuth, useUser } from "@clerk/nextjs";
 import he from "he";
 import LoadingPage from "@/components/lodingPage";

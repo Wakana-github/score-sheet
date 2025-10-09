@@ -16,6 +16,11 @@ import {
 } from "../../lib/constants.ts";
 import { v4 as uuidv4 } from "uuid";
 
+interface IncomingMember {
+    memberId: string;
+    name: string;
+}
+
 // Initialize JSDOM and pass it to DOMPurify
 const { window } = new JSDOM("");
 const domPurify = DOMPurify(window as any);
@@ -110,25 +115,25 @@ router.post(
           .json({ message: `Member count must be between 1 and ${MAX_NUM_MEMBERS}.` });
       }
 
-       const memberNamesToValidate: string[] = members.map((m: any) => m.name);
-       const sanitizedMembers = memberNamesToValidate.map((name: string) =>
-        sanitizeAndValidateString(name, MAX_NAME_LENGTH, "memberName", allowedNameRegex)
-      );
+       const finalMembers: { memberId: string; name: string }[] = [];
+       // メンバー配列をループし、nameのバリデーションとサニタイズを行う
+       for (const member of members) {
+          // 必須チェック: memberIdとnameが存在し、nameが文字列で、空ではないことを確認
+          if (!member.memberId || typeof member.name !== 'string' || member.name.trim() === '') {
+              return res.status(400).json({ message: "Each member must have a valid memberId and a non-empty name." });
+          }
+          const result = sanitizeAndValidateString(member.name,  MAX_NAME_LENGTH, "memberName", allowedNameRegex);
+      
 
-      if (sanitizedMembers.some((result: SanitizeResult) => result.error)) {
-        return res
-          .status(400)
-          .json({
-            message: sanitizedMembers.find(
-              (result: SanitizeResult) => result.error
-            )?.error,
+          if (result.error) {
+                  return res.status(400).json({ message: result.error });
+          }
+      
+          finalMembers.push({
+                  memberId: member.memberId, // 💡 クライアントが生成したIDをそのまま使用
+                  name: result.value!, // サニタイズされた値
           });
       }
-      // asign UUID for each member
-      const finalMembers = sanitizedMembers.map((result) => ({
-        memberId: uuidv4(), 
-        name: result.value!,
-      }));
 
       // === Create and save group object ===
       const newGroup = await Group.create({

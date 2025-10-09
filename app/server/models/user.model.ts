@@ -1,4 +1,7 @@
-import mongoose, { Schema, model, models, InferSchemaType } from 'mongoose';
+import mongoosePkg from 'mongoose';
+const { default: mongoose, Schema, model, models} = mongoosePkg;
+import { InferSchemaType } from 'mongoose';
+
 
 const UserSchema = new Schema({
   // Clerk User ID
