@@ -99,7 +99,15 @@ export async function GET(
         }, { status: 200 });
     }
 
+    //memberId と現在の名前を関連付ける
+    const memberIdToCurrentNameMap = new Map<string, string>();
+    group.members?.forEach(member => {
+        if (member.memberId) {
+            memberIdToCurrentNameMap.set(member.memberId, member.name);
+        }
+    });
 
+    
     // Statistics calculation initialization
     const availableGames = [...new Set(allRecords.map(r => r.gameTitle))];
 
@@ -108,22 +116,24 @@ export async function GET(
     let totalGroupSecondPlaces = 0;
     let totalGroupThirdPlaces = 0;
 
-    // { Player Name: PlayerStats }
+    // { memberId: PlayerStats }
     const overallPlayerStatsMap: Record<string, PlayerStats> = {}; // All games
     const selectedGamePlayerStatsMap: Record<string, PlayerStats> = {}; //selected Game
     // Game-specific stats map (used for mostPlayedGame and selectedGameStats summary)
-        const gameRankingsMap: Record<string, GameDetailStats> = {};
+    const gameRankingsMap: Record<string, GameDetailStats> = {};
     
-    //  Initialize stats for all members based on group.members (player names)
-    group.members?.forEach(playerName => {
+    //  Initialize stats for all members based on group.members (memberId)
+    group.members?.forEach(member => {
+         if (!member.memberId) return; 
+
         // Set initial values (0 plays, score Infinity/-Infinity) for members with no play records
         const initialStats = { 
             totalPlays: 0, totalScore: 0, 
             highestScore: -Infinity, lowestScore: Infinity, 
             firstPlaces: 0, secondPlaces: 0, thirdPlaces: 0, scores: [] 
         };
-        overallPlayerStatsMap[playerName] = { ...initialStats };
-        selectedGamePlayerStatsMap[playerName] = { ...initialStats };
+        overallPlayerStatsMap[member.memberId] = { ...initialStats };
+        selectedGamePlayerStatsMap[member.memberId] = { ...initialStats };
     });
 
 
@@ -132,17 +142,20 @@ export async function GET(
         const gameTitle = record.gameTitle;
         
         // Calculate overall score for each player
-        const allPlayerTotalScores = record.playerNames.map((name, i) => {
+        const allPlayerTotalScores = record.playerNames.map((player, i) => {
         let total = 0;
+             const memberId = player.memberId || `NonMember-${i}`; // generate temp key if there is no ID
+            
+
         for (let j = 0; j < record.numScoreItems; j++) {
             total += record.scores[j]?.[i] || 0;
         }
-        return { name, score: total };
+        return {  memberId, name: player.name, score: total}; //return name and ID
         });
 
         // Ranking
         const sortedScores = [...allPlayerTotalScores].sort((a, b) => b.score - a.score);
-        const rankMap = new Map(sortedScores.map((s, idx) => [s.name, idx + 1]));
+        const rankMap = new Map(sortedScores.map((s, idx) => [s.memberId, idx + 1]));
 
         // Initialise/Update game-specific rankings
         if (!gameRankingsMap[gameTitle]) {
@@ -152,19 +165,16 @@ export async function GET(
 
 
         // Update player stats and overall rankings
-        allPlayerTotalScores.forEach(({ name, score }) => {
-
-            // Skip players who do not exist in the member map
-            if (!overallPlayerStatsMap[name]) {
-                // console warning for debugging
-                // console.warn(`Skipping record for non-member: ${name}`); 
-                return;
+        allPlayerTotalScores.forEach(({ memberId, name, score }) => {
+            //Skip if there is no memberId
+            if (!memberIdToCurrentNameMap.has(memberId) || !overallPlayerStatsMap[memberId]) {
+                 return;
             }
 
             // ---------------------------------------------
             // Update overall (all games) statistics (always executed)
             // ---------------------------------------------
-            const overallStats = overallPlayerStatsMap[name];
+            const overallStats = overallPlayerStatsMap[memberId];
             overallStats.totalPlays++;
             overallStats.totalScore += score;
             overallStats.highestScore = Math.max(overallStats.highestScore, score);
@@ -176,8 +186,8 @@ export async function GET(
             // ---------------------------------------------
 
             if (selectedGameTitle && gameTitle === selectedGameTitle) {
-            const gameStats = selectedGamePlayerStatsMap[name];
-                    gameStats.totalPlays++;
+            const gameStats = selectedGamePlayerStatsMap[memberId];
+                gameStats.totalPlays++;
                 gameStats.totalScore += score;
                 gameStats.highestScore = Math.max(gameStats.highestScore, score);
                 gameStats.lowestScore = Math.min(gameStats.lowestScore, score);
@@ -188,23 +198,23 @@ export async function GET(
             // Update rankings
             // ---------------------------------------------
             gameRankingsMap[gameTitle].allScores.push(score);
-            const rank = rankMap.get(name);
+            const rank = rankMap.get(memberId);
 
             if (rank === 1) {
                 overallStats.firstPlaces++;
                 gameRankingsMap[gameTitle].firstPlaces++;
                 totalGroupFirstPlaces++;
-                if (selectedGameTitle && gameTitle === selectedGameTitle) selectedGamePlayerStatsMap[name].firstPlaces++;
+                if (selectedGameTitle && gameTitle === selectedGameTitle) selectedGamePlayerStatsMap[memberId].firstPlaces++;
             } else if (rank === 2) {
                 overallStats.secondPlaces++;
                 gameRankingsMap[gameTitle].secondPlaces++;
                 totalGroupSecondPlaces++;
-                if (selectedGameTitle && gameTitle === selectedGameTitle) selectedGamePlayerStatsMap[name].secondPlaces++;
+                if (selectedGameTitle && gameTitle === selectedGameTitle) selectedGamePlayerStatsMap[memberId].secondPlaces++;
             } else if (rank === 3) {
                 overallStats.thirdPlaces++;
                 gameRankingsMap[gameTitle].thirdPlaces++;
                 totalGroupThirdPlaces++;
-                if (selectedGameTitle && gameTitle === selectedGameTitle) selectedGamePlayerStatsMap[name].thirdPlaces++;
+                if (selectedGameTitle && gameTitle === selectedGameTitle) selectedGamePlayerStatsMap[memberId].thirdPlaces++;
             }
         });
      });
@@ -223,9 +233,12 @@ export async function GET(
     // Construct the final statistics object  
     //  Format Overall Player Details
     const playerDetails: OverallPlayerDetail[] = Object.entries(overallPlayerStatsMap)
-        .map(([playerName, stats]) => ({
+        .map(([memberId, stats]) => {
+            const playerName = memberIdToCurrentNameMap.get(memberId) || 'Unknown Member'; //fetch curent player's name
+            return {
             playerName,
             totalPlays: stats.totalPlays,
+            totalScore: stats.totalScore,
             averageScore: stats.totalPlays > 0 ? stats.totalScore / stats.totalPlays : 0,
             highestScore: stats.totalPlays > 0 ? (stats.highestScore === -Infinity ? 0 : stats.highestScore) : 0, 
             lowestScore: stats.totalPlays > 0 ? (stats.lowestScore === Infinity ? 0 : stats.lowestScore) : 0,
@@ -235,7 +248,8 @@ export async function GET(
                 third: stats.thirdPlaces,
             },
             totalFirstPlaces: stats.firstPlaces,
-        }))
+            }
+        })
         .filter(p => p.totalPlays > 0);  // Only return members with play records
 
     // Construct details for the selected game
@@ -247,19 +261,22 @@ export async function GET(
 
         // Format player details for the selected game
         const gamePlayerDetails: GamePlayerDetail[] = Object.entries(selectedGamePlayerStatsMap)
-            .map(([playerName, pStats]) => ({
-                playerName,
-                totalPlays: pStats.totalPlays,
-                averageScore: pStats.totalPlays > 0 ? pStats.totalScore / pStats.totalPlays : 0,
-                highestScore: pStats.totalPlays > 0 ? (pStats.highestScore === -Infinity ? 0 : pStats.highestScore) : 0,
-                lowestScore: pStats.totalPlays > 0 ? (pStats.lowestScore === Infinity ? 0 : pStats.lowestScore) : 0,
-                ranks: {
-                    first: pStats.firstPlaces,
-                    second: pStats.secondPlaces,
-                    third: pStats.thirdPlaces,
-                },
-                totalFirstPlaces: stats.firstPlaces,
-            }))
+            .map(([memberId, pStats]) => {
+                const playerName = memberIdToCurrentNameMap.get(memberId) || 'Unknown Member'; 
+                return {
+                    playerName,
+                    totalPlays: pStats.totalPlays,
+                    averageScore: pStats.totalPlays > 0 ? pStats.totalScore / pStats.totalPlays : 0,
+                    highestScore: pStats.totalPlays > 0 ? (pStats.highestScore === -Infinity ? 0 : pStats.highestScore) : 0,
+                    lowestScore: pStats.totalPlays > 0 ? (pStats.lowestScore === Infinity ? 0 : pStats.lowestScore) : 0,
+                    ranks: {
+                        first: pStats.firstPlaces,
+                        second: pStats.secondPlaces,
+                        third: pStats.thirdPlaces,
+                    },
+                    totalFirstPlaces: pStats.firstPlaces,
+                };
+            })
             .filter(p => p.totalPlays > 0); // Only return members who played that game
 
         selectedGameStats = {
