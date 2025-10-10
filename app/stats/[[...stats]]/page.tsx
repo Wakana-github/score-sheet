@@ -2,7 +2,7 @@
 
 import SubscriptionButton from "@/components/SubscriptionButton";
 import { getUser } from "@/app/actions/user.action";
-import LoadingPage from "@/components/lodingPage";
+import LoadingPage from "@/components/loadingPage.tsx";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";

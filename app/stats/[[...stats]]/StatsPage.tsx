@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import LoadingPage from "@/components/lodingPage";
+import LoadingPage from "@/components/loadingPage";
 import { useUser } from "@clerk/nextjs";
 import StatCard from "@/components/statCard";
 import RankCard from "@/components/rankCard";

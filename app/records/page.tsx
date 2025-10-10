@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { RiDeleteBinLine } from 'react-icons/ri';
-import LoadingPage from '@/components/lodingPage';
+import LoadingPage from '@/components/loadingPage';
 import { useAuth, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'; 
 import he from 'he'; 
 import { MAX_FREE_RECORDS, PAGENATION_LIMIT } from '../lib/constants';

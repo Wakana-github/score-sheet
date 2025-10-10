@@ -4,7 +4,7 @@ import useScoreSheet from "./hooks/useScoreSheet";
 import ScoreSheetTable from "./ScoreSheetTable";
 import PromoteSubscription from "@/components/promoteSubscription";
 import { useAuth } from "@clerk/nextjs";
-import LoadingPage from "@/components/lodingPage";
+import LoadingPage from "@/components/loadingPage";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ReturnHomeBtn from "@/components/returnToHomeBtn";

@@ -81,7 +81,8 @@ export default function Home() {
 
   return (
     <main>
-      <div className="flex items-center justify-center h-screen">
+     <div className="relative h-screen flex items-center justify-center overflow-hidden 
+                    bouncy-animation is-animated anim-box "> 
         <div className="text-center">
           <p className="hand_font text-2xl lg:text-4xl pt-4 ">Welcome to</p>
           <h1 className=" hand_font text-4xl lg:text-6xl font-bold">Score Sheet</h1>
@@ -148,7 +149,7 @@ export default function Home() {
             </SignedOut>
           </div>
         </div>
-      </div>
+     </div>
     </main>
   );
 }

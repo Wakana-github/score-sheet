@@ -1,6 +1,6 @@
 import { ClerkLoading, SignIn } from "@clerk/nextjs";
 import Link from "next/link";
-import LoadingPage from "@/components/lodingPage";
+import LoadingPage from "@/components/loadingPage";
 
 export default function Page() {
   return (

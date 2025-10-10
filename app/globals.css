@@ -50,6 +50,9 @@ body {
 .dark_green{
   background-color: var(--dark_green);
 }
+.text-green{
+  color: var(--dark_green);
+}
 .table_green{
   background-color: var(--table_green);
 }
@@ -103,4 +106,31 @@ body {
 }
 .tableWidth {
   min-width: max-content; /* ← 列数に応じて幅が広がる */
+}
+
+
+/* Animation that makes the entire page drop and bounce  */
+.anim-box.bouncy-animation.is-animated { 
+  animation: bouncy 1s ease-in-out forwards; /* use the name same as @keyframes*/
+}
+
+@keyframes bouncy {
+  0%  {
+    transform: scale(1.0, 1.0) translate(0, -100vh);
+  }
+  15% {
+    transform: scale(0.98, 0.9) translate(0, 5px);
+  }
+  30% {
+    transform: scale(1.02, 1.0) translate(0, 8px);
+  }
+  50% {
+    transform: scale(0.98, 1.05) translate(0, -8px);
+  }
+  70% {
+    transform: scale(1.0, 0.9) translate(0, 5px);
+  }
+  100% {
+    transform: scale(1.0, 1.0) translate(0, 0);
+  }
 }

@@ -10,7 +10,7 @@ import {
 } from "../../lib/constants";
 import { useAuth, useUser } from "@clerk/nextjs";
 import he from "he";
-import LoadingPage from "@/components/lodingPage";
+import LoadingPage from "@/components/loadingPage";
 import Link from "next/link";
 import Select from "react-select";
 import { v4 as uuidv4 } from "uuid"; 

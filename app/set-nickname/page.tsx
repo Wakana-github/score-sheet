@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import LoadingPage from "@/components/lodingPage";
+import LoadingPage from "@/components/loadingPage";
 
 export default function SetNicknamePage() {
   const { user, isLoaded } = useUser();
