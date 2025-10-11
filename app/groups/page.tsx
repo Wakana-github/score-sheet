@@ -8,6 +8,8 @@ import he from 'he';
 import Link from 'next/link';
 import { MAX_GROUPS } from "../lib/constants.ts";
 import ReturnHomeBtn from '@/components/returnToHomeBtn.tsx';
+import { fadeInVariants, itemsVariants } from '../lib/variants'
+import { motion } from "motion/react"
 
 interface MemberData {
   memberId: string;
@@ -150,30 +152,38 @@ const GroupListPage: React.FC = () => {
       {groups.length === 0 ? (
         <p>You have no groups yet. Create one!</p>
       ) : (
-        <ul className="space-y-3 ">
-          {groups.map((group) => (
-            <li key={group._id} className="dark_green text-base text-black px-3 py-1 rounded-md shadow-sm flex justify-between items-center">
-              <div className="min-w-0 mx-1">
-                <h2 className="text-lg lg:text-xl font-semibold ">{group.groupName}</h2>
-                <p className="text-black">Members: {group.members.length}</p>
-              </div>
-              <div className="space-x-1 flex-shrink-0">
-                <button
-                  onClick={() => handleEdit(group._id)}
-                  className="px-3 py-1 m-1 text-base lg:text-lg bg-yellow-600 text-white rounded-md hover:bg-yellow-800"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(group._id)}
-                  className="px-3 py-1 text-base lg:text-lg bg-red-700 text-white rounded-md hover:bg-red-900"
-                >
-                  Delete
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <motion.div variants={fadeInVariants}
+                      initial="hidden" 
+                      animate="show"
+        >
+          <ul className="space-y-3 ">
+            {groups.map((group) => (
+              <motion.li variants={itemsVariants} 
+                         key={group._id} 
+                         className="dark_green text-base text-black px-3 py-1 rounded-md shadow-sm flex justify-between items-center"
+              >
+                <div className="min-w-0 mx-1">
+                  <h2 className="text-lg lg:text-xl font-semibold ">{group.groupName}</h2>
+                  <p className="text-black">Members: {group.members.length}</p>
+                </div>
+                <div className="space-x-1 flex-shrink-0">
+                  <button
+                    onClick={() => handleEdit(group._id)}
+                    className="px-3 py-1 m-1 text-base lg:text-lg bg-yellow-600 text-white rounded-md hover:bg-yellow-800"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(group._id)}
+                    className="px-3 py-1 text-base lg:text-lg bg-red-700 text-white rounded-md hover:bg-red-900"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </motion.li>
+            ))}
+          </ul>
+        </motion.div>
       )}
 
        {/* Return to Home page button */}

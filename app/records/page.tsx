@@ -9,6 +9,8 @@ import { useAuth, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
 import he from 'he'; 
 import { MAX_FREE_RECORDS, PAGENATION_LIMIT } from '../lib/constants';
 import ReturnHomeBtn from '@/components/returnToHomeBtn';
+import { fadeInVariants, itemsVariants } from '../lib/variants'
+import { motion } from "motion/react"
 
 //End point URL for API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/scores'; 
@@ -73,7 +75,7 @@ export default function RecordsPage() {
           },
         });
 
- // call GET /api/scores 
+         // call GET /api/scores 
         if (!response.ok) {
           const errorData = await response.json();
          throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Unknown error'}`);
@@ -247,10 +249,14 @@ export default function RecordsPage() {
           </div>
 
           {/* List of filtered records */}
-          <div className="space-y-0">
+          <motion.div variants={fadeInVariants}
+              initial="hidden" 
+              animate="show"
+             className="space-y-0">
             {filteredRecords.map((record) => (
-              <div
+              <motion.div
                 key={record._id}
+                variants={itemsVariants}
                 className="p-3 border-b border-gray-400 flex justify-between items-center group hover:bg-gray-50 transition-colors duration-200"
               >
                 <div onClick={() => handleRecordClick(record._id)} className="cursor-pointer flex-grow grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 items-center">
@@ -279,9 +285,9 @@ export default function RecordsPage() {
                     </button>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       )}
 

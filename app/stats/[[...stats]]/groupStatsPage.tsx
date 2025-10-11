@@ -5,6 +5,8 @@ import RankCard from "@/components/rankCard";
 import { useEffect, useState, useMemo } from "react";
 import Select from 'react-select';
 import ReturnHomeBtn from "@/components/returnToHomeBtn";
+import { fadeInVariants, itemsVariants, gameDetailVariants, detailItemVariants } from '../../lib/variants'
+import { motion, AnimatePresence } from "motion/react"
 
 interface Group {
   _id: string;
@@ -124,11 +126,20 @@ export default function GroupStatsPage() {
 
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-3xl md:text-4xl font-bold mb-4 hand_font">Group Statistics</h1>
+    <motion.div variants={fadeInVariants}
+                          initial="hidden" 
+                          whileInView="show"
+                          animate="show"
+                          className="p-6 space-y-4"
+    >
+      <motion.h1 variants={itemsVariants}
+                className="text-3xl md:text-4xl font-bold mb-4 hand_font"
+      >
+        Group Statistics
+      </motion.h1>
 
       {/* Group Selection */}
-      <div>
+      <motion.div variants={itemsVariants}>
         <label className="block text-xl md:text-3xl hand_font ">Select Group:</label>
         <Select
           options={groupOptions}
@@ -144,56 +155,76 @@ export default function GroupStatsPage() {
           placeholder="-- Choose a Group --"
           className="w-full md:w-1/2"
         />
-      </div>
+      </motion.div>
 
       {/* Total and most played game */}
       {stats &&  
-        <div>
-          <h2 className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2 ">
-              {stats.groupName}
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-              <StatCard title="Total Plays" value={stats?.totalPlays} />
-              <StatCard title="Most Played Game:" value={`${stats?.mostPlayedGame.title} (${stats?.mostPlayedGame.plays} plays)`} />
-          </div>
+        <AnimatePresence mode="wait" initial={true}> 
+          <motion.div key={stats.groupName} 
+              variants={gameDetailVariants} 
+              initial="initial"
+              animate="animate"
+              exit="exit">
+            <motion.h2 variants={detailItemVariants} 
+                      className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2 "
+            >
+                {stats.groupName}
+            </motion.h2>
+            <motion.div variants={detailItemVariants} 
+                        className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4"
+            >
+                <StatCard title="Total Plays" value={stats?.totalPlays} />
+                <StatCard title="Most Played Game:" value={`${stats?.mostPlayedGame.title} (${stats?.mostPlayedGame.plays} plays)`} />
+            </motion.div>
 
-          {/* Overall Rankings Top 3 (Sorted by 1st Place Count) */}
-          <div className="mt-8">
-              <h2 className="text-2xl md:text-3xl font-bold hand_font mb-3 md:mb-4">Group Rankings </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                  {stats.playerDetails
-                      .sort((a, b) => b.ranks.first - a.ranks.first)
-                      .slice(0, 3) 
-                      .map((player, index) => {
-                          let rankClass = '';
-                          /// Determine class based on rank (index+1)
-                          if (index === 0) {
-                              rankClass = 'first-color'; 
-                          } else if (index === 1) {
-                              rankClass = 'second-color'; 
-                          } else if (index === 2) {
-                              rankClass = 'third-color'; 
-                          }
-                          return (
-                          <RankCard 
-                              key={player.playerName} 
-                              title={`TOP ${index + 1}`}
-                              value={`${player.playerName} (${player.ranks.first})`}
-                              className={rankClass}
-                          />
-                          );
-                      })}
-              </div>
-          </div>
-        </div>
+            {/* Overall Rankings Top 3 (Sorted by 1st Place Count) */}
+            <motion.div variants={detailItemVariants} className="mt-8">
+                <h2 className="text-2xl md:text-3xl font-bold hand_font mb-3 md:mb-4">Group Rankings </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                    {stats.playerDetails
+                        .sort((a, b) => b.ranks.first - a.ranks.first)
+                        .slice(0, 3) 
+                        .map((player, index) => {
+                            let rankClass = '';
+                            /// Determine class based on rank (index+1)
+                            if (index === 0) {
+                                rankClass = 'first-color'; 
+                            } else if (index === 1) {
+                                rankClass = 'second-color'; 
+                            } else if (index === 2) {
+                                rankClass = 'third-color'; 
+                            }
+                            return (
+                            <RankCard 
+                                key={player.playerName} 
+                                title={`TOP ${index + 1}`}
+                                value={`${player.playerName} (${player.ranks.first})`}
+                                className={rankClass}
+                            />
+                            );
+                        })}
+                </div>
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
       }
 
       
 
       {/* Game Selection */}
       {stats && stats.availableGames.length > 0 && (
-          <div className="mb-2">
-            <h2 className="text-xl md:text-3xl hand_font mt-8">Select Game Title</h2>
+        <AnimatePresence mode="wait" initial={true}>
+          <motion.div key={stats.groupName} 
+              variants={gameDetailVariants} 
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="mb-2"
+          >
+            <motion.h2 variants={detailItemVariants} 
+                      className="text-xl md:text-3xl hand_font mt-8">
+                        Select Game Title
+            </motion.h2>
             <Select
               options={gameOptions}
               value={gameOptions.find(option => option.value === selectedGame) || null} //return selected
@@ -203,7 +234,8 @@ export default function GroupStatsPage() {
               placeholder="-- Choose a Game --"
               className="w-full md:w-1/2"
             />
-          </div>
+          </motion.div>
+        </AnimatePresence>
       )}
 
       {/* Statistics */}
@@ -212,63 +244,89 @@ export default function GroupStatsPage() {
 
           {/* Selected Game Stats */}
           {stats.selectedGameStats && (
-            
-            <div className="mt-4">
-            <h2 className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2">{stats.selectedGameStats.gameTitle}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                <StatCard title="Total Plays" value={stats.selectedGameStats.totalPlays} />
-                <StatCard title="Avg Score" value= {stats.selectedGameStats.averageScore.toFixed(2)} />
-                <StatCard title="Highest Score" value= {stats.selectedGameStats.highestScore} />
-                <StatCard title="Lowest Score" value= {stats.selectedGameStats.lowestScore} />
-              </div>
-            </div>
+            <AnimatePresence mode="wait" initial={true}>
+              <motion.div 
+                key={stats.selectedGameStats.gameTitle + 'stats'}
+                variants={gameDetailVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="mt-4"
+              >
+                <motion.h2 variants={detailItemVariants}
+                          className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2"
+                >
+                {stats.selectedGameStats.gameTitle} 
+                </motion.h2>
+                <motion.div variants={detailItemVariants}
+                   className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4"
+                >
+                  <StatCard title="Total Plays" value={stats.selectedGameStats.totalPlays} />
+                  <StatCard title="Avg Score" value= {stats.selectedGameStats.averageScore.toFixed(2)} />
+                  <StatCard title="Highest Score" value= {stats.selectedGameStats.highestScore} />
+                  <StatCard title="Lowest Score" value= {stats.selectedGameStats.lowestScore} />
+                </motion.div>
+              </motion.div>
+            </AnimatePresence>
           )}
 
           {stats.selectedGameStats && (
-            <div className="space-y-4 md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-3 ">
-                {/* Player Details */}
-                {playerDetails
-                    .sort((a, b) => b.totalPlays - a.totalPlays) 
-                    .map((p, index) => (
-                        <div key={p.playerName} className="border p-4 rounded-lg shadow-md table_green text-white">
-                            <div className="flex justify-between items-center mb-2 pb-2 border-b">
-                                <h4 className="text-lg md:text-xl lg:text-2xl font-bold">{p.playerName}</h4>
-                            </div>
+            <AnimatePresence mode="wait" initial={true}>
+              <motion.div 
+                key={stats.selectedGameStats.gameTitle + 'players'} 
+                variants={gameDetailVariants} 
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="space-y-4 md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-3 ">
+                  {/* Player Details */}
+                  {playerDetails
+                      .sort((a, b) => b.totalPlays - a.totalPlays) 
+                      .map((p, index) => (
+                          <motion.div  
+                            key={p.playerName} 
+                            variants={detailItemVariants} 
+                            className="border p-4 rounded-lg shadow-md table_green text-white"
+                          >
+                              <div className="flex justify-between items-center mb-2 pb-2 border-b">
+                                  <h4 className="text-lg md:text-xl lg:text-2xl font-bold">{p.playerName}</h4>
+                              </div>
 
-                            <div className="grid grid-cols-3 gap-2 text-sm ">
-                                {/* Score Details */}
-                                <div className="p-1 border-r">
-                                    <span className="font-semibold block md:text-lg">Average</span>
-                                    <span className="text-xl ">{p.averageScore.toFixed(2)}</span>
-                                </div>
-                                <div className="p-1 border-r">
-                                    <span className="font-semibold block md:text-lg">Highest</span>
-                                    <span className="text-xl">{p.highestScore}</span>
-                                </div>
-                                <div className="p-1">
-                                    <span className="font-semibold block md:text-lg">Lowest</span>
-                                    <span className="text-xl">{p.lowestScore}</span>
-                                </div>
+                              <div className="grid grid-cols-3 gap-2 text-sm ">
+                                  {/* Score Details */}
+                                  <div className="p-1 border-r">
+                                      <span className="font-semibold block md:text-lg">Average</span>
+                                      <span className="text-xl ">{p.averageScore.toFixed(2)}</span>
+                                  </div>
+                                  <div className="p-1 border-r">
+                                      <span className="font-semibold block md:text-lg">Highest</span>
+                                      <span className="text-xl">{p.highestScore}</span>
+                                  </div>
+                                  <div className="p-1">
+                                      <span className="font-semibold block md:text-lg">Lowest</span>
+                                      <span className="text-xl">{p.lowestScore}</span>
+                                  </div>
 
-                                {/* Rank Details */}
-                                <div className="col-span-3 mt-2 pt-2 border-t">
-                                    <span className="font-semibold block mb-1 md:text-lg">Ranks Achieved</span>
-                                    <div className="flex justify-between text-base font-semibold text-white mx-3 md:text-lg">
-                                        <span>🏆 1st: <span className="text-xl md:text-2xl pl-2"> {p.ranks.first}</span></span>
-                                        <span>🥈 2nd: <span className="text-xl md:text-2xl pl-2"> {p.ranks.second}</span></span>
-                                        <span>🥉 3rd: <span className="text-xl md:text-2xl pl-2"> {p.ranks.third}</span></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-            </div>
+                                  {/* Rank Details */}
+                                  <div className="col-span-3 mt-2 pt-2 border-t">
+                                      <span className="font-semibold block mb-1 md:text-lg">Ranks Achieved</span>
+                                      <div className="flex justify-between text-base font-semibold text-white mx-3 md:text-lg">
+                                          <span>🏆 1st: <span className="text-xl md:text-2xl pl-2"> {p.ranks.first}</span></span>
+                                          <span>🥈 2nd: <span className="text-xl md:text-2xl pl-2"> {p.ranks.second}</span></span>
+                                          <span>🥉 3rd: <span className="text-xl md:text-2xl pl-2"> {p.ranks.third}</span></span>
+                                      </div>
+                                  </div>
+                              </div>
+                          </motion.div>
+                      ))}
+              </motion.div>
+           </AnimatePresence>
           )}
         </div>
     )}
     <div className="mt-20 my-5">
             <ReturnHomeBtn/>
           </div>
-    </div>
+    </motion.div>
   );
 }

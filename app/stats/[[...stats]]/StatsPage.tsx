@@ -6,6 +6,8 @@ import StatCard from "@/components/statCard";
 import RankCard from "@/components/rankCard";
 import Select from "react-select";
 import ReturnHomeBtn from "@/components/returnToHomeBtn";
+import { fadeInVariants, itemsVariants, gameDetailVariants, detailItemVariants } from '../../lib/variants'
+import { motion, AnimatePresence } from "motion/react"
 
 //define stats types
 interface GameStats {
@@ -93,9 +95,15 @@ export default function StatsPage() {
   );
 
   return (
-    <div className="mt-4 p-4 md:p-8">
+    <motion.div variants={fadeInVariants}
+                      initial="hidden" 
+                      whileInView="show"
+                      animate="show" 
+                      className="mt-4 p-4 md:p-8">
       {/* title */}
-      <h1 className="text-3xl md:text-4xl font-bold mb-4 hand_font">
+      <motion.h1 variants={itemsVariants}
+                 className="text-3xl md:text-4xl font-bold mb-4 hand_font"
+      >
         Personal Stats for
         <br />
         <span className="text-4xl md:text-5xl text-[#41490e]">
@@ -105,10 +113,12 @@ export default function StatsPage() {
             ? user.publicMetadata.nickname
             : user?.username}
         </span>
-      </h1>
+      </motion.h1>
 
       {/* Total and most played game */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8 text-2xl md:text-3xl">
+      <motion.div variants={itemsVariants}  
+                  className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8 text-2xl md:text-3xl"
+      >
         <StatCard title="Total Plays" value={stats?.totalPlays || 0} />
         <StatCard
           title="Most Played Game"
@@ -118,13 +128,17 @@ export default function StatsPage() {
               : stats.mostPlayedGame
           }
         />
-      </div>
+      </motion.div>
 
       {/* Total rankkings */}
-      <h2 className="text-2xl md:text-3xl font-bold hand_font mb-3 md:mb-4">
+      <motion.h2 variants={itemsVariants} 
+                  className="text-2xl md:text-3xl font-bold hand_font mb-3 md:mb-4"
+      >
         Total Rankings
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
+      </motion.h2>
+      <motion.div variants={itemsVariants} 
+                  className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8"
+      >
         <RankCard
           title="Total 1st Places"
           value={stats?.totalRankings.first || 0}
@@ -140,10 +154,10 @@ export default function StatsPage() {
           value={stats?.totalRankings.third || 0}
           className="third-color"
         />
-      </div>
+      </motion.div>
 
       {/* Choose game */}
-      <div>
+      <motion.div variants={itemsVariants} >
         <h2 className="text-xl md:text-3xl hand_font mt-8">Select Game Title</h2>
         <Select
           options={gameOptions}
@@ -168,80 +182,96 @@ export default function StatsPage() {
           className="w-full md:w-1/2" // Set width for the wrapper
           isClearable
         />
-      </div>
+      </motion.div>
 
       {/* Stats for selected game */}
       {selectedGame && (
-      <>
-        <h2 className="text-4xl md:text-5xl hand_font font-bold text-[#41490e] pt-4 mb-2">{selectedGame.gameTitle}</h2>
-        <div className="border p-4 pt-0 rounded-lg shadow-md table_green text-white">
-          {/* Score Details */}
-          <div className="sm:grid sm:grid-cols-2 gap-2 ">
-            <div className="p-1 px-3">
-              <span className="font-semibold block text-xl md:text-2xl">
-                Total Plays
-              </span>
-              <span className="text-2xl md:text-3xl">{selectedGame.plays}</span>
+      <AnimatePresence mode="wait" initial={true}> 
+        <motion.div 
+            // Reruns animation when the game changes
+            key={selectedGame.gameTitle} 
+            variants={gameDetailVariants} // parent variants
+            initial="initial"
+            animate="animate"
+            exit="exit" // Enable exit animation
+            layout
+        >
+          <motion.h2 variants={detailItemVariants} 
+                      className="text-4xl md:text-5xl hand_font font-bold text-[#41490e] pt-4 mb-2"
+          >
+            {selectedGame.gameTitle}
+          </motion.h2>
+          <motion.div variants={detailItemVariants}  
+                      className="border p-4 pt-0 rounded-lg shadow-md table_green text-white"
+          >
+            {/* Score Details */}
+            <div className="sm:grid sm:grid-cols-2 gap-2 ">
+              <div className="p-1 px-3">
+                <span className="font-semibold block text-xl md:text-2xl">
+                  Total Plays
+                </span>
+                <span className="text-2xl md:text-3xl">{selectedGame.plays}</span>
+              </div>
+              <div className="p-1 px-4">
+                <span className="font-semibold block text-xl md:text-2xl">
+                  Average Score
+                </span>
+                <span className="text-2xl md:text-3xl">
+                  {selectedGame.averageScore.toFixed(2)}
+                </span>
+              </div>
+              <div className="p-1 px-4">
+                <span className="font-semibold block text-xl md:text-2xl">
+                  Highest
+                </span>
+                <span className="text-2xl md:text-3xl">
+                  {selectedGame.highestScore}
+                </span>
+              </div>
+              <div className="p-1 px-4">
+                <span className="font-semibold block text-xl md:text-2xl">
+                  Lowest
+                </span>
+                <span className="text-2xl md:text-3xl">
+                  {selectedGame.lowestScore}
+                </span>
+              </div>
             </div>
-            <div className="p-1 px-4">
-              <span className="font-semibold block text-xl md:text-2xl">
-                Average Score
-              </span>
-              <span className="text-2xl md:text-3xl">
-                {selectedGame.averageScore.toFixed(2)}
-              </span>
-            </div>
-            <div className="p-1 px-4">
-              <span className="font-semibold block text-xl md:text-2xl">
-                Highest
-              </span>
-              <span className="text-2xl md:text-3xl">
-                {selectedGame.highestScore}
-              </span>
-            </div>
-            <div className="p-1 px-4">
-              <span className="font-semibold block text-xl md:text-2xl">
-                Lowest
-              </span>
-              <span className="text-2xl md:text-3xl">
-                {selectedGame.lowestScore}
-              </span>
-            </div>
-          </div>
 
-          {/* Rank Details */}
-          <div className="col-span-3 mt-2 pt-2 border-t text-xl md:text-2xl">
-            <span className="font-semibold block mb-1">Ranks Achieved</span>
-            <div className="flex justify-between font-semibold text-white mx-3 text-xl">
-              <span>
-                🏆 1st:{" "}
-                <span className="text-2xl md:text-3xl ml-5">
-                  {" "}
-                  {selectedGame.ranks.first}
+            {/* Rank Details */}
+            <div className="col-span-3 mt-2 pt-2 border-t text-xl md:text-2xl">
+              <span className="font-semibold block mb-1">Ranks Achieved</span>
+              <div className="flex justify-between font-semibold text-white mx-3 text-xl">
+                <span>
+                  🏆 1st:{" "}
+                  <span className="text-2xl md:text-3xl ml-5">
+                    {" "}
+                    {selectedGame.ranks.first}
+                  </span>
                 </span>
-              </span>
-              <span>
-                🥈 2nd:{" "}
-                <span className="text-2xl md:text-3xl ml-5">
-                  {" "}
-                  {selectedGame.ranks.second}
+                <span>
+                  🥈 2nd:{" "}
+                  <span className="text-2xl md:text-3xl ml-5">
+                    {" "}
+                    {selectedGame.ranks.second}
+                  </span>
                 </span>
-              </span>
-              <span>
-                🥉 3rd:{" "}
-                <span className="text-2xl md:text-3xl ml-5">
-                  {" "}
-                  {selectedGame.ranks.third}
+                <span>
+                  🥉 3rd:{" "}
+                  <span className="text-2xl md:text-3xl ml-5">
+                    {" "}
+                    {selectedGame.ranks.third}
+                  </span>
                 </span>
-              </span>
+              </div>
             </div>
-          </div>
-        </div>
-      </>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
       )}
       <div className="my-8">
         <ReturnHomeBtn/>
       </div>
-    </div>
+    </motion.div>
   );
 }
