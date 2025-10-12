@@ -218,20 +218,30 @@ router.get(
       const limit = PAGENATION_LIMIT; // number of records per page
       const skip = (page - 1) * limit; // calculate number of records to skip
 
+      //フィルタリングキーワードを取得
+      const filterKeyword = req.query.keyword as string | undefined;
+      //フィルタリングのベースクエリを構築
+      const baseQuery: any = { userId: userId };
+      if (filterKeyword && filterKeyword.trim()) {
+          // gameTitle がキーワードを含むように $regex を使用
+          // 'i' オプションで大文字/小文字を区別しない検索
+          baseQuery.gameTitle = { $regex: filterKeyword.trim(), $options: 'i' };
+      }
+
       // search record with user ID
       let records: IScoreRecord[];
       const isActiveUser = user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trialing';
-      const totalRecords = await ScoreRecord.countDocuments({ userId: userId });
+      const totalFilteredRecords = await ScoreRecord.countDocuments(baseQuery);
       const maxRecords = isActiveUser ? MAX_ACTIVE_RECORDS : MAX_FREE_RECORDS;
 
       if (isActiveUser) {
-        records = await ScoreRecord.find({ userId: userId })
+        records = await ScoreRecord.find(baseQuery) 
           .sort({ lastSavedAt: -1 })
           .skip(skip)
           .limit(limit);
       } else {
         // limit number of records to retrieve for inactive user
-        records = await ScoreRecord.find({ userId: userId })
+        records = await ScoreRecord.find(baseQuery)
           .sort({ lastSavedAt: -1 })
           .limit(MAX_FREE_RECORDS);
       }
@@ -248,13 +258,13 @@ router.get(
 
       res.status(200).json({
       records: sanitizedRecords,
-      totalRecords,
+      totalRecords: totalFilteredRecords, //フィルタリング後の総数を返す
       currentPage: page,
       limit,
       isActiveUser,
       maxRecords:isActiveUser ? MAX_ACTIVE_RECORDS : MAX_FREE_RECORDS,
     });
-    console.log("Received POST body:", req.body); //debug
+    console.log("Received GET query for userId:", userId, "Keyword:", filterKeyword);
     } catch (error: unknown) {
       const err = error as Error;
       console.error("Error fetching all user records:", err);

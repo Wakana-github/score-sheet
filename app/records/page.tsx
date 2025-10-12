@@ -30,6 +30,7 @@ interface ScoreRecord {
   groupId?: string; 
 }
 
+// Interface of the paginated response from the API
 interface PaginatedRecords {
   records: ScoreRecord[];
   totalRecords: number;
@@ -43,22 +44,38 @@ export default function RecordsPage() {
   const router = useRouter();
   const [records, setRecords] = useState<ScoreRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterKeyword, setFilterKeyword] = useState(''); // Filter keyword state
+  const [inputValue, setInputValue] = useState(''); // User's input in the search field (updated in real-time)
+  const [filterKeyword, setFilterKeyword] = useState(''); // The keyword sent to the API for filtering (updated after debounce)
+   const [lastKeyword, setLastKeyword] = useState('');
   const { isLoaded, isSignedIn, getToken } = useAuth();
+  
 
   //pagination status
-  const [currentPage, setCurrentPage] = useState(1); // current page
+  const [currentPage, setCurrentPage] = useState(1); // current page number
   const [totalRecords, setTotalRecords] = useState(0);
   const [maxRecords, setMaxRecords] = useState(MAX_FREE_RECORDS);
   const [isActiveUser, setIsActiveUser] = useState(false);
-  const limit = PAGENATION_LIMIT;  // limit of records per page
+  const limit = PAGENATION_LIMIT;  // limit of records per page(constant)
   const totalPages = Math.ceil(totalRecords / limit); 
 
+   // Debounce effect: Monitors inputValue and updates filterKeyword after a delay.
+    useEffect(() => {
+        const debounceTime = 500;   // Set a timer 
+        const handler = setTimeout(() => {
+            setFilterKeyword(inputValue);
+        }, debounceTime); 
+        return () => {
+            clearTimeout(handler);  // Clear the timer if input changes before the delay is up
+        };
+    }, [inputValue]);
+
+  // Effect to fetch records from the API whenever page or filter keyword changes
   useEffect(() => {
   async function fetchRecords(){
+
     if (!isLoaded || !isSignedIn) {
         setLoading(false);
-        // stop loading record if a user isn't logged in
+        // stop fetching if a user isn't logged in
         return;
       }
 
@@ -66,16 +83,18 @@ export default function RecordsPage() {
       try {
         // get auth token
         const token = await getToken({ template: 'long_lasting' });
-
-        const response = await fetch(`${API_BASE_URL}?page=${currentPage}`, 
+        // Prepare the keyword query parameter for filtering
+        const keywordQuery = filterKeyword ? `&keyword=${encodeURIComponent(filterKeyword.trim())}` : '';
+        // Fetch paginated records from the API endpoint
+        const response = await fetch(`${API_BASE_URL}?page=${currentPage}${keywordQuery}`, 
           { 
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`, // Pass token for auth
           },
         });
 
-         // call GET /api/scores 
+        // Handle error
         if (!response.ok) {
           const errorData = await response.json();
          throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Unknown error'}`);
@@ -88,7 +107,7 @@ export default function RecordsPage() {
               gameTitle: he.decode(record.gameTitle),
           }));
 
-          setRecords(decodedRecords);  // set decorded recored
+          setRecords(decodedRecords);  // Update the records with decorded game title
           setTotalRecords(data.totalRecords);
           setMaxRecords(data.maxRecords);
           setIsActiveUser(data.isActiveUser);
@@ -102,27 +121,27 @@ export default function RecordsPage() {
       }
     };
 
+    // Logic to reset pagination to page 1 only when the filterKeyword changes.
+     if (filterKeyword !== lastKeyword) {
+          setLastKeyword(filterKeyword);
+          if (currentPage !== 1) {
+            setCurrentPage(1);
+            return;
+        }
+      }
+
     fetchRecords();
-  },  [isLoaded, isSignedIn, getToken, currentPage]); // fetch only once
+  },  [isLoaded, isSignedIn, getToken, currentPage, filterKeyword]); 
 
 
-  const filteredRecords = useMemo(() => {
-    if (!filterKeyword) {
-      return records;
-    }
-    const lowercasedFilter = filterKeyword.toLowerCase();
-    return records.filter(record =>
-      record.gameTitle.toLowerCase().includes(lowercasedFilter)
-    );
-  }, [records, filterKeyword]);
+  const filteredRecords = records;
 
+  // Handler for clicking a record entry. Redirects to the score sheet for editing.
   const handleRecordClick = (recordId: string) => {
-    // when update existed score
     router.push(`/score-sheet?recordId=${recordId}`);
   };
 
-
-
+  // Handler for deleting a specific record. Calls the DELETE API.
   const handleDeleteRecord = async (recordId: string) => { 
     if (confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
       try {
@@ -140,7 +159,7 @@ export default function RecordsPage() {
           throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || 'Unknown error'}`);
         }
 
-        // when delete successed, fetch new states     
+       // On successful deletion, reset to page 1 to trigger a full re-fetch    
        setCurrentPage(1);
         alert('Record deleted successfully!');
       } catch (error) {
@@ -154,20 +173,19 @@ export default function RecordsPage() {
     }
   };
 
- // Rendering pegenation UI
+ // Rendering the pegenation UI buttons
   const renderPagination = () => {
-    if (totalPages <= 1) return null; // Don't show button when there is onnly 1 page
+    if (totalPages <= 1) return null; // Don't show button when there is only 1 page
 
     const pageNumbers = [];
-    // Limit the display of page number buttons
+     // Logic to determine which page buttons to display (max 5)
     const maxPageButtons = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
     let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
-    
+ 
     if (endPage - startPage + 1 < maxPageButtons) {
         startPage = Math.max(1, endPage - maxPageButtons + 1);
     }
-
     for (let i = startPage; i <= endPage; i++) {
         pageNumbers.push(i);
     }
@@ -200,6 +218,7 @@ export default function RecordsPage() {
     );
   };
 
+  // Show the loading spinner while initial data is fetched
   if (loading || !isLoaded) {
     return (
       <main className="flex items-center justify-center h-screen">
@@ -222,8 +241,8 @@ export default function RecordsPage() {
         <input
           type="text"
           id="filter"
-          value={filterKeyword}
-          onChange={(e) => setFilterKeyword(e.target.value)}
+          value={inputValue} 
+          onChange={(e) => setInputValue(e.target.value)}
           placeholder="Enter game title keyword..."
           className="w-full max-w-sm p-2 border border-gray-700 rounded-md focus:outline-none focus:ring-2 text-gray-800" 
         />
