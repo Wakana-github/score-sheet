@@ -26,8 +26,8 @@ export  const itemsVariants = {
     },
   }
 
-
-  // Variants for independent game detail section (stats pages)
+//---------- stats page ---------------
+  // Variants for independent game detail section 
   export const gameDetailVariants: Variants = {
     initial: { 
         opacity: 0, 
