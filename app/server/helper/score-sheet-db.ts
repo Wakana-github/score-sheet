@@ -82,17 +82,4 @@ async function connectDB() {
 }
 
 export default connectDB;
-//   try {
-//     await mongoose.connect(MONGODB_URI, { 
-//       useNewUrlParser: true, // default true after Mongoose 6.0
-//       useUnifiedTopology: true, // default true after Mongoose 6.0
-//       serverApi: ServerApiVersion.v1, 
-//       connectTimeoutMS: 30000,
-//     });
-//     console.log('MongoDB Connected to database successfully!'); // 
-//   } catch (err) {
-//     console.error('MongoDB connection error:', err);
-//     process.exit(1); // close app when connection failed
-//   }
-// }
 

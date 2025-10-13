@@ -12,7 +12,6 @@
 //     return res.status(401).json({ message: "Unauthorized" });
 //   }
 
-//   // 後でルートで使えるようにリクエストにuserIdを入れておく
 //     req.auth = { userId };
 //   next();
 // }

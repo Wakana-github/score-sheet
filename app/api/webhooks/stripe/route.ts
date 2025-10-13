@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const eventType = event.type;
-    console.log(`📩 Received event: ${eventType}`);
+    console.log(`Received event: ${eventType}`);
 
     switch (eventType) {
       // Handle completed checkout session
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 
          // Check if priceId is allowed
         if (!allowedPriceIds.includes(priceId)) {
-          console.warn(`⚠️ Price ID ${priceId} does not match allowed IDs.`);
+          console.warn(`Price ID ${priceId} does not match allowed IDs.`);
           return new NextResponse("Price ID does not match", { status: 400 });
         }
 

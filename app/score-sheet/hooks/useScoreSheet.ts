@@ -11,8 +11,7 @@ import { ScoreData, ScoreRecord, GroupData, InitialGameData, PlayerData } from '
 
 
 // API endpoint URL for database operations
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/scores";
+const API_BASE_URL = "/api/records";
 
 
 const segmenter = new Intl.Segmenter('ja', { granularity: 'grapheme' });
@@ -125,9 +124,7 @@ const {
       if (recordIdFromUrl) {
         try {
           const token = await getToken({ template: "long_lasting" });
-          const response = await fetch(`${API_BASE_URL}/${recordIdFromUrl}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const response = await fetch(`${API_BASE_URL}/${recordIdFromUrl}`);
 
           if (!response.ok) {
             if (response.status === 404) {
@@ -728,7 +725,6 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
         method,
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(dataToSave),
       });

@@ -12,8 +12,9 @@ import ReturnHomeBtn from '@/components/returnToHomeBtn';
 import { fadeInVariants, itemsVariants } from '../lib/variants'
 import { motion } from "motion/react"
 
-//End point URL for API
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/scores'; 
+//Use URL stored in Proxity 
+const PROXY_API_PATH = '/api/records';
+
 
 // ScoreRecord interface (must match score-sheet/page.tsx)
 interface ScoreRecord {
@@ -46,7 +47,7 @@ export default function RecordsPage() {
   const [loading, setLoading] = useState(true);
   const [inputValue, setInputValue] = useState(''); // User's input in the search field (updated in real-time)
   const [filterKeyword, setFilterKeyword] = useState(''); // The keyword sent to the API for filtering (updated after debounce)
-   const [lastKeyword, setLastKeyword] = useState('');
+  const [lastKeyword, setLastKeyword] = useState('');
   const { isLoaded, isSignedIn, getToken } = useAuth();
   
 
@@ -58,20 +59,20 @@ export default function RecordsPage() {
   const limit = PAGENATION_LIMIT;  // limit of records per page(constant)
   const totalPages = Math.ceil(totalRecords / limit); 
 
-   // Debounce effect: Monitors inputValue and updates filterKeyword after a delay.
-    useEffect(() => {
-        const debounceTime = 500;   // Set a timer 
-        const handler = setTimeout(() => {
-            setFilterKeyword(inputValue);
-        }, debounceTime); 
-        return () => {
-            clearTimeout(handler);  // Clear the timer if input changes before the delay is up
-        };
-    }, [inputValue]);
+  // Debounce effect: Monitors inputValue and updates filterKeyword after a delay.
+  useEffect(() => {
+      const debounceTime = 500;   // Set a timer 
+      const handler = setTimeout(() => {
+          setFilterKeyword(inputValue);
+      }, debounceTime); 
+      return () => {
+          clearTimeout(handler);  // Clear the timer if input changes before the delay is up
+      };
+  }, [inputValue]);
 
   // Effect to fetch records from the API whenever page or filter keyword changes
   useEffect(() => {
-  async function fetchRecords(){
+   async function fetchRecords(){
 
     if (!isLoaded || !isSignedIn) {
         setLoading(false);
@@ -81,18 +82,11 @@ export default function RecordsPage() {
 
       setLoading(true);
       try {
-        // get auth token
-        const token = await getToken({ template: 'long_lasting' });
+
         // Prepare the keyword query parameter for filtering
         const keywordQuery = filterKeyword ? `&keyword=${encodeURIComponent(filterKeyword.trim())}` : '';
         // Fetch paginated records from the API endpoint
-        const response = await fetch(`${API_BASE_URL}?page=${currentPage}${keywordQuery}`, 
-          { 
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`, // Pass token for auth
-          },
-        });
+        const response = await fetch(`${PROXY_API_PATH}?page=${currentPage}${keywordQuery}`);
 
         // Handle error
         if (!response.ok) {
@@ -145,13 +139,9 @@ export default function RecordsPage() {
   const handleDeleteRecord = async (recordId: string) => { 
     if (confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
       try {
-        const token = await getToken({ template: 'long_lasting' });
         // Call DELETE API
-        const response = await fetch(`${API_BASE_URL}/${recordId}`, {
+        const response = await fetch(`${PROXY_API_PATH}/${recordId}`, {
           method: 'DELETE',
-           headers: {
-            'Authorization': `Bearer ${token}`, 
-           }
         });
 
         if (!response.ok) {

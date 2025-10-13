@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         const priceId = lineItems?.data[0]?.price?.id;
         const metadata = session.metadata;
         console.log('sessionmetadata',session.metadata) ;
-        console.log("📌 CustomerId:", customerId);
+        console.log("CustomerId:", customerId);
 
         if (priceId && !allowedPriceIds.includes(priceId)) {
           return new NextResponse("Price ID does not match", {
