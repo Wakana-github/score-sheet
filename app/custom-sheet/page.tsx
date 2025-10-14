@@ -1,8 +1,11 @@
 "use client";
 
+/* Custom setting page: front page to pass user specified custom sheet to score-sheet page */
+
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import ReturnHomeBtn from "@/components/returnToHomeBtn";
+import {allowedTitleRegex, MAX_SCORE_ITEMS, MAX_PLAYERS, MAX_TITLE_LENGTH} from "../lib/constants"
 
 
 export default function CustomSheetPage() {
@@ -14,12 +17,13 @@ export default function CustomSheetPage() {
   const [gameNameError, setGameNameError] = useState<string | null>(null);
   const [scoreItemsError, setScoreItemsError] = useState<string | null>(null);
   const [playersError, setPlayersError] = useState<string | null>(null);
-
+  // Initialize Next.js router for navigation
   const router = useRouter();
 
+  //Handle game name change
   const handleGameNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = event.target.value;
-     if (inputValue.length <= 35 ) {
+     if (inputValue.length <= MAX_TITLE_LENGTH ) {
     setGameName(inputValue);
      }
     if (gameNameError) {
@@ -27,6 +31,7 @@ export default function CustomSheetPage() {
     }
   };
 
+  // The function to set number of score itrems based on user input
   const handleScoreItemsCountChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -44,6 +49,7 @@ export default function CustomSheetPage() {
     }
   };
 
+  // The fuhnction to set number of players based on user input
   const handlePlayersCountChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -61,6 +67,8 @@ export default function CustomSheetPage() {
     }
   };
 
+ // Handle 'use this Sheet' button click.
+ // Performs validation and navigates to the score sheet page on success.
   const handleUseThisSheet = () => {
     let hasError = false;
 
@@ -69,35 +77,32 @@ export default function CustomSheetPage() {
     setScoreItemsError(null);
     setPlayersError(null);
 
-    // 1. Game Name Validation
-   const allowedCharsRegex =  /^[a-zA-Z0-9Ａ-Ｚａ-ｚ０-９\sぁ-んァ-ヶ一-龠ー\-_\.]*$/; //allow alphanumeric and Japanese characters, and some symbols.
-    
-    //If empty name
+    //  Game Name Validation  
     if (gameName.trim() === '') {
       setGameNameError('Please enter a game name.');
       hasError = true;
-    } else if (!allowedCharsRegex.test(gameName)) {
+    } else if (!allowedTitleRegex .test(gameName)) {
       setGameNameError('Game names can only use alphanumeric characters, Japanese characters, and the symbols -, _, and .');
       hasError = true;
     }
 
-    // 2. Score Items Count Validation
+    // Score Items Count Validation
     if (scoreItemsCount === null || scoreItemsCount < 1) {
       setScoreItemsError('Must be 1 or greater.'); // Set inline error
       hasError = true;
     }
-    if (scoreItemsCount! > 15) {
-    setScoreItemsError('Score items cannot exceed 15');
+    if (scoreItemsCount! > MAX_SCORE_ITEMS) {
+    setScoreItemsError(`Score items cannot exceed ${MAX_SCORE_ITEMS}`);
     hasError = true;
   }
 
-    // 3. Players Count Validation
+    // Players Count Validation
     if (playersCount === null || playersCount < 1) {
       setPlayersError('Must be 1 or greater'); // Set inline error
       hasError = true;
     }
-    if (playersCount! > 10) {
-    setPlayersError('players cannot exceed 10');
+    if (playersCount! > MAX_PLAYERS) {
+    setPlayersError(`players cannot exceed ${MAX_PLAYERS}`);
     hasError = true;
   }
 
@@ -106,11 +111,12 @@ export default function CustomSheetPage() {
       return;
     }
 
-    // If no errors, proceed to create the sheet
+    // If no errors, prepare data and navigate
     const finalGameName = gameName.trim();
-    const finalRows = scoreItemsCount! + 1;
+    const finalRows = scoreItemsCount! + 1; // The total number of rows includes the header row
     const finalColumns = playersCount!;
 
+    // Redirect to the score sheet page, passing parameters via query string
     router.push(`./score-sheet?name=${encodeURIComponent(finalGameName)}&rows=${finalRows}&columns=${finalColumns}`);
   };
 
@@ -125,7 +131,7 @@ export default function CustomSheetPage() {
           <p className="text-2xl lg:text-4xl hand_font pt-2 ">Create Your Own</p>
           <h1 className="hand_font text-4xl lg:text-6xl font-bold">Custom Sheet</h1>
 
-          {/* Game name */}
+          {/* Game name Input Section*/}
           <div className="mt-3 lg:mt-5">
             <label htmlFor="gameName" className="text-2xl hand_font block md:text-3xl">
               Game Name:{" "}
@@ -145,10 +151,10 @@ export default function CustomSheetPage() {
             )}
           </div>
 
-          {/* flex container for rows and coulmns */}
+          {/* flex container for Score Items and Players*/}
           <div className="flex justify-center items-center space-x-4 mb-2">
             {" "}
-            {/* number of score items */}
+            {/* number of score items Input Section */}
             <div className="flex flex-col items-center mt-2">
               <label htmlFor="scoreItemsCount" className="text-2xl md:text-3xl hand_font">
                 Score Items: 
@@ -167,7 +173,7 @@ export default function CustomSheetPage() {
               )}
             </div>
 
-            {/* number of players*/}
+            {/* number of players Input Section*/}
             <div className="flex flex-col items-center mt-1">
               <label htmlFor="playersCount" className="text-2xl md:text-3xl hand_font">
                 Players: 
