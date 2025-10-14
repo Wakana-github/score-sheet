@@ -1,3 +1,5 @@
+"use server";
+
 /*
  * Stripe Billing Actions:
  * This module contains server actions for handling user subscriptions,
@@ -5,41 +7,68 @@
  * and generating a link to the Stripe Customer Billing Portal.
  */
 
-
-"use server";
-
-// Define input properties from stripe
+import { auth } from "@clerk/nextjs/server";
+import { getUser, updateUser  } from './user.action.ts';
 import { stripe } from "../lib/stripe.ts";
-type Props = {
-  userId: string;
-  email: string;
-  priceId: string;
+
+// Define the input properties for the subscription action
+type SubscribeProps = {
+  priceId: string; // The ID of the Stripe subscription plan.
 };
 
-// Check if a Stripe customer already exists for the email and creates one if not.
-export const subscribe = async ({ userId, email, priceId }: Props) => {
-  if (!userId || !email || !priceId) {
-    throw new Error("missing required params");
+//Creates a Stripe Checkout session for a new subscription
+export const subscribe = async ({ priceId }: SubscribeProps) => {
+  //retrieve the logged-in user's Clerk ID
+  const { userId: clerkId } = await auth();
+  if (!clerkId) {
+    throw new Error("User not authenticated."); // Throws an error if the user is not authenticated
+  }
+  // validation
+  if (!priceId) {
+    throw new Error("Missing required priceId");
   }
 
+  // Fetch user data from the database 
+  const userRecord = await getUser(clerkId); 
+  if (!userRecord || !userRecord.email || !userRecord._id) {
+      throw new Error("User data is missing or incomplete.");
+  }
+  const { email, _id: dbUserId } = userRecord; // Destructure the required info from the database record
+
+  // Retrieve Stripe Customer ID from DB
+  let stripeCustomerId = userRecord.stripeCustomerId;
+
+  //Check and create customer on Stripe only if not in DB 
+if (!stripeCustomerId) {
   try {
-     // Check if a customer with this email already exists in Stripe
+    // Check if a customer with this email already exists in Stripe
     const existingCustomer = await stripe.customers.list({
       email,
       limit: 1,
     });
     // Retrieve the existing customer ID if found
-    let stripeCustomerId = existingCustomer.data.length > 0 ? existingCustomer.data[0]?.id : null;
+    stripeCustomerId = existingCustomer.data.length > 0 ? existingCustomer.data[0]?.id : null;
+    
 
     // If no customer exists, create a new one
     if (!stripeCustomerId) {
       const customer = await stripe.customers.create({
         email,
+        metadata: {clerkId},  // Store Clerk ID for easy searching in the Stripe Dashboard
       });
       stripeCustomerId = customer.id;
     }
+      // Save the new Stripe Customer ID back to the user record in the database
+      await updateUser(clerkId, { stripeCustomerId: stripeCustomerId });
+    } catch (error) {
+      console.error("Stripe customer creation failed:", error);
+      throw new Error("Failed to initialize billing.");
+    }
+  }
 
-    // Create a new Stripe Checkout session for a subscription
+
+  // 5. Create a new Stripe Checkout session
+  try{
     const { url } = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,     // Link the session to the customer
       payment_method_types: ["card"], // Accept card payments
@@ -50,9 +79,9 @@ export const subscribe = async ({ userId, email, priceId }: Props) => {
         },
       ],
       metadata: {
-        userId,          // Store user ID on DB for later reference by webhooks
+        userId: dbUserId.toString(),   // Store user ID on DB 
       },
-      mode: "subscription",      // This checkout session is for a recurring subscription
+      mode: "subscription",      
       billing_address_collection: "required",   
       customer_update: {
         name: "auto",
@@ -65,19 +94,40 @@ export const subscribe = async ({ userId, email, priceId }: Props) => {
 
     return url;
   } catch (error) {
-    console.error(error);
+    console.error("Error creating subscription:", (error as Error).message);
+    throw new Error("Failed to create subscription session.");
   }
 };
 
- // Creates a URL for the Stripe Customer Portal, allowing users to manage their billing.
-export async function createUserPortalUrl(customerId: string) {
-  const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY!);
 
-  // Create a new Stripe Billing Portal session for the given customer
+
+ // Creates a URL for the Stripe Customer Portal, allowing users to manage their billing.
+export async function createUserPortalUrl() {
+  // SECURITY CHECK: retrieve the logged-in user's Clerk ID
+  const { userId: clerkId } = await auth();
+    if (!clerkId) {
+    throw new Error("User not authenticated.");
+  }
+
+  // Fetch user data from the database
+  const userRecord = await getUser(clerkId);   
+  const customerId = userRecord?.stripeCustomerId;  // retrieve 'stripeCustomerId' ftom user record
+
+  if (!customerId) {
+    throw new Error("Stripe customer ID not found. User must have a subscription first.");
+  }
+
+  // Create a new Stripe Billing Portal session for the retrieved customer
+  try {
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
     return_url: `${process.env.NEXT_PUBLIC_URL}/stats`, //URL that user return
   });
 
   return session.url;
+
+  } catch (error) {
+      console.error("Error creating portal URL:", (error as Error).message);
+      throw new Error("Failed to create billing portal session.");
+  }
 }
