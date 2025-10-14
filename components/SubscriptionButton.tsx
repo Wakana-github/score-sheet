@@ -18,26 +18,19 @@ export default function SubscriptionButton({ subscriptionStatus, stripeCustomerI
       throw new Error("User is not signed in");
     }
 
+    
     const url = await subscribe({
-      userId: user?.id || "",
-      email: user?.emailAddresses[0]?.emailAddress || "",
       priceId: process.env.NEXT_PUBLIC_STRIPE_BETA_SIXMONTH_PRICE_ID as string,
     });
 
-    if (url) {
-      router.push(url);
+    if (url) {router.push(url);
     } else {
-      throw new Error("Failed to subscribe");
+      throw new Error("Subscription failed. Please try again.");
     }
   };
 
   const editPaymentDetails = async () => {
-     // check id stripe data exists
-    if (!stripeCustomerId) {
-      console.error("Error: stripeCustomerId not found.");
-      return;
-    }
-    const url = await createUserPortalUrl(stripeCustomerId);
+    const url = await createUserPortalUrl(); //authentication is chcked in the function
     if (url) {
       router.push(url);
     } else {

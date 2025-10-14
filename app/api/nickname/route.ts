@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
-import { updateUser } from '@/app/actions/user.action';
+import { updateUser } from '@/app/server/lib/db/user';
 import { Ratelimit } from '@upstash/ratelimit'; 
 import { Redis } from '@upstash/redis';
 

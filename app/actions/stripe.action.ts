@@ -1,14 +1,14 @@
 "use server";
-
-/*
- * Stripe Billing Actions:
+/* 
+ * Stripe Billing Actions: 
  * This module contains server actions for handling user subscriptions,
  * including creating a Stripe Checkout session 
  * and generating a link to the Stripe Customer Billing Portal.
  */
 
 import { auth } from "@clerk/nextjs/server";
-import { getUser, updateUser  } from './user.action.ts';
+import { updateUser  } from '../server/lib/db/user.ts';
+import { fetchUserRecord } from "./user.action"; 
 import { stripe } from "../lib/stripe.ts";
 
 // Define the input properties for the subscription action
@@ -29,7 +29,7 @@ export const subscribe = async ({ priceId }: SubscribeProps) => {
   }
 
   // Fetch user data from the database 
-  const userRecord = await getUser(clerkId); 
+  const userRecord = await fetchUserRecord(); 
   if (!userRecord || !userRecord.email || !userRecord._id) {
       throw new Error("User data is missing or incomplete.");
   }
@@ -61,7 +61,7 @@ if (!stripeCustomerId) {
       // Save the new Stripe Customer ID back to the user record in the database
       await updateUser(clerkId, { stripeCustomerId: stripeCustomerId });
     } catch (error) {
-      console.error("Stripe customer creation failed:", error);
+      console.error("Stripe customer creation failed.", (error as Error).message);
       throw new Error("Failed to initialize billing.");
     }
   }
@@ -94,7 +94,7 @@ if (!stripeCustomerId) {
 
     return url;
   } catch (error) {
-    console.error("Error creating subscription:", (error as Error).message);
+    console.error("Error creating subscription.", (error as Error).message);
     throw new Error("Failed to create subscription session.");
   }
 };
@@ -110,7 +110,7 @@ export async function createUserPortalUrl() {
   }
 
   // Fetch user data from the database
-  const userRecord = await getUser(clerkId);   
+  const userRecord = await fetchUserRecord();
   const customerId = userRecord?.stripeCustomerId;  // retrieve 'stripeCustomerId' ftom user record
 
   if (!customerId) {
@@ -127,7 +127,7 @@ export async function createUserPortalUrl() {
   return session.url;
 
   } catch (error) {
-      console.error("Error creating portal URL:", (error as Error).message);
+      console.error("Error creating portal URL.", (error as Error).message);
       throw new Error("Failed to create billing portal session.");
   }
 }

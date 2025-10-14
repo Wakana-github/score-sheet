@@ -1,7 +1,7 @@
 "use client";
 
 import SubscriptionButton from "@/components/SubscriptionButton";
-import { getUser } from "@/app/actions/user.action";
+import { fetchUserRecord } from "../../actions/user.action.ts";
 import LoadingPage from "@/components/loadingPage.tsx";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
@@ -23,7 +23,7 @@ export default function Stats() {
   useEffect(() => {
     const getUserData = async () => {
       setIsLoadingUserData(true);
-      const userData = await getUser(user?.id || "");
+      const userData = await fetchUserRecord();
       setUserData(userData);
       setIsLoadingUserData(false);
     };

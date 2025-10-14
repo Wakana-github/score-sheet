@@ -13,7 +13,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import "./headerMenu.css";
 import SubscriptionButton from "@/components/SubscriptionButton";
-import { getUser } from "@/app/actions/user.action";
+import { fetchUserRecord} from "../actions/user.action";
 
 export default function Header() {
   const { isSignedIn, user, isLoaded } = useUser();
@@ -38,7 +38,7 @@ export default function Header() {
     const fetchUserData = async () => {
       if (isSignedIn && user) {
         setIsLoadingUserData(true);
-        const fetchedData = await getUser(user.id);
+        const fetchedData = await fetchUserRecord();
         setUserData(fetchedData);
         setIsLoadingUserData(false);
       } else {

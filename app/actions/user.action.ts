@@ -1,70 +1,29 @@
 "use server";
 
-import User, {UserCreationType, UserUpdateType} from "../server/models/user.model.ts";
-import connectDB from '../server/helper/score-sheet-db.ts'; 
-import { UserSoundIcon } from "@phosphor-icons/react";
-// import { User } from "@clerk/nextjs/server";
+/**
+ * Securely fetches the database record for the currently logged-in user.
+ * It is called by client components or other server actions (e.g., stripe.action.ts).
+ * It returns The user's database record, or null if the user is not authenticated.
+ */
 
-// Create new user
-export async function createUser(user:UserCreationType ){
-    try{
-        await connectDB();
-        const newUser = await User.create(user);
-        return JSON.parse(JSON.stringify(newUser));
+import { auth } from "@clerk/nextjs/server";
+import { getUser } from "../server/lib/db/user.ts";
 
-        } catch(error){
-        console.log(error);
+
+export async function fetchUserRecord() {
+    // Authentication Check:
+    const { userId: clerkId } = await auth();
+    if (!clerkId) {
+        //return null or throuh the error if user is not login
+        return null;  
     }
-}
-
-export async function updateUser(clerkId: string, user: UserUpdateType) {
+    
     try {
-        await connectDB();
-        const updatedUser = await User.findOneAndUpdate(
-            { clerkId: clerkId },
-            { $set: user },
-            { new: true, runValidators: true }
-        );
-        
-        if (!updatedUser) {
-            console.error('User not found.');
-            return null;
-        }
-
-        return JSON.parse(JSON.stringify(updatedUser));
+        //Authentication Check & Data Fetch: Call DB library on server side. The user can only fetch their own data.
+        const userRecord = await getUser(clerkId);
+        return userRecord;
     } catch (error) {
-        console.error("Error updating user:", error);
-        throw new Error("Failed to update user.");
-    }
-}
-
-export async function deleteUser(clerkId: string) {
-    try {
-        await connectDB();
-        
-        const deletedUser = await User.findOneAndDelete({ clerkId: clerkId });
-        
-        if (!deletedUser) {
-            console.error('User not found for deletion.');
-            return null;
-        }
-
-        return JSON.parse(JSON.stringify(deletedUser));
-    } catch (error) {
-        console.error("Error deleting user:", error);
-        throw new Error("Failed to delete user.");
-    }
-}
-
-export async function getUser(userId: string) {
-    try{
-        await connectDB();
-        const user = await User.findOne({
-            clerkId: userId
-        });
-        return JSON.parse(JSON.stringify(user));
-    } catch (error) {
-        console.error("Error finding user id:", error);
-        throw new Error("Failed to fetch ClerkId.");
+        console.error("Error fetching user data in server action.", (error as Error).message);
+        throw new Error("Failed to load user data.");
     }
 }
