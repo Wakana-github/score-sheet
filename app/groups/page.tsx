@@ -1,6 +1,8 @@
 // app/groups/page.tsx
 'use client';
 
+/* Group list page: front page to display groups that logged in user created */
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'; 
@@ -10,12 +12,15 @@ import { MAX_GROUPS } from "../lib/constants.ts";
 import ReturnHomeBtn from '@/components/returnToHomeBtn.tsx';
 import { fadeInVariants, itemsVariants } from '../lib/variants'
 import { motion } from "motion/react"
+import LoadingPage from '@/components/loadingPage.tsx';
 
+// Define the structure of a member object
 interface MemberData {
   memberId: string;
   name: string;
 }
 
+// Defines the structure of a Group object fetched from the API
 interface Group {
   _id: string;
   groupName: string;
@@ -24,7 +29,7 @@ interface Group {
   createdAt?: string; // Add optional createdAt field
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL||'http://localhost:8080/api/groups';
+const API_BASE_URL = '/api/groups'; 
 
 const GroupListPage: React.FC = () => {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -32,8 +37,11 @@ const GroupListPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { isLoaded, isSignedIn, getToken } = useAuth(); 
 
+// useEffect hook to fetch user groups from the backend API.
+// Runs once when the component mounts and whenever auth state changes.
  useEffect(() => {
     async function fetchGroups() {
+      //check if Clerk is loaded and user is signed in
       if (!isLoaded || !isSignedIn) {
         setLoading(false);
         return;
@@ -41,12 +49,15 @@ const GroupListPage: React.FC = () => {
 
       setLoading(true);
       try {
+
+        // get the JWT for API authorization
         const token = await getToken();
         if (!token) {
           throw new Error('No authentication token found.');
         }
 
-        const res = await fetch(`${API_BASE_URL}/groups`, {
+        // Fetch groups owned by the current user
+        const res = await fetch(API_BASE_URL, {
           headers: {
             'Authorization': `Bearer ${token}`
           },
@@ -54,7 +65,7 @@ const GroupListPage: React.FC = () => {
 
         if (!res.ok) {
           const errorData = await res.json();
-          throw new Error(`Failed to fetch groups: ${errorData.message}`);
+          throw new Error(`Failed to fetch groups`);
         }
 
         const data: Group[] = await res.json();
@@ -68,28 +79,35 @@ const GroupListPage: React.FC = () => {
         }));
         setGroups(decodedGroups);
       } catch (error) {
-        console.error("Error fetching groups:", error);
-        setGroups([]); // Clear the group list on error
+        console.error("Error fetching groups. Please try again.");
+        setGroups([]);      // Clear the group list on error
       } finally {
-        setLoading(false);
+        setLoading(false);  // End loading regardless of success/failure
       }
     }
     fetchGroups();
   }, [isLoaded, isSignedIn, getToken]);
 
-   const handleDelete = async (groupId: string) => {
+
+  // Handle the deletion of a specific group.
+  const handleDelete = async (groupId: string) => {
+    //check if user is signed in
     if (!isSignedIn) {
       alert("You must be signed in to delete a group.");
       return;
     }
+    //Confirmation dialog
     if (confirm('Are you sure you want to delete this group?')) {
       try {
+
+        // get the JWT for API authorization
         const token = await getToken();
         if (!token) {
           throw new Error('No authentication token found.');
         }
 
-        const res = await fetch(`${API_BASE_URL}/groups/${groupId}`, {
+        // Send DELETE request to the backend API
+        const res = await fetch(`${API_BASE_URL}/${groupId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -98,27 +116,30 @@ const GroupListPage: React.FC = () => {
 
         if (!res.ok) {
           const errorData = await res.json();
-          throw new Error(`Failed to delete group: ${errorData.message}`);
+          throw new Error(`Failed to delete group.`);
         }
         
         // Successfully deleted, re-fetch group list
         alert('Group deleted successfully!');
         setGroups(groups.filter(group => group._id !== groupId));
       } catch (error) {
-        console.error("Error deleting group:", error);
-        alert(`Failed to delete group: ${error}`);
+        console.error("Error deleting group");
+        alert(`Failed to delete group`);
       }
     }
   };
 
+  // Handles navigation to the group registration/edit page.
   const handleEdit = (groupId: string) => {
-    router.push(`/groups/register?id=${groupId}`);
+    router.push(`/groups/register?id=${groupId}`);  // Navigate to the register page for specifyed group ID
   };
 
+  // Display loading page while data is being fetched
   if (!isLoaded || loading) {
-    return <div className="text-center mt-8">Loading...</div>;
+    return <LoadingPage/>
   }
 
+  // Prompt user to sign in if not authenticated
   if (!isSignedIn) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -128,6 +149,7 @@ const GroupListPage: React.FC = () => {
     );
   }
 
+  // Determine if the user can create more groups based on the constant limit
   const canCreateGroup = groups.length < MAX_GROUPS;
 
   return (
@@ -135,6 +157,8 @@ const GroupListPage: React.FC = () => {
       <h1 className="mb-4 text-4xl md:text-5xl font-bold hand_font">Your Groups
         <span className="text-2xl lg:text-3xl"> ({groups.length}/{MAX_GROUPS})</span>
       </h1>
+
+      {/* Button to navigate to the group creation page */}
       <button
         onClick={() => router.push('/groups/register')}
         className={`mb-4 px-4 py-2 hand_font rounded-md text-white text-xl lg:text-2xl ${
@@ -144,11 +168,13 @@ const GroupListPage: React.FC = () => {
       >
         Create New Group
       </button>
-
+      
+      {/* Warning message if the max group limit is reached */}
       {!canCreateGroup && (
         <p className="text-black mb-4">{`You have reached the maximum number of groups (${MAX_GROUPS}).`}</p>
       )}
 
+      {/* Conditional rendering based on whether groups exist */}
       {groups.length === 0 ? (
         <p>You have no groups yet. Create one!</p>
       ) : (
@@ -157,6 +183,7 @@ const GroupListPage: React.FC = () => {
                       animate="show"
         >
           <ul className="space-y-3 ">
+            {/* Map over the groups array to render each group item */}
             {groups.map((group) => (
               <motion.li variants={itemsVariants} 
                          key={group._id} 
@@ -166,6 +193,8 @@ const GroupListPage: React.FC = () => {
                   <h2 className="text-lg lg:text-xl font-semibold ">{group.groupName}</h2>
                   <p className="text-black">Members: {group.members.length}</p>
                 </div>
+
+                {/* Edit and Delete buttons container */}
                 <div className="space-x-1 flex-shrink-0">
                   <button
                     onClick={() => handleEdit(group._id)}
@@ -187,13 +216,11 @@ const GroupListPage: React.FC = () => {
       )}
 
        {/* Return to Home page button */}
-    <div className="self-start py-4 px-2 mt-2">
+      <div className="self-start py-4 px-2 mt-2">
         <ReturnHomeBtn/>
       </div>
 
     </div>
-     
-    
   );
 };
 
