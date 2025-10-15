@@ -1,3 +1,9 @@
+/*API Route: /api/scores/records
+* This route is the backend endpoint for managing user score records, handling CRUD for individual score sheets.
+* Key Feature:
+* Authentication & Authorization, Input Validation & Sanitization, Rate Limiting, and Record Limits
+*/ 
+
 import express, { Request, Response, Router } from "express";
 import mongoose from "mongoose";
 import rateLimit from 'express-rate-limit';
