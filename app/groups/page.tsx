@@ -1,13 +1,15 @@
 // app/groups/page.tsx
 'use client';
 
-/* Group list page: front page to display groups that logged in user created */
+/* Group list page: front page to renders the user's groups list.
+It fetches data securely from the /api/groups endpoint using the user's Clerk authentication token 
+and provides UI functions for navigating to the Edit page or initiating group deletion.
+*/
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'; 
 import he from 'he'; 
-import Link from 'next/link';
 import { MAX_GROUPS } from "../lib/constants.ts";
 import ReturnHomeBtn from '@/components/returnToHomeBtn.tsx';
 import { fadeInVariants, itemsVariants } from '../lib/variants'

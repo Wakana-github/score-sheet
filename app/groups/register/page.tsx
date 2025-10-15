@@ -1,5 +1,6 @@
 "use client";
 
+/* Grroup form page to allow logged-in user to registaer a new group(POST) or edit an existing group(PUT)*/
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -15,46 +16,51 @@ import Link from "next/link";
 import Select from "react-select";
 import { v4 as uuidv4 } from "uuid"; 
 
-// Interface for member
+// Interface for member data structure
 interface MemberData {
   memberId: string;
   name: string;
 }
 
-// interface for Group
+// interface for Group data structure
 interface Group {
   _id: string;
   groupName: string;
   members: MemberData[]; //use MemberData type
   userId: string;
-  createdAt?: string; // Add optional createdAt field
+  createdAt?: string;
 }
 
 //End point URL for API
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL||"http://localhost:8080/api";
+const API_BASE_URL = "/api";
 
-// Segmenter for correct character counting in Japanese
+// Segmenter for correct character counting in Japanese (handles multibyte characters accurately)
 const segmenter = new Intl.Segmenter("ja", { granularity: "grapheme" });
 
-const GroupRegisterPage: React.FC = () => {
+  const GroupRegisterPage: React.FC = () => {
+  // Router and URL search params hook
   const router = useRouter();
   const searchParams = useSearchParams();
   const groupId = searchParams.get("id");
-
+  // Authentication and user state from Clerk
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const { user } = useUser();
+  // Component state management
   const [loading, setLoading] = useState(true);
   const [groupName, setGroupName] = useState("");
   const [numMembers, setNumMembers] = useState(2);
   const [members, setMembers] = useState<MemberData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  //------------------------------------
   // Data initialization process
+  // Fetches existing group data if in edit mode or sets initial data if creating a new group.
+  //--------------------------------------
   useEffect(() => {
     async function initData() {
-      if (!isLoaded) return;
+      if (!isLoaded) return; // Wait for Clerk to load
 
+      // If user is not signed in, redirect to the sign-in page.
       if (!isSignedIn) {
         router.push("/sign-in");
         return;
@@ -65,15 +71,17 @@ const GroupRegisterPage: React.FC = () => {
       } else {
         setGroupName("");
         setNumMembers(2);
-        // fetch username or nickname
+
+        // fetch loogged-in user's username or nickname
         const userDisplayName: string = (
           (user?.publicMetadata?.nickname && typeof user.publicMetadata.nickname === "string"
             ? user.publicMetadata.nickname
-            : user?.username) ?? "Player 1" // 💡 null/undefined の場合は "Player 1" を使用
+            : user?.username) ?? "Player 1" // use 'Player1' when null/undefined 
          ) as string;
-        //Set login uername as member1 name 
+
+        //Set members list with the logged-in user as member 1 name 
         const initialMembers: MemberData[] = [
-          { memberId: uuidv4(), name: userDisplayName }, // login user
+          { memberId: uuidv4(), name: userDisplayName }, // logged-in user
           { memberId: uuidv4(), name: "" }, 
         ];
         setMembers(initialMembers);
@@ -84,13 +92,15 @@ const GroupRegisterPage: React.FC = () => {
     initData();
   }, [groupId, isLoaded, isSignedIn, router, user]);
 
+  //-----------------------------------------------------
   // Number of players options for React select component
+  //----------------------------------------------------
   const numPlayerOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => ({
     value: num,
     label: num.toString(),
   }));
 
-  // Wrapper for num of players
+  // Handler for when a new number of members is selected
   const handleNumPlayerSelectChange = (
     selectedOption: { value: number; label: string } | null
   ) => {
@@ -99,18 +109,23 @@ const GroupRegisterPage: React.FC = () => {
        }
   };
 
-  // Resize the member list based on the number of members
+  // Resize the members array size based on the number of members changes
   useEffect(() => {
     setMembers((prevMembers) => {
       const newMembers = [...prevMembers];
       while (newMembers.length < numMembers) {
-        newMembers.push({ memberId: uuidv4(), name: "" });
+        newMembers.push({ memberId: uuidv4(), name: "" }); // Add new blank members if the number increased
       }
-      return newMembers.slice(0, numMembers);
+      return newMembers.slice(0, numMembers);  // Trim the array if the number decreased
     });
   }, [numMembers]);
 
-  // Fetch group data
+
+  //------------------------------------------
+  // Fetch group data (Edit existing group Mode)
+  //-------------------------------------------
+
+  // Function to fetch existing group data from the API
   const fetchGroupData = async (id: string) => {
     setIsLoading(true);
     try {
@@ -126,6 +141,7 @@ const GroupRegisterPage: React.FC = () => {
       if (!res.ok) throw new Error("Failed to fetch group data");
        const data: Group = await res.json();
 
+      // Set component state using fetched data, decoding names for safety (XSS prevention)
       setGroupName(he.decode(data.groupName));
       setNumMembers(data.members.length);
       setMembers(data.members.map((member) => ({
@@ -136,22 +152,30 @@ const GroupRegisterPage: React.FC = () => {
     } catch (error) {
       console.error(error);
       alert("Failed to load group data.");
-      router.push("/groups");
+      router.push("/groups");   // Redirect on error
     } finally {
       setIsLoading(false);
     }
   };
 
+
+  //-----------------------
+  //Validation Functions
+  //-----------------------
+
   // Validation function for group name
   const validateGroupName = useCallback((value: string) => {
-    const normalizedValue = value.trim().normalize("NFC");
+    // Remove surrounding whitespace and standardise Unicode representation (NFC) for reliable storage.
+    const normalizedValue = value.trim().normalize("NFC"); 
     const length = [...segmenter.segment(normalizedValue)].length;
 
+    //check length of group name
     if (length > MAX_GROUP_NAME_LENGTH) {
       alert(`Group name cannot exceed ${MAX_GROUP_NAME_LENGTH} characters.`);
       return false;
     }
 
+    //check allowed characters
     if (!allowedGroupRegex.test(normalizedValue)) {
       alert("Group name can only contain allowed characters.");
       return false;
@@ -161,14 +185,17 @@ const GroupRegisterPage: React.FC = () => {
 
   // Validation function for member name
   const validateMemberName = useCallback((value: string) => {
+    // Remove surrounding whitespace and standardise Unicode representation (NFC) for reliable storage.
     const normalizedValue = value.trim().normalize("NFC");
     const length = [...segmenter.segment(normalizedValue)].length;
 
+    //check length of member name
     if (length > MAX_NAME_LENGTH) {
       alert(`Member name cannot exceed ${MAX_NAME_LENGTH} characters.`);
       return false;
     }
 
+    //check allowed characters
     if (!allowedNameRegex.test(normalizedValue)) {
       alert(
         "Member name can only contain letters, numbers, Japanese characters, and some emojis."
@@ -178,12 +205,12 @@ const GroupRegisterPage: React.FC = () => {
     return true;
   }, []);
 
-  // Handle group name change
+  // Handle group name input field
   const handleGroupNameChange = useCallback((value: string) => {
     setGroupName(value);
   }, []);
 
-  // Handle member name change
+  // Handle member name input field
   const handleMemberNameChange = useCallback(
     (index: number, value: string) => {
       setMembers((prevMembers) => {
@@ -193,6 +220,10 @@ const GroupRegisterPage: React.FC = () => {
       });
     },[]
   );
+
+  //-----------------------
+  // From Submission 
+  //------------------------
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -210,16 +241,19 @@ const GroupRegisterPage: React.FC = () => {
           return;
         }
       }
+
+      // Get authorisation token
       const token = await getToken();
       if (!token) throw new Error("No authentication token found.");
+
+      // Determine HTTP method and URL based on edit/create mode
       const method = groupId ? "PUT" : "POST";
       const url = groupId
         ? `${API_BASE_URL}/groups/${groupId}`
         : `${API_BASE_URL}/groups`;
-      const body = {
-        groupName,
-        members,
-      };
+      const body = { groupName, members,};  //Request body
+
+      //Send API request
       const res = await fetch(url, {
         method,
         headers: {
@@ -230,6 +264,7 @@ const GroupRegisterPage: React.FC = () => {
       });
 
       if (!res.ok) {
+        // Handle error response from the API
         const errorData = await res.json();
         throw new Error(
           `Failed to ${groupId ? "update" : "create"} group: ${
@@ -237,6 +272,7 @@ const GroupRegisterPage: React.FC = () => {
           }`
         );
       }
+      //Success: Alert user and navigate to the groups list page
       alert(`Group ${groupId ? "updated" : "created"} successfully!`);
       router.push("/groups");
     } catch (error: any) {
@@ -251,12 +287,17 @@ const GroupRegisterPage: React.FC = () => {
     return <LoadingPage />;
   }
 
+  //-------------------
+  // Main content
+  //----------------------
   return (
     <div className="container mx-auto px-10 my-6 max-w-3xl">
       <h1 className="text-4xl md:text-5xl font-bold mb-4 hand_font">
         {groupId ? "Edit Group" : "Create New Group"}
       </h1>
-      <form onSubmit={handleSubmit} className="space-y-3 text-base lg:text-xl  ">
+
+      <form onSubmit={handleSubmit} className="space-y-3 text-base lg:text-xl ">
+         {/* Group Name Input Field */}
         <div>
           <label htmlFor="groupName" className="block font-semibold">
             Group Name
@@ -271,6 +312,8 @@ const GroupRegisterPage: React.FC = () => {
             required
           />
         </div>
+
+        {/* Number of Members Select Dropdown */}
         <div>
           <label htmlFor="numMembers" className="block font-semibold mt-1">
            Number of Members
@@ -296,7 +339,8 @@ const GroupRegisterPage: React.FC = () => {
             components={{ DropdownIndicator: () => null }}
           />
         </div>
-
+        
+        {/* Rendered Member Name Inputs */}
         {members.map((member, index) => (
           <div key={member.memberId || index}>
             <label
@@ -318,6 +362,7 @@ const GroupRegisterPage: React.FC = () => {
           </div>
         ))}
 
+         {/* Submit Button */}
         <button
           type="submit"
           className="px-4 py-2 lg:mt-6 bg-gray-600 hover:bg-gray-700 text-white rounded-md "
@@ -325,6 +370,7 @@ const GroupRegisterPage: React.FC = () => {
           {groupId ? "Update Group" : "Register Group"}
         </button>
       </form>
+
       {/* Return to Group page button */}
       <div className="self-start">
         <Link href="/groups" passHref>
