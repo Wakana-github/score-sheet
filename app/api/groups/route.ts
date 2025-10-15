@@ -29,8 +29,13 @@ export async function GET() {
 
   //Fetch User-Specific Data
   try {
-    const groups = await Group.find({ userId }).sort({ createdAt: -1 }).lean(); // Find groups 
-    return NextResponse.json(JSON.parse(JSON.stringify(groups)));
+    // Find groups 
+    const groups = await Group.find({ userId })
+    .select("_id groupName members createdAt")
+    .sort({ createdAt: -1 })
+    .lean(); 
+    
+    return NextResponse.json(groups); 
   } catch (error) {
      if (error instanceof Error) {
       console.error("Group fetch error:", error.message);
@@ -80,7 +85,7 @@ export async function POST(request: Request) {
 
     // return success response (HTTP 201 Created)
     return NextResponse.json(
-      { message: "Group created successfully", group: newGroup }, 
+      newGroup, 
       { status: 201 }
     );
   } catch (error) {

@@ -1,5 +1,10 @@
 "use client";
 
+/*Global app header component for navigation and user authentication. 
+* Users are able to login/logout, edit clerk user info and subscriotion status(Stripe).
+* Mobile and desktop menu are determined by headerMenu.css
+*/
+
 import {
   SignedIn,
   SignedOut,
@@ -22,6 +27,7 @@ export default function Header() {
   const menuRef = useRef<HTMLUListElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Toggle handlers for the mobile menu
   const openMenu = () => {
     setIsMenuOpen(true);
   };
@@ -30,12 +36,15 @@ export default function Header() {
     setIsMenuOpen(false);
   };
 
+  // Close the menu when an icon is clicked
   const handleLinkClick = () => {
     closeMenu();
   };
-//retreive user data
+
+//Retreive user data
   useEffect(() => {
     const fetchUserData = async () => {
+
       if (isSignedIn && user) {
         setIsLoadingUserData(true);
         const fetchedData = await fetchUserRecord();
@@ -53,6 +62,7 @@ export default function Header() {
     <header className="h-16 bg-white shadow-xl fixed top-0 w-full header-styles z-10">
       <div className="max-w-screen-xl mx-auto flex justify-between items-center h-full px-4">
         <div className="left-section flex items-center gap-3">
+
           {/* Mobile menu open icon (visible only on mobile) */}
           <div className="fixed top-4 right-4 z-50 lg:hidden">
             {!isMenuOpen && (
@@ -205,13 +215,12 @@ export default function Header() {
           </SignedOut>
 
           <SignedIn>
-
-                {/*  Display nichname, user, and edit subscription buttons if signed in */}
-                <div className="flex items-center gap-2 ml-auto">
-                <Link href="/set-nickname" passHref onClick={handleLinkClick}>
-                  <button className="bg-blue-500  text-white text-sm md:text-base rounded-full border-none cursor-pointer  px-4 py-1 ml-7"
-                >Set Nickname</button>
-                </Link>
+            {/*  Display nichname, user, and edit subscription buttons if signed in */}
+            <div className="flex items-center gap-2 ml-auto">
+            <Link href="/set-nickname" passHref onClick={handleLinkClick}>
+              <button className="bg-blue-500  text-white text-sm md:text-base rounded-full border-none cursor-pointer  px-4 py-1 ml-7"
+            >Set Nickname</button>
+            </Link>
 
             {/* Clerk user name and icon */}
             <p className="text-sm pr-2 md:text-lg ">
