@@ -8,6 +8,7 @@ import { AuthenticatedRequest } from "../types/express.d";
 import { JSDOM } from 'jsdom';
 import DOMPurify from 'dompurify';
 import { v4 as uuidv4 } from 'uuid';
+import { handleServerError } from "../lib/db/errorHandler.ts";
 
 // Initialize JSDOM and pass it to DOMPurify
 const { window } = new JSDOM('');
@@ -66,13 +67,14 @@ const apiLimiter = rateLimit({
 // --- Define API End Pont ---
 
 // POST /api/scores/records
-// save new record, or update existed record
+// Create a new record or update an existed record
 router.post(
   "/",
   ClerkExpressRequireAuth(),
   apiLimiter,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
+      // Check user authentication
       const userId = req.auth?.userId; // fetch userId from req.auth
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -101,7 +103,7 @@ router.post(
       //fetch data from req.body
       const { gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, custom, groupId, ...rest } = req.body;
     
-       // === Validation and sanitization using DOMPurify ===
+       // Validation and sanitization using DOMPurify 
       const sanitizedTitle = sanitizeAndValidateString(gameTitle, MAX_TITLE_LENGTH, 'gameTitle');
       if (sanitizedTitle.error) return res.status(400).json({ message: sanitizedTitle.error });
 
@@ -110,7 +112,7 @@ router.post(
         return res.status(400).json({ message: "Invalid playerNames data." });
       }
 
-      // メンバーIDの重複をチェックするためのSet
+      // Set for checking duplicate member IDs
       const usedMemberIds = new Set<string>();
       const processedPlayerNames = [];
       
@@ -188,8 +190,7 @@ router.post(
 
       res.status(201).json({ message: "Record saved successfully", record });
     } catch (error) {
-      console.error("Error saving new record:", error);
-      res.status(500).json({ message: "An unknown server error occurred." });
+       return handleServerError(res, error, "POST /api/scores/records");
     }
   }
 );
@@ -199,7 +200,7 @@ router.post(
 // frtch all records by user ID
 router.get(
   "/",
-   apiLimiter,
+  apiLimiter,
   ClerkExpressRequireAuth(),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -218,13 +219,12 @@ router.get(
       const limit = PAGENATION_LIMIT; // number of records per page
       const skip = (page - 1) * limit; // calculate number of records to skip
 
-      //フィルタリングキーワードを取得
+      // Retrieve filtering keyword from query
       const filterKeyword = req.query.keyword as string | undefined;
-      //フィルタリングのベースクエリを構築
+      // Build base query for filtering
       const baseQuery: any = { userId: userId };
       if (filterKeyword && filterKeyword.trim()) {
-          // gameTitle がキーワードを含むように $regex を使用
-          // 'i' オプションで大文字/小文字を区別しない検索
+          // Use 'i' option for case-insensitive search
           baseQuery.gameTitle = { $regex: filterKeyword.trim(), $options: 'i' };
       }
 
@@ -258,7 +258,7 @@ router.get(
 
       res.status(200).json({
       records: sanitizedRecords,
-      totalRecords: totalFilteredRecords, //フィルタリング後の総数を返す
+      totalRecords: totalFilteredRecords, // Returns the total count after filtering
       currentPage: page,
       limit,
       isActiveUser,
@@ -266,9 +266,7 @@ router.get(
     });
     console.log("Received GET query for userId:", userId, "Keyword:", filterKeyword);
     } catch (error: unknown) {
-      const err = error as Error;
-      console.error("Error fetching all user records:", err);
-      res.status(500).json({ message: "An unexpected server error occurred."});
+      return handleServerError(res, error, "GET /api/scores/records");
     }
   }
 );
@@ -300,7 +298,7 @@ router.get(
         return res.status(404).json({ message: "Record not found or access denied." });
       }
 
-      // 💡 修正: レスポンスをサニタイズする
+      // anitize response data before sending
       const sanitizedRecord = {
           ...record.toObject(),
           gameTitle: domPurify.sanitize(record.gameTitle),
@@ -315,8 +313,7 @@ router.get(
 
       res.status(200).json(sanitizedRecord);
     } catch (error: unknown) {
-      console.error("Error fetching single record:", error);
-      res.status(500).json({ message: "An unexpected server error occurred." });
+      return handleServerError(res, error, "GET /api/scores/records/:id");
     }
   }
 );
@@ -414,7 +411,7 @@ router.put(
         return res.status(400).json({ message: "Invalid scores data." });
       }
       const sanitizedScores = scores.map((row: any[]) =>
-        row.map(score => typeof score === 'number' ? score : 0) // 数値であることを確認
+        row.map(score => typeof score === 'number' ? score : 0) // Check if it is numeric
       );
 
       // Explicitly specify the fields to be updated
@@ -449,12 +446,7 @@ router.put(
           record: updatedRecord,
         });
     } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error updating score record:", error);
-        res
-          .status(500)
-          .json({ message: "An unexpected server error occurred."});
-      }
+      return handleServerError(res, error, "PUT /api/scores/records/:id");
     }
   }
 );
@@ -488,9 +480,7 @@ router.delete(
       }
       res.status(200).json({ message: "Record deleted successfully" });
     } catch (error: unknown) {
-      const err = error as Error;
-      console.error("Error deleting record:", error);
-      res.status(500).json({  message: "An unexpected server error occurred." });
+     return handleServerError(res, error, "DELETE /api/scores/records/:id");
     }
   }
 );

@@ -1,5 +1,15 @@
 // app/api/records/route.ts　 PROXY for all records
 
+/*
+* Score record API proxy endpoint.
+* This route acts as a secure proxy for all score record operations (GET, POST)
+* between the client components (records) and the internal backend API.
+* Key Feature:
+* Authentication & Authorization: using Clerk's 'auth()', fetches the Clerk user token and forwards 
+* Data Flow: All request bodies (POST) and query parameters (GET) are 
+* transparently forwarded to the external API, and the response is returned to the client.
+*/
+
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 

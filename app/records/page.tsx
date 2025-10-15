@@ -1,6 +1,14 @@
 // app/records/page.tsx
 'use client';
 
+/* Records page: Main page for viewing, searching, and managing the user's saved score records.
+* Key Features:
+* - Authentication(Clerk), only allowing signed-in users to access records. 
+* - Data Retrieval: Fetches user-specific records from the API (/api/records) with pagination and filtering.
+* - Search & Debounce: Provides real-time filtering of records by game title
+* - Record Management: Allows users to click a record to edit it and use a bin button for deletion.
+* - Plan Status: Displays the current number of records against the user's maximum allowance (Free or Active Plan).
+*/ 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { RiDeleteBinLine } from 'react-icons/ri';

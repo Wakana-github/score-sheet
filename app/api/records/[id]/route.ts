@@ -1,4 +1,9 @@
-// app/api/records/[id]/route.ts　　PROXY for indivisual records
+// app/api/records/[id]/route.ts　　
+
+/* Individual score record API proxy endpoint (GET, PUT, DELETE).
+* This route handles all operations for a specific record identified by its ID (`[id]`) 
+* by serving as a secure gateway to the internal backend API
+*/
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 

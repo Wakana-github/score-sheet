@@ -4,9 +4,10 @@ import mongoose from "mongoose";
 import rateLimit from "express-rate-limit";
 import { JSDOM } from "jsdom";
 import DOMPurify from "dompurify";
-import Group from "../models/group.ts"; // Adjust the path if needed
+import Group from "../models/group.ts"; 
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
-import { AuthenticatedRequest } from "../types/express.d"; // Assuming you have this type
+import { AuthenticatedRequest } from "../types/express.d"; 
+import { handleServerError } from "../lib/db/errorHandler.ts";
 import {
   allowedNameRegex,
   allowedGroupRegex,
@@ -15,6 +16,7 @@ import {
   MAX_GROUPS,
   MAX_NUM_MEMBERS,
 } from "../../lib/constants.ts";
+
 
 /*API routes for managing user groups and members. It handles CRUD operations.
 * Key features: Authentication & Authorization, Input Validation & Sanitization,
@@ -38,12 +40,6 @@ interface SanitizeResult {
   value?: string;
 }
 const router = express.Router();
-
-//-- log function--
-// Replacible for other logging such as winston/pino 
-const logError = (context: string, error: any) => {
-  console.error(`[${context}]`, error);  // Replacible for other logging such aswinston/pino 
-};
 
 // Helper function to validate MongoDB ObjectId format 
 const isValidMongoId = (id: string): boolean => mongoose.Types.ObjectId.isValid(id);
@@ -165,13 +161,11 @@ router.post(
       });
 
        res.status(201).json({ message: "Group created successfully", data: newGroup });
-    } catch (error: any) {
-      if (error.name === 'ValidationError') {
-            logError("Mongoose Validation Error", error);
-            return res.status(400).json({ message: "Data validation failed." });
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'ValidationError') {
+        return handleServerError(res, error, "POST /api/groups (Mongoose Validation)"); 
         }
-      logError("Error creating group", error);
-      res.status(500).json({ message: "An unexpected server error occurred."});
+      return handleServerError(res, error, "POST /api/groups");
     }
   }
 );
@@ -196,9 +190,8 @@ router.get(
         .sort({ createdAt: -1, })
         .lean();
       res.status(200).json({ message: "Success", data: groups }); // Success Response 
-    } catch (error: any) {
-      logError("GetGroups", error);
-      res.status(500).json({ message: "An unexpected server error occurred."});
+    } catch (error: unknown) {
+      return handleServerError(res, error, "GET /api/groups");
     }
   }
 );
@@ -233,9 +226,8 @@ router.get(
         return res.status(404).json({ message: "Group not found." });
       }
        res.status(200).json({ message: "Success", data: group }); // Success Response
-    } catch (error: any) {
-      logError("GetGroupById", error);
-      res.status(500).json({message: "An unexpected server error occurred." });
+    } catch (error: unknown) {
+      return handleServerError(res, error, "GET /api/groups/:id");
     }
   }
 );
@@ -318,13 +310,11 @@ router.put(
       if (!updatedGroup) return res.status(404).json({ message: "Group not found or access denied." });
       // Success Response
       res.status(200).json({ message: "Group updated successfully", data: updatedGroup });
-    } catch (error: any) {
-      if (error.name === 'ValidationError') {
-            logError("UpdateGroup Validation", error);
-            return res.status(400).json({ message: "Data validation failed." });
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'ValidationError') {
+          return handleServerError(res, error, "PUT /api/groups/:id (Mongoose Validation)"); 
         }
-      logError("UpdateGroup", error);
-      res.status(500).json({ message: "An unexpected server error occurred." });
+      return handleServerError(res, error, "PUT /api/groups/:id");
     }
   }
 );
@@ -359,9 +349,8 @@ router.delete(
       }
       // Success Response
       res.status(200).json({ message: "Group deleted successfully" });
-    } catch (error: any) {
-      logError("DeleteGroup", error)
-      res.status(500).json({ message: "An unexpected server error occurred." });
+    } catch (error: unknown)  {
+      return handleServerError(res, error, "DELETE /api/groups/:id");
     }
   }
 );
