@@ -1,12 +1,20 @@
 import express, { Request, Response }  from "express";
 import cors from 'cors';
 import connectDB from './helper/score-sheet-db.ts'; 
-import { ClerkExpressRequireAuth, ClerkExpressWithAuth } from '@clerk/clerk-sdk-node';
+import { ClerkExpressWithAuth } from '@clerk/clerk-sdk-node';
 import scoreRoutes from './api-routes/index.ts';
 import gameRoutes from './api-routes/games.ts';
 import groupsRouter from './api-routes/groups.ts';
-import path from 'path'; 
 
+/* Server Entry Point (app.ts)
+* This is the main entry point for the Express backend server.
+* Key Responsibilities:
+* Database Connection
+* Middleware Configuration: Sets up basic utilities like JSON body parsing and CORS.
+* Applies Clerk's session middleware (ClerkExpressWithAuth()) to reading the user's session
+* and injecting the authentication context (req.auth) for protected routes.
+* Routes API calls to their respective dedicated routers.
+*/
 
 const app = express();
 const port = process.env.PORT || 8080;
