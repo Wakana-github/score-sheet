@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import Group from "../../../server/models/group";
 import connectDB from "../../../server/helper/score-sheet-db";
+import { sanitizeAndValidateString, handleServerError } from "../../../lib/sanitizeHelper";
+import { MAX_GROUP_NAME_LENGTH, MAX_NAME_LENGTH, MAX_NUM_MEMBERS } from "../../../lib/constants";
 
 /*
 This API Route (app/api/groups/[groupId]/route.ts) handles operations on a single Group resource.
@@ -11,6 +13,12 @@ This API Route (app/api/groups/[groupId]/route.ts) handles operations on a singl
 All operations verify user authentication and ownership (authorisation).
 */
 
+
+//MEmber Interface 
+interface MemberInput {
+    memberId: string;
+    name: string;
+}
 
 //-----------------------------------------------------
 // GET: Fetches a specific group (Corresponds to client's fetchGroupData)
@@ -23,12 +31,7 @@ export async function GET(
   try {
     await connectDB();
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error("Database connection failed (GET):", error.message);
-    } else {
-      console.error("Database connection failed (GET) unknown error:", error);
-    }
-    return NextResponse.json({ message: "Database service unavailable" }, { status: 503 });
+    return handleServerError("DB Connection (GET)", error, 503);
   }
 
   // Authentication Check
@@ -46,14 +49,9 @@ export async function GET(
       return NextResponse.json({ message: "Group not found or unauthorized access" }, { status: 404 });
     }
     
-    return NextResponse.json(JSON.parse(JSON.stringify(group)));
+    return NextResponse.json(group); 
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error("Single group fetch error:", error.message);
-    } else {
-      console.error("Single group fetch unknown error:", error);
-    }
-    return NextResponse.json({ message: "Error fetching group data." }, { status: 500 });
+    return handleServerError("GET /api/groups/[groupId]", error, 500);
   }
 }
 
@@ -68,12 +66,7 @@ export async function PUT(
   try {
     await connectDB();
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error("Database connection failed (PUT):", error.message);
-    } else {
-      console.error("Database connection failed (PUT) unknown error:", error);
-    }
-    return NextResponse.json({ message: "Database service unavailable" }, { status: 503 });
+    return handleServerError("DB Connection (PUT)", error, 503);
   }
 
   // Authentication Check
@@ -83,15 +76,62 @@ export async function PUT(
   try {
     const groupId = params.groupId;
     const body = await request.json(); // Data sent from the client
+    const { groupName, members } = body;
 
-    // Update group name and members
+    // Validate and sanitize groupName
+    const sanitizedGroupNameResult = sanitizeAndValidateString(
+        groupName, MAX_GROUP_NAME_LENGTH, "groupName",);
+    if (sanitizedGroupNameResult.error) {
+        return NextResponse.json({ message: sanitizedGroupNameResult.error }, { status: 400 });
+    }
+    const finalGroupName = sanitizedGroupNameResult.value;
+
+    // Validate and sanitize members array 
+    if (!Array.isArray(members) || members.length === 0 || members.length > MAX_NUM_MEMBERS) {
+        return NextResponse.json({ message: `Members count must be 1-${MAX_NUM_MEMBERS}.` }, { status: 400 });
+    }
+
+    const memberIdSet = new Set<string>();
+    const finalMembers: MemberInput[] = [];
+
+    for (const member of members) {
+          // Basic structure check
+          if (
+              typeof member !== "object" || member === null ||
+              typeof member.memberId !== "string" || member.memberId.trim() === "" ||
+              typeof member.name !== "string" || member.name.trim() === ""
+          ) {
+              return NextResponse.json({ message: "Invalid member structure." }, { status: 400 });
+          }
+          
+          // Duplicate check
+          if (memberIdSet.has(member.memberId)) {
+              return NextResponse.json({ message: `Duplicate member ID found.` }, { status: 400 });
+          }
+          memberIdSet.add(member.memberId);
+          
+          // Validate and sanitize member name
+          const sanitizedNameResult = sanitizeAndValidateString(
+              member.name, MAX_NAME_LENGTH, "memberName", 
+          );
+          if (sanitizedNameResult.error) {
+              return NextResponse.json({ message: sanitizedNameResult.error }, { status: 400 });
+          }
+          
+          finalMembers.push({
+              memberId: member.memberId,
+              name: sanitizedNameResult.value!, // Use sanitized value
+          });
+      }
+
+    // Update the database with safe values
     const updatedGroup = await Group.findOneAndUpdate(
-      { _id: groupId, userId }, // Filter: Only update if ID and userId match 
-      { 
-        groupName: body.groupName,
-        members: body.members,
-      },
-      { new: true } // Return the updated document
+        { _id: groupId, userId }, 
+        {   // Use sanitized value
+            groupName: finalGroupName, 
+            members: finalMembers,     
+        },
+        { new: true } 
     );
 
     if (!updatedGroup) {
@@ -100,13 +140,8 @@ export async function PUT(
 
     return NextResponse.json({ message: "Group updated successfully" });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error("Group update error:", error.message);
-    } else {
-      console.error("Group update unknown error:", error);
+    return handleServerError("PUT /api/groups/[groupId]", error, 500);
     }
-    return NextResponse.json({ message: "Error updating group data." }, { status: 500 });
-  }
 }
 
 //-----------------------------------------------------
@@ -121,12 +156,7 @@ export async function DELETE(
   try{
     await connectDB();
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error("Database connection failed (DELETE):", error.message);
-    } else {
-      console.error("Database connection failed (DELETE) unknown error:", error);
-    }
-    return NextResponse.json({ message: "Database service unavailable" }, { status: 503 });
+    return handleServerError("DB Connection (DELETE)", error, 503);
   }
     // Authentication Check
     const { userId } = await auth();
@@ -149,14 +179,6 @@ export async function DELETE(
 
     return NextResponse.json({ message: "Group deleted successfully" });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error("Group deletion error:", error.message);
-    } else {
-      console.error("Group deletion unknown error:", error);
-    }
-    return NextResponse.json(
-      { message: "Error deleting group." },
-      { status: 500 }
-    );
+    return handleServerError("DELETE /api/groups/[groupId]", error, 500);
   }
 }

@@ -2,8 +2,6 @@
 import express, { Request, Response, Router } from "express";
 import mongoose from "mongoose";
 import rateLimit from "express-rate-limit";
-import { JSDOM } from "jsdom";
-import DOMPurify from "dompurify";
 import Group from "../models/group.ts"; 
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 import { AuthenticatedRequest } from "../types/express.d"; 
@@ -16,18 +14,12 @@ import {
   MAX_GROUPS,
   MAX_NUM_MEMBERS,
 } from "../../lib/constants.ts";
-
+import { domPurify } from "../lib/sanitizer.ts"
 
 /*API routes for managing user groups and members. It handles CRUD operations.
 * Key features: Authentication & Authorization, Input Validation & Sanitization,
 * Group Limits, and Rate Limiting
 */
-
-
-// Initialize JSDOM and pass it to enable DOMPurify functionality 
-// DOMPurify is used to sanitize all user-supplied input (names) against XSS attacks.
-const { window } = new JSDOM("");
-const domPurify = DOMPurify(window as any);
 
 // Interface for member data structure received from the client
 interface IncomingMember {
@@ -149,7 +141,8 @@ router.post(
                   name: result.value!, // Use the sanitised value
         });
       } catch (err: any) {
-        return res.status(400).json({ message: `Member ${member.memberId} error: ${err.message}` });
+          console.warn(`Validation failed for member ${member.memberId}:`, err.message);
+          return res.status(400).json({ message: "Invalid member data." });
       }
     }
       

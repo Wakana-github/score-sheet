@@ -1,4 +1,17 @@
 // app/score-sheet/page.tsx
+/*
+* ScoreSheetPage:The main front-end component for displaying and managing the score sheet.
+* Responsibilities
+* Fetch all necessary state and core functionality (player/score items change, score input, saving, toggling totals) 
+* from the centralized custom hook, `useScoreSheet`.
+* Renders the main user interface `ScoreSheetTable` component, passing all data and event handlers.
+* Save button:Triggers the sheet saving logic (`handleSaveSheet`).
+* Total button:Shows or hides the calculated total scores and ranks.
+* Log-in prompt: Prompt clerk log-in UI when unauthenticated user attempts to save records 
+* Subscription Conditionally displays the `PromoteSubscription` modal if the user
+* attempts to exceed a plan's record limit.
+*/
+
 "use client";
 import useScoreSheet from "./hooks/useScoreSheet";
 import ScoreSheetTable from "./ScoreSheetTable";

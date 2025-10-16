@@ -1,7 +1,11 @@
 /*API Route: /api/scores/records
-* This route is the backend endpoint for managing user score records, handling CRUD for individual score sheets.
+* This Express router handles CRUD operations for user score records.
 * Key Feature:
-* Authentication & Authorization, Input Validation & Sanitization, Rate Limiting, and Record Limits
+* Clerk authentication and authorization, 
+* Input Validation & Sanitization(with DOMPurify), 
+* Rate Limiting, and Record Limits,
+* Record count restrictions based on subscription status
+* Secure handling of player and score data.
 */ 
 
 import express, { Request, Response, Router } from "express";
@@ -34,6 +38,8 @@ const MAX_NAME_LENGTH = 30;
 const MAX_FREE_RECORDS = 5;
 const MAX_ACTIVE_RECORDS = 500;
 const PAGENATION_LIMIT = 10;
+const MAX_PLAYERS = 10;
+const MAX_SCORE_ITEMS = 15;
 
 
 // Helper function to validate MongoDB ObjectId format 
@@ -73,7 +79,7 @@ const apiLimiter = rateLimit({
 // --- Define API End Pont ---
 
 // POST /api/scores/records
-// Create a new record or update an existed record
+// Create a new record or update an existing record
 router.post(
   "/",
   ClerkExpressRequireAuth(),
@@ -92,7 +98,7 @@ router.post(
         return res.status(404).json({ message: "User not found in." });
       }
 
-      // count existed numnber of records
+      // count existing number of records
       const recordCount = await ScoreRecord.countDocuments({ userId: userId });
 
       // set maximum number of records depend on the subscription status
@@ -108,7 +114,11 @@ router.post(
 
       //fetch data from req.body
       const { gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, custom, groupId, ...rest } = req.body;
-    
+      
+      //  Check if groupId is MongoId
+      if (groupId && typeof groupId === 'string' && !isValidMongoId(groupId)) {
+       return res.status(400).json({ message: "Invalid groupId format. Must be a valid MongoDB ObjectId." });
+      }  
        // Validation and sanitization using DOMPurify 
       const sanitizedTitle = sanitizeAndValidateString(gameTitle, MAX_TITLE_LENGTH, 'gameTitle');
       if (sanitizedTitle.error) return res.status(400).json({ message: sanitizedTitle.error });
@@ -137,7 +147,7 @@ router.post(
           let memberIdToSave: string;
           if (finalMemberId && typeof finalMemberId === 'string') {
              memberIdToSave = finalMemberId;
-            // CHECK if memberId exist
+            // CHECK if memberId exists
           if (usedMemberIds.has(memberIdToSave)) {
             return res.status(400).json({ 
               message: `Duplicate member ID found for player: ${sanitizedName.value}. Each member can only appear once in a sheet.` 
@@ -187,7 +197,7 @@ router.post(
         numPlayers,
         numScoreItems,
         userId: userId,
-        groupId: typeof groupId === 'string' ? groupId : undefined,
+        groupId: (groupId && typeof groupId === 'string' && isValidMongoId(groupId)) ? groupId : undefined,
         createdAt: new Date(),
         lastSavedAt: new Date(),
         custom: typeof custom === 'boolean' ? custom : false, 
@@ -240,16 +250,18 @@ router.get(
       const totalFilteredRecords = await ScoreRecord.countDocuments(baseQuery);
       const maxRecords = isActiveUser ? MAX_ACTIVE_RECORDS : MAX_FREE_RECORDS;
 
+      // Apply pagination for records
       if (isActiveUser) {
         records = await ScoreRecord.find(baseQuery) 
           .sort({ lastSavedAt: -1 })
           .skip(skip)
           .limit(limit);
       } else {
-        // limit number of records to retrieve for inactive user
+        // Apply standard pagination for inactive users
         records = await ScoreRecord.find(baseQuery)
           .sort({ lastSavedAt: -1 })
-          .limit(MAX_FREE_RECORDS);
+          .skip(skip) 
+          .limit(limit);
       }
 
       const sanitizedRecords = records.map(record => ({
@@ -338,16 +350,36 @@ router.put(
         return res.status(401).json({ message: "Unauthorized" });
       }
       const recordId = req.params.id;
-
       //Check Id format
       if (!isValidMongoId(recordId)) {
         return res.status(400).json({ message: "Invalid record ID format." });
       }
 
-     // Only get the necessary data from the request body
-      const { gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, custom, groupId } = req.body;
+      // Find existing record
+     const existingRecord: (mongoose.Document<any, any, IScoreRecord> & IScoreRecord) | null = 
+           await ScoreRecord.findOne({ _id: recordId, userId });
+     if (!existingRecord) {
+        return res.status(404).json({ message: "Score record not found or access denied." });
+    }
 
-      // === Add validation and sanitization using DOMPurify===
+    
+    //  Prepare temporary player map
+    const existingTempPlayerNameMap = new Map<string, string>();
+    existingRecord.playerNames.forEach((player) => {
+      if (player.memberId && player.memberId.startsWith("temp-player-")) {
+        existingTempPlayerNameMap.set(player.name, player.memberId);
+      }
+    });
+    
+    // Only get the necessary data from the request body
+     const { gameTitle, playerNames, scoreItemNames, scores, numPlayers, numScoreItems, custom, groupId } = req.body;
+      
+     //  Check if groupId is MongoId
+      if (groupId && typeof groupId === 'string' && !isValidMongoId(groupId)) {
+         return res.status(400).json({ message: "Invalid groupId format. Must be a valid MongoDB ObjectId." });
+        }  
+     
+     // === Add validation and sanitization using DOMPurify===
       const sanitizedTitle = sanitizeAndValidateString(gameTitle, MAX_TITLE_LENGTH, 'gameTitle');
       if (sanitizedTitle.error) return res.status(400).json({ message: sanitizedTitle.error });
 
@@ -360,6 +392,7 @@ router.put(
        //validate player object
       const usedMemberIds = new Set<string>();
       const processedPlayerNames = [];
+
       for (const player of playerNames) {
         const isMemberIdValid = (typeof player.memberId === 'string' || player.memberId === null|| typeof player.memberId === 'undefined'); 
          if (typeof player !== 'object' || player === null || typeof player.name !== 'string' || !isMemberIdValid) {
@@ -371,12 +404,14 @@ router.put(
          return res.status(400).json({ message: sanitizedName.error });
       }
 
+      
+      let memberIdToSave: string | null = null;
       const finalMemberId = player.memberId;
-      let memberIdToSave: string;
 
       if (finalMemberId && typeof finalMemberId === 'string') {
           // when memberId exists
           memberIdToSave = finalMemberId;
+
           // check if memberIds are duplicated
           if (usedMemberIds.has(memberIdToSave)) {
             return res.status(400).json({ 
@@ -387,7 +422,20 @@ router.put(
           
         } else {
           // when there is no existing memberId (null/undefined)
-          memberIdToSave = `temp-player-${uuidv4()}`; 
+          const sanitizedPlayerName = sanitizedName.value!;
+          // Reuse existing temporary player ID if the name matches (for handling group removal or renaming)
+          if (existingTempPlayerNameMap.has(sanitizedPlayerName)) {
+            memberIdToSave = existingTempPlayerNameMap.get(sanitizedPlayerName)!;
+            // Remove from the map to prevent duplicate assignment
+            existingTempPlayerNameMap.delete(sanitizedPlayerName);
+            } else {
+                // Assign a new temporary ID for a new or renamed player
+                 memberIdToSave = `temp-player-${uuidv4()}`; 
+            }
+        }
+
+        if (!memberIdToSave) {
+          return res.status(400).json({ message: "Failed to assign memberId." });
         }
 
       processedPlayerNames.push({
@@ -401,16 +449,18 @@ router.put(
       if (!Array.isArray(scoreItemNames)) {
         return res.status(400).json({ message: "Invalid scoreItemNames data." });
       }
-      const sanitizedScoreItemNames = scoreItemNames.map((name: string) => sanitizeAndValidateString(name, MAX_NAME_LENGTH, 'scoreItemNames'));
+      const sanitizedScoreItemNames = scoreItemNames.map((name: string) => 
+        sanitizeAndValidateString(name, MAX_NAME_LENGTH, 'scoreItemNames')
+      );
       if (sanitizedScoreItemNames.some((result: SanitizeResult) => result.error)) {
         return res.status(400).json({ message: sanitizedScoreItemNames.find((result: SanitizeResult) => result.error)?.error });
       }
 
       // === Validate numerical data  ===
-      if (typeof numPlayers !== 'number' || numPlayers < 1 || numPlayers > 10) {
+      if (typeof numPlayers !== 'number' || numPlayers < 1 || numPlayers > MAX_PLAYERS) {
         return res.status(400).json({ message: "Invalid numPlayers." });
       }
-      if (typeof numScoreItems !== 'number' || numScoreItems < 1 || numScoreItems > 15) {
+      if (typeof numScoreItems !== 'number' || numScoreItems < 1 || numScoreItems > MAX_SCORE_ITEMS) {
         return res.status(400).json({ message: "Invalid numScoreItems." });
       }
       if (!Array.isArray(scores) || scores.length !== numScoreItems) {
@@ -428,9 +478,11 @@ router.put(
         scores: sanitizedScores,
         numPlayers,
         numScoreItems,
-        groupId: typeof groupId === 'string' ? groupId : undefined,
+        groupId: (groupId && typeof groupId === 'string' && isValidMongoId(groupId)) 
+             ? groupId 
+             : (existingRecord.groupId || undefined),
         lastSavedAt: new Date(),
-        custom: typeof custom === 'boolean' ? custom : false, 
+        custom: typeof custom === 'boolean' ? custom : existingRecord.custom, 
       };
 
 
@@ -465,7 +517,7 @@ router.delete(
   ClerkExpressRequireAuth(),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
-      //chsrk authorisation
+      //check authorisation
       const userId = req.auth?.userId;
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });

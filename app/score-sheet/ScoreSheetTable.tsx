@@ -1,4 +1,16 @@
 // ScoreSheetTable.tsx
+
+/*
+* Component: ScoreSheetTable: The main UI component for displaying and editing a score sheet. 
+* It renders the game title, score table grid, total scores, player ranks, 
+* and controls for selecting the number of players/score items and an associated group.
+* Key Feature
+* Data Binding: Renders data from the`scoreData` object (passed as props).
+* Input Handling: game title, player names, score item names, and scores.
+* Input Validation & Sanitization 
+* Group Selection: Displays and handles the selection of a group.
+*/
+
 import React, { useEffect, useState } from "react";
 import he from "he";
 import { ScoreData } from "./score-types";
@@ -55,7 +67,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
   allowedScoreRegex,
   composingRefs,
 }) => {
-  //check if creen size is small
+  //Check if screen size is small
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
 
@@ -64,14 +76,14 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
     const checkScreenSize = () => {
       setIsSmallScreen(window.innerWidth < 500);
     };
-    // check screen size when first rendering or resize
+    // Check screen size when first rendering or resize
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
-    // creenup funciton
+    // Cleanup function
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
-  //Check if the screen is large
+  // Check if the screen is large
   useEffect(() => {
     const checkLgScreen = () => {
       setIsLargeScreen(window.innerWidth >= 1024);
@@ -82,7 +94,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
     return () => window.removeEventListener("resize", checkLgScreen);
   }, []);
 
-  //表示するプレイヤー名と人数の決定ロジック
+  // Logic for determining the player names and count to display
    const playerNamesToDisplay = scoreData.playerNames.map(p => p.name) ?? [];
    const numPlayersToDisplay = scoreData.numPlayers; //
    
@@ -215,7 +227,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
               htmlFor="numScoreItems" className="mr-2 ml-3 whitespace-nowrap">
               Score Items:
             </label>
-            <div className="w-10"> {/* adjust select width */}
+            <div className="w-10"> {/* Adjust select width */}
               <Select
                 id="numScoreItems"
                 options={scoreItemOptions}
@@ -234,7 +246,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
             <label htmlFor="numPlayers" className="ml-4 mr-2 whitespace-nowrap">
               Players:
             </label>
-            <div className="w-10">{/* adjust select width */}
+            <div className="w-10">{/* Adjust select width*/}
               <Select
                 id="numPlayers"
                 options={playerOptions}

@@ -1,5 +1,21 @@
 //useScoreSheet.ts
 
+/* Custom Hook: useScoreSheet
+* This is the primary state management hook for the score sheet page.
+* It handles the core application logic, and data initialization (from saved records), 
+* user input processing, score calculations, and saving data to the database.
+* 
+* Key Responsibilities:
+*  Data Initialization:Loads data of saved record or initializes a new sheet based on 'gameId' or custom input
+* State Management: Manages the main score sheet data 
+* Input Handling & Validation:Provides change handlers for scores, names, and title,
+* validation (regex checks) and composition handlers for IME input(Japanese keyboad) stability.
+* Score Calculation: Calculates real-time total scores and player ranks (`calculateTotalScores`, `calculateRanks`).
+* Handles saving (POST/PUT) the score sheet to the API
+* Group Integration:Pass group-related state and logic to `useGroupSelection` and manages the sheet's player count/names based on the selected group.
+*/
+
+
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
@@ -33,6 +49,7 @@ const {
     handleGroupSelect,
     initializeSelectedGroup,
     isGroupSelected,
+    isLoadingGroups,
   } = useGroupSelection();
 
 
@@ -44,7 +61,7 @@ const {
 
   // set first playername as nickname
  const initialPlayers: PlayerData[] = [
-     { id: null, name: userNickname || "Player 1" }, // IDは一旦空で初期化
+     { id: null, name: userNickname || "Player 1" }, // ID is initialized as null 
      { id: null, name: "Player 2" },
      { id: null, name: "Player 3" },    
     ];
@@ -151,7 +168,7 @@ const {
           }
 
           const scoresAsString = recordToLoad.scores.map((row) => row.map(String));
-          // DBのplayersをPlayerData[]に変換
+          // Convert DB players to PlayerData[]
            const loadedPlayers: PlayerData[] = recordToLoad.playerNames.map(member => ({
              id: member.memberId,
              name: he.decode(member.name),
@@ -181,7 +198,7 @@ const {
           originalNumScoreItems.current = recordToLoad.numScoreItems;
           originalNumPlayers.current = recordToLoad.numPlayers;
           originalPlayerNames.current = originalNames;
-          initializeSelectedGroup(recordToLoad.groupId || null);
+          // initializeSelectedGroup(recordToLoad.groupId || null);
           setShowTotal(true);
         } catch (error) {
           console.error("Error loading record:", error);
@@ -284,7 +301,7 @@ const {
         originalNumPlayers.current = initialNumPlayers;
         originalPlayerNames.current = initialPlayers.map(p => p.name);
 
-        //allScores
+        // Initialize allScores ref for maximum size
         allScores.current = Array(MAX_SCORE_ITEMS).fill(0).map(() => Array(MAX_PLAYERS).fill(""));
 
 
@@ -309,11 +326,13 @@ const {
     initializeSheet();
   }, [isLoaded, recordIdFromUrl, searchParams, router, getToken, userId,initializeSelectedGroup]);
 
+
+
  // When group is selected
   useEffect(() => {
     if (selectedGroup) {
 
-      // メンバーオブジェクトから名前とIDを取得
+      // Get names and IDs from member objects
         const membersArray = selectedGroup.members ?? [];
         const newPlayers: PlayerData[] = membersArray.map(member => ({
            id: member.memberId,
@@ -325,7 +344,7 @@ const {
         setScoreData(prev => {
            prev.scores.forEach((row, i) => {
              row.forEach((score, j) => {
-                 // prev.scores のサイズ（prev.numPlayers）に合わせて保存
+                 // Save the score based on the current size (prev.numPlayers) to allScores.current
                  if (i < MAX_SCORE_ITEMS && j < MAX_PLAYERS) {
                      allScores.current[i][j] = score;
                  }
@@ -356,10 +375,10 @@ const {
        const scoresAfterGroupReset = prev.scores.map((_, i) =>
           Array.from({ length: originalNum }, (_, colIdx) => allScores.current[i]?.[colIdx] || "")
         );
-        //元の人数に戻し、名前を適用し、IDを空でリセット
+         // Revert to the original number of players, apply original names, and reset ID to null
          const playersAfterGroupReset: PlayerData[] = Array.from({ length: originalNum }, (_, i) => ({
            id:null,
-           name: originalNames[i] || `Player ${i + 1}` // 参照元の名前を使用
+           name: originalNames[i] || `Player ${i + 1}` // Use the original name if available
          }));
 
         return { 
@@ -374,6 +393,18 @@ const {
     }
   }, [selectedGroup]);
 
+useEffect(() => {
+    // Is ScoreSheet loading complete? Was a record loaded from URL?Is group list loading complete?
+    if (!loading && recordIdFromUrl && !isLoadingGroups) {  
+        // scoreData.groupId is set in state by initializeSheet 
+        const loadedGroupId = scoreData.groupId; 
+        if (loadedGroupId) {
+            // Execute initialization now that the group list is ready
+            initializeSelectedGroup(loadedGroupId);
+        }
+    }  
+    //  Include timing-related state/props in the dependency array
+}, [loading, isLoadingGroups, recordIdFromUrl, scoreData.groupId, initializeSelectedGroup]);
 
 
 
@@ -492,7 +523,7 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
     return;
   }
   
-  // ① check invalid string (exept numbers and minus)
+  // check invalid string (exept numbers and minus)
   if (!allowedScoreRegex.test(value)) {
     alert("Score can only contain numbers or a minus sign.");
     return;
