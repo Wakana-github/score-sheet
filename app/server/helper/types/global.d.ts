@@ -1,5 +1,11 @@
 import mongoose from "mongoose"; 
 
+/*
+* Extends the TypeScript global scope to declare custom properties
+* (like global.mongooseCache) that are used for connection caching in a serverless environment.
+* This prevents TypeScript compilation errors when accessing global variables across files.
+*/
+
 // Defines the cache structure for the Mongoose connection
 interface MongooseCache {
   conn: typeof mongoose | null;

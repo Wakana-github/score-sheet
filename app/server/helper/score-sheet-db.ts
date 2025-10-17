@@ -3,7 +3,11 @@ dotenv.config();
 import mongoose from "mongoose"; 
 import { ServerApiVersion } from "mongodb";
 
-
+/*
+* This module establishes a singleton connection to MongoDB, optimising connection reuse
+* for Next.js/Serverless environments by utilizing global caching.
+* It ensures the application connects efficiently and safely.
+*/
 
   // connection URL in.env
   const MONGODB_URI = process.env.MONGO_URI as string;
