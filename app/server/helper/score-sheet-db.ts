@@ -3,25 +3,27 @@ dotenv.config();
 import mongoose from "mongoose"; 
 import { ServerApiVersion } from "mongodb";
 
-type MongooseType = typeof mongoose; // when requires types
+
 
   // connection URL in.env
   const MONGODB_URI = process.env.MONGO_URI as string;
 
-  // DEBUG
-console.log("--- DB Connection Debug ---");
-console.log("MONGO_URI loaded:", !!MONGODB_URI);
-if (MONGODB_URI) {
-    console.log("MONGO_URI check passed.");
-}
-console.log("---------------------------");
-
-
   //check if URL is set
-    if (!MONGODB_URI) {
-    throw new Error("Please define the MONGO_URI environment variable inside .env.local");
-    // process.exit(1); // If there is no MONGO_URI, close app
+  if (!MONGODB_URI) {
+    throw new Error(" Missing MONGO_URI in environment variables (.env.local)");
+    // process.exit; // If there is no MONGO_URI, close app
   }
+
+  // DEBUG
+  console.log("--- DB Connection Debug ---");
+  console.log("MONGO_URI loaded:", !!MONGODB_URI);
+  if (MONGODB_URI) {
+      console.log("MONGO_URI check passed.");
+  }
+  console.log("---------------------------");
+
+  //Define types
+  type MongooseType = typeof mongoose; 
 
   interface MongooseCache{
   conn: MongooseType | null;
@@ -31,28 +33,30 @@ console.log("---------------------------");
 
 
 //store cache in the global object
-const cached = global as typeof global & {
+const globalForMongoose = global as typeof global & {
   mongoose?: MongooseCache
 };
 
 
-  
-if (!cached.mongoose) {
-  cached.mongoose = { conn: null, promise: null };
+// reset if there is no cach
+if (!globalForMongoose.mongoose) {
+  globalForMongoose.mongoose = { conn: null, promise: null };
 }
 
 
 //connect db
-async function connectDB() {
+async function connectDB(): Promise<MongooseType> {
+  const cached = globalForMongoose.mongoose!;
 
   //return cached connection if database has already connected
- if (cached.mongoose!.conn) { // '!'を付けてnon-null assertionを行う
-    return cached.mongoose!.conn;
+  if (cached.conn) {
+    console.log("MongoDB: Reusing existing connection");
+    return cached.conn;
   }
 
-    if(!cached.mongoose!.promise) { // '!'を付けてnon-null assertionを行う
+    if(!cached.promise) { // '!'を付けてnon-null assertionを行う
     const opts = {
-      dbName: "score-sheet-db",
+      dbName: process.env.MONGODB_DB_NAME || "score-sheet-db",
       serverApi: ServerApiVersion.v1, 
       bufferCommands: false, // コマンドバッファリングを無効にする
       connectTimeoutMS: 60000,
@@ -60,26 +64,25 @@ async function connectDB() {
       socketTimeoutMs: 45000,
     };
 
-   // プロミスをキャッシュ
-    cached.mongoose!.promise = mongoose.connect(MONGODB_URI, opts).then((_mongoose) => {
+   // cache prmise 
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((_mongoose) => {
       console.log("MongoDB Connected successfully!");
       return _mongoose;
     }).catch((err) => {
       console.error("MongoDB connection error:", err);
-      // 接続失敗した場合はプロミスをリセット
-      cached.mongoose!.promise = null; 
+      cached.promise = null; // reset for retry
       throw err;
     });
   }
 
   try {
-    cached.mongoose!.conn = await cached.mongoose!.promise;
+   cached.conn = await cached.promise;
   } catch (e) {
+    cached.conn = null;
     throw e;
   }
 
-   return cached.mongoose!.conn;
+   return cached.conn;
 }
 
 export default connectDB;
-

@@ -38,7 +38,7 @@ export default function SetNicknamePage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId: user.id, nickname }),
+        body: JSON.stringify({ nickname }),
       });
 
       if (response.ok) {
