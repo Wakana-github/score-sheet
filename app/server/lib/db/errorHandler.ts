@@ -1,10 +1,7 @@
 import { Response } from 'express';
 
-/**
+/*
  * Handles server errors, securely logs details, and returns a general error to the client.
- * @param res The Express Response object.
- * @param error The caught error object (unknown type).
- * @param endpointName The name of the endpoint where the error occurred (for logging).
  */
 
 export const handleServerError = (

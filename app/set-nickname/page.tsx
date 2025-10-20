@@ -1,5 +1,11 @@
 "use client";
 
+/*
+* This Front-end page allows a signed-in user to set or update their nickname.
+* It communicates with the `/api/nickname` endpoint to send the new nickname,
+* then refreshes the user data via Clerk to reflect changes immediately.
+*/
+
 import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -42,8 +48,10 @@ export default function SetNicknamePage() {
       });
 
       if (response.ok) {
+        await user.reload(); //reload clerk data
+        router.refresh();  //refresh page and display updated nickname
         setMessage("Nickname updated successfully!");
-        router.push("/set-nickname");
+        setNickname("");
       } else {
         const errorData = await response.json();
 
@@ -51,9 +59,9 @@ export default function SetNicknamePage() {
           setMessage(errorData.message);
         } else 
           {
-//unexpected error
-setMessage("An unexpected error occurred. Please try again later.");
-}
+            //unexpected error
+            setMessage("An unexpected error occurred. Please try again later.");
+          }
 
       }
     } catch (error) {
@@ -70,7 +78,7 @@ setMessage("An unexpected error occurred. Please try again later.");
       <h1 className="text-3xl lg:text-5xl hand_font font-bold mb-4">Set Your Nickname</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label htmlFor="nickname" className="text-lg lg:text-3xl">
-          Current Nickname: {user.username || "Not set"}
+          Current Nickname: {user.publicMetadata?.nickname as string || user.username || "Not set"}
         </label>
         <input
           type="text"

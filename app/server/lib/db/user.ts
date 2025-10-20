@@ -2,6 +2,13 @@
 import User, {UserCreationType, UserUpdateType} from "../../models/user.model.ts";
 import connectDB from '../../helper/score-sheet-db.ts'; 
 
+/*
+* This file provides database helper functions to manage user data　in the MongoDB "User" collection. 
+* It serves as a middle layer　between the API routes (or other server logic) and the database.
+* Called from API routes such as when updating or retrieving user information.
+*/
+
+
 // Create a new user in the database. 
 export async function createUser(user:UserCreationType ){
     try{
