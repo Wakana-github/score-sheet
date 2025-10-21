@@ -232,8 +232,11 @@ const {
 
         if (gameId) {
           try {
-            const res = await fetch("/games.json");
+            const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+            const url = `${baseUrl}/games`;
+            const res = await fetch(url);
             if (!res.ok) throw new Error("Failed to fetch game data");
+            
             const games: InitialGameData[] = await res.json();
             const selectedGame = games.find((game) => game.id === Number(gameId));
 

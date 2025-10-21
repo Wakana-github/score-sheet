@@ -13,7 +13,6 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/score-sheet',
   '/custom-sheet',
-  '/games.json',
   '/api/webhooks(.*)'
 ]);
 
