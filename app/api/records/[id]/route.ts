@@ -15,7 +15,7 @@ if (!API_BASE_URL) {
 
 
 type RouteContext = {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 };
 
 // Fetch a single record by ID
@@ -106,9 +106,8 @@ export async function DELETE(request: Request, context: RouteContext){
 
    try {
     const token = await getToken({ template: 'long_lasting' });
-    const externalUrl = `${API_BASE_URL}/records/${id}`;
 
-    const res = await fetch(externalUrl, {
+    const res = await fetch(`${API_BASE_URL}/records/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,

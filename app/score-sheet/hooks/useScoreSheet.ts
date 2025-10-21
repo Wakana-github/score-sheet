@@ -731,10 +731,17 @@ const normalizedTitle = newTitle.trim().normalize('NFC'); // normalise
 
   const scoresAsNumbers = scores.map(row => row.map(val => parseInt(val) || 0));
 
-  const playersToSave = playerNames.map(p => ({
-      memberId: (p.id === null || p.id === "") ? undefined : p.id,
-      name: p.name        
-  }));
+  const playersToSave = playerNames.map((p, index) => {
+     //Add player X when player name is empty
+     const nameToSave = p.name.trim() === "" 
+       ? `Player${index + 1}` 
+       : p.name;
+
+     return {
+       memberId: (p.id === null || p.id === "") ? undefined : p.id,
+       name: nameToSave 
+     };
+  });
 
   const dataToSave = {
   gameTitle: gameTitle,

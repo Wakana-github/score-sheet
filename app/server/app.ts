@@ -29,11 +29,22 @@ process.on('unhandledRejection', (reason) => {
 });
 
 // CORS setting
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://ddb1e9e326ce.ngrok-free.app',
+];
+
 const corsOptions = {
-  // set domain
-  origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000',
+  origin: (origin: string | undefined, callback: Function) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   optionsSuccessStatus: 200,
 };
+
 
 //middleware
 app.use(cors(corsOptions));
