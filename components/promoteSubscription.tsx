@@ -29,7 +29,7 @@ export default function PromoteSubscription({ onClose }: PromoteSubscriptionProp
         </p>
         <ul className={styles.featureList}>
           <li> Unlock score records up to 500.</li>
-          <li> Unlock premium features such as statistics.</li>
+          <li> Unlock premium statistics features.</li>
         </ul>
         <div className={styles.subscribeButtonsWrapper}>
           <div className={styles.subscribeButton}>
