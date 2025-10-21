@@ -1,5 +1,7 @@
 import React from 'react';
 
+// general card in stats page
+
 interface StatCardProps {
   title: string;
   value: string | number;

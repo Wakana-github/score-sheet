@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import React from 'react';
 
+//Return to Home button component
 
 export default function ReturnHomeBtn() {
   return (

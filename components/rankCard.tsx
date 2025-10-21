@@ -1,3 +1,5 @@
+//Stats Ranking card
+
 import React from 'react';
 
 interface RankCardProps {

@@ -1,5 +1,12 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
+/**
+ * Clerk Middleware Configuration
+ * This middleware protects most routes, and defines specific routes as public.
+ * The matcher configuration ensures the middleware runs on all main app pages and API routes.
+ */
+
+//Allow unauthenticated access.
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',

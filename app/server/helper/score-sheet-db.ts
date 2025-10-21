@@ -58,11 +58,11 @@ async function connectDB(): Promise<MongooseType> {
     return cached.conn;
   }
 
-    if(!cached.promise) { // '!'を付けてnon-null assertionを行う
+    if(!cached.promise) { // Apply non-null assertion with '!'
     const opts = {
       dbName: process.env.MONGODB_DB_NAME || "score-sheet-db",
       serverApi: ServerApiVersion.v1, 
-      bufferCommands: false, // コマンドバッファリングを無効にする
+      bufferCommands: false, // Disable command buffering
       connectTimeoutMS: 60000,
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMs: 45000,

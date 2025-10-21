@@ -1,5 +1,6 @@
-  'use client';
+'use client';
 
+//Component to display while loading data 
 export default function LoadingPage() {
   return (
   <main

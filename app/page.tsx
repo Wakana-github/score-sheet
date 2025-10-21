@@ -5,6 +5,18 @@ import { useRouter } from 'next/navigation';
 import { SignedIn, SignedOut, SignInButton, SignUpButton } from '@clerk/clerk-react';
 import Select from 'react-select'; 
 
+/**
+ * Home Component (Landing Page) - the root page (/) of the application. 
+ * It serves as the main entry point where users can choose a game, navigate to custom sheet creation, 
+ * view their records, or authenticate (sign in/sign up).
+ * * Key Functions:
+ * 1. Fetches the list of available games from the API on mount.
+ * 2. Allows users to select a game from a dropdown (Select component).
+ * 3. Provides dynamic navigation buttons: "Go to the Score Sheet" (if a game is selected) 
+ * or "Custom Sheet" (if no game is selected).
+ * 4. Displays Clerk authentication buttons (Sign In/Sign Up) for signed-out users.
+ */
+
 
 interface GameData {
   id: number;

@@ -1,4 +1,7 @@
 // src/components/promoteSubscription.tsx
+/*
+ * Component to display when a free user tries to access a limited page.
+ */ 
 
 "use client";
 import React from "react";

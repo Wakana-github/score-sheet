@@ -7,15 +7,15 @@ const DiceInner = () => (
 );
 
 export default function DiceIcon() {
-    // --- 🎲 サイコロのアニメーション Stateと定数 ---
-    // 画面外上部からスタート
+    // --- Dice Animation State and Constants---
+    // Start from off-screen top
     const [diceY, setDiceY] = useState(-50); 
     const [velocity, setVelocity] = useState(0); 
     const [bounces, setBounces] = useState(0);
 
     const gravity = 0.5;
     const restitution = 0.7;
-    // 画面の高さの 75% の位置を床とする
+    // Set floor (ground) at 65% of screen height
     const floorY = 65; 
     const maxBounces = 3;
 
@@ -27,36 +27,36 @@ export default function DiceIcon() {
                 let newY = prevY + velocity;
                 let newVelocity = velocity + gravity;
 
-                // 🚀 落下・バウンドの計算
+                // Calculate fall and bounce
                 if (newY >= floorY) {
                     newY = floorY;
 
                     if (bounces < maxBounces) {
-                        // バウンド処理
+                        // Handle bounce
                         newVelocity = -newVelocity * restitution; 
                         setBounces(prevBounces => prevBounces + 1);
                     } else {
-                        // 最大バウンド回数に達したら停止
+                        // Update State and proceed to the next frame
                         newVelocity = 0;
                         cancelAnimationFrame(animationFrameId);
                     }
                 }
                 
-                // Stateを更新し、次フレームへ
+                // Update State and proceed to the next frame
                 setVelocity(newVelocity);
                 return newY;
             });
 
-            // 速度がゼロでない、またはバウンド回数が残っている間はアニメーションを継続
+            // Continue animation as long as velocity is not zero or remaining bounces are left
             if (velocity !== 0 || bounces < maxBounces) {
                 animationFrameId = requestAnimationFrame(animate);
             }
         };
 
-        // 初回実行
+        // Initial run
         animationFrameId = requestAnimationFrame(animate);
 
-        // クリーンアップ関数
+        // Cleanup function
         return () => cancelAnimationFrame(animationFrameId);
     }, [bounces, velocity]);
 
@@ -64,12 +64,12 @@ export default function DiceIcon() {
         <div 
             className="absolute top-0 right-50 -translate-x-1/2 w-16 h-16 -z-20" 
             style={{
-                // Y位置を State で制御 (vh単位)
+                // Control Y position using State (in vh units)
                 transform: `translate(-50%, ${diceY}vh)`, 
-                transition: 'none', // Reactで位置を制御するためCSSトランジションは無効
+                transition: 'none', // Disable CSS transition as position is controlled by React
             }}
         >
-            {/* 実際のDiceの表示部分 */}
+            {/* Actual dice display part */}
             <DiceInner /> 
         </div>
     );

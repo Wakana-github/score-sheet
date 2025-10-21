@@ -1,5 +1,15 @@
 "use client";
 
+/**
+ * SubscriptionButton Component - used in Header
+ * dynamic button for managing a user's Stripe subscription status.
+ * If the user's subscription is 'active' or 'trialing', it displays an "Edit payment details" button
+ * that redirects the user to the Stripe Customer Portal.
+ * Otherwise (inactive/canceled), it displays a "Subscribe" button which initiates a new Stripe Checkout
+ * session for the defined price ID.
+ * Authentication status is managed using Clerk's useUser hook.
+ */
+
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { createUserPortalUrl, subscribe } from "@/app/actions/stripe.action";

@@ -1,6 +1,8 @@
 import express, { Request, Response, Router } from 'express';
 import Game from '../models/game.ts';
 
+//API endpoint that fetches game data.
+
 const router = express.Router();
 
 router.get('/', async (req: Request, res: Response) => {

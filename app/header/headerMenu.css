@@ -19,7 +19,7 @@
 }
 
 .main-nav-ul.open {
-  right: 0; /* openクラスが付いたら表示 */
+  right: 0; /* display when open class is set */
 }
 
 /* common styles for menu items */

@@ -1,5 +1,7 @@
 import { Variants, Transition } from "framer-motion"; 
 
+/*Valiant settings for Framer Motion */
+
 // For parent-child staggering
 export  const fadeInVariants = {
     hidden:{opacity:0},

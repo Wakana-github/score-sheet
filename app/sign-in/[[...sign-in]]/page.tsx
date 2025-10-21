@@ -2,6 +2,7 @@ import { ClerkLoading, SignIn } from "@clerk/nextjs";
 import Link from "next/link";
 import LoadingPage from "@/components/loadingPage";
 
+//Clerk sign in page
 export default function Page() {
   return (
     <div>

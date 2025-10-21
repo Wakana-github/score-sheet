@@ -1,5 +1,14 @@
 "use client";
 
+/**
+ * SubscriptionPromoteButton Component - Using in the promoteSubscription.tsx
+ * A flexible, dynamic button for handling subscription status and promotions.
+ * If the user is active/trialing, it renders a button to manage payment details via the Stripe Customer Portal.
+ * If the user is inactive and 'priceId' and 'buttonText' are provided, it renders a subscribe button 
+ * that initiates a Stripe Checkout session for the specified price.
+ * Renders nothing if no action is applicable.
+ */
+
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { createUserPortalUrl, subscribe } from "@/app/actions/stripe.action";
@@ -27,8 +36,6 @@ export default function SubscriptionPtomoteButton({ subscriptionStatus, stripeCu
     }
 
     const url = await subscribe({
-      userId: user?.id || "",
-      email: user?.emailAddresses[0]?.emailAddress || "",
       priceId: priceId, // use priceId received from props
     });
 
@@ -40,16 +47,11 @@ export default function SubscriptionPtomoteButton({ subscriptionStatus, stripeCu
   };
 
   const editPaymentDetails = async () => {
-    // check if stripeCustomerId exist
-    if (!stripeCustomerId) {
-      console.error("Error: stripeCustomerId not found.");
-      return;
-    }
-    const url = await createUserPortalUrl(stripeCustomerId);
+    const url = await createUserPortalUrl();
     if (url) {
       router.push(url);
     } else {
-      throw new Error("Failed to create user portal session");
+      throw new Error("Failed to create user portal session or Stripe ID not found.");
     }
   };
 

@@ -1,6 +1,17 @@
 import { NextResponse } from 'next/server';
 import { auth } from "@clerk/nextjs/server";
 import ScoreRecord, { IScoreRecord } from '../../../server/models/score-record.ts';
+import { fetchUserRecord } from '../../../actions/user.action.ts'; 
+/*
+* GET API route to fetch and calculate a user's personal game statistics for displaying the "Personal Stats" page.
+* It Only returns data associated with the currently logged-in user (userId)
+* Key Featrure:
+* 1. Fetches ALL score records belonging to the authenticated user from the MongoDB.
+* 2. Processes these raw records to calculate aggregated statistics, including:
+*    totalPlays,mostPlayedGame, Total rankings across all games.
+* 3. Calculates detailed, game-specific metrics (average, high, low score, and ranks)
+*    ONLY on the score of the first player(index 0) treating it as the authenticated user's individual performance.
+*/
 
 // Function to handle GET requests
 export async function GET(request: Request) {
@@ -10,8 +21,25 @@ export async function GET(request: Request) {
   if (!userId) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
+  
 
   try {
+    //Fetch user data
+    const userRecord = await fetchUserRecord();
+    const subscriptionStatus = userRecord?.subscriptionStatus;
+
+    // return empty data for non-sbscribed user
+    if (subscriptionStatus !== 'active' && subscriptionStatus !== 'trialing') {
+      return NextResponse.json({
+        totalPlays: 0,
+        mostPlayedGame: 'N/A',
+        totalRankings: { first: 0, second: 0, third: 0 },
+        gameDetails: [],
+        isRestricted: true,
+      }, { status: 200 });
+    }
+
+    //return records for subscribed user
     const allRecords: IScoreRecord[] = await ScoreRecord.find({ userId });
 
     // Total number of plays
@@ -105,6 +133,7 @@ export async function GET(request: Request) {
           highestScore,
           lowestScore,
           ranks: gameRankings[gameTitle],
+          isRestricted: false,
         };
       }),
     };

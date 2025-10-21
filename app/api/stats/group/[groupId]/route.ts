@@ -3,6 +3,19 @@ import { auth } from "@clerk/nextjs/server";
 import ScoreRecord, { IScoreRecord } from '../../../../server/models/score-record.ts';
 import Group, { IGroup } from '../../../../server/models/group.ts'; // Import Group model
 import { isValidMongoId } from '../../../../lib/utils.ts'; // Import MongoDB ID validation function
+import { fetchUserRecord } from '../../../../actions/user.action.ts'; 
+
+/*
+*　GET API route to fetch and calculatet comprehensive statistics for a specific group,
+*  either aggregated across all games or detailed for a single selected game.
+*  Key Functions:
+* 1. Authentication & Authorization:(Clerk `auth()`)
+*  Restricts access to only the Group Owner by matching `userId` against the group's `userId` field.
+* 2. Data Retrieval: Fetches all score records associated with the group ID.
+* 3. Dynamic Calculation: Aggregates total plays, available games, overall group rankings.
+* 4. Game Filtering: return statistics specifically for selected game title, alongside the overall stats.
+* 
+* */ 
 
 interface OverallPlayerDetail {
     playerName: string;
@@ -34,7 +47,8 @@ interface GroupStats {
   mostPlayedGame: { title: string; plays: number };
   totalGroupRankings: { first: number; second: number; third: number };
   playerDetails: OverallPlayerDetail[];
-  selectedGameStats?: SelectedGameStats | null; 
+  selectedGameStats?: SelectedGameStats | null;
+  isRestricted?: boolean; 
 }
 
 // Type to hold stats for each player
@@ -69,10 +83,35 @@ export async function GET(
     if (!userId) return new NextResponse('Unauthorized', { status: 401 });
 
     try {
+
+    //Fetch user data
+    const userRecord = await fetchUserRecord();
+    const subscriptionStatus = userRecord?.subscriptionStatus;
+    const isRestricted =
+      subscriptionStatus !== 'active' && subscriptionStatus !== 'trialing';
+
+
     const groupId = params.groupId;
     const { searchParams } = new URL(request.url);
     const selectedGameTitle = searchParams.get('gameTitle');
 
+       if (isRestricted) {
+      return NextResponse.json(
+        {
+          isRestricted: true,
+          message:
+            'Restricted Access for Group Stats.S',
+          totalPlays: 0,
+          availableGames: [],
+          mostPlayedGame: { title: 'N/A', plays: 0 },
+          totalGroupRankings: { first: 0, second: 0, third: 0 },
+          playerDetails: [],
+        },
+        { status: 200 }
+      );
+    }
+
+    //----Move to DB access and validations only when there is no restriction. 
     // Group ID validation
     if (!isValidMongoId(groupId)) {
         return NextResponse.json({ message: 'Invalid Group ID format' }, { status: 400 });
@@ -83,6 +122,7 @@ export async function GET(
     if (!group) {
         return NextResponse.json({ message: 'Group not found' }, { status: 404 });
     }
+
 
     // Fetch all score records for the group
     const allRecords: IScoreRecord[] = await ScoreRecord.find({ groupId: groupId });
@@ -99,7 +139,7 @@ export async function GET(
         }, { status: 200 });
     }
 
-    //memberId と現在の名前を関連付ける
+    //associate memberId and current name
     const memberIdToCurrentNameMap = new Map<string, string>();
     group.members?.forEach(member => {
         if (member.memberId) {
@@ -305,8 +345,9 @@ export async function GET(
             second: totalGroupSecondPlaces,
             third: totalGroupThirdPlaces,
         },
-        playerDetails, // Overall statistics
+       playerDetails: playerDetails, // Overall statistics
         selectedGameStats,
+        isRestricted:false
     };
 
     return NextResponse.json(finalStats, { status: 200 });

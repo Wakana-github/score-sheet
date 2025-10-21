@@ -1,6 +1,14 @@
 "use client";
 
-import SubscriptionButton from "@/components/SubscriptionButton";
+/*
+* Stats Main Entry page for displaying user statistics.
+* It manages user authentication, subscription access control, and tab navigation (Personal/Group)
+* Key Functions:
+* 1. Data Fetching: Retrieves the current user's record and subscription status.
+* 2. Access Control: Display PromoteSubscription component if 'isActiveUser' is false.
+* 3. Tab Navigation: Controls the active view ('personal' or 'group') and renders the corresponding sub-component.
+*/
+
 import { fetchUserRecord } from "../../actions/user.action.ts";
 import LoadingPage from "@/components/loadingPage.tsx";
 import { useUser } from "@clerk/nextjs";
@@ -23,9 +31,14 @@ export default function Stats() {
   useEffect(() => {
     const getUserData = async () => {
       setIsLoadingUserData(true);
-      const userData = await fetchUserRecord();
-      setUserData(userData);
-      setIsLoadingUserData(false);
+      try{
+            const userData = await fetchUserRecord();
+            setUserData(userData);
+      } catch (error) {
+        console.error("Failed to fetch user record.");
+         throw error;
+      }
+        setIsLoadingUserData(false);
     };
 
     if (isSignedIn) {
@@ -35,43 +48,21 @@ export default function Stats() {
     }
   }, [isSignedIn, isLoaded, user]);
 
-  if (!isLoaded || isLoadingUserData) {
+  if (!isLoaded || isLoadingUserData || !userData) {
     return (
       <div>
         <LoadingPage />
       </div>
     );
   }
-
   const isActiveUser =
     userData?.subscriptionStatus === "active" ||
     userData?.subscriptionStatus === "trialing";
+//Pass restriction flg prop
+  const isRestricted = !isActiveUser;
+
 
   //Display stats page for active user
-  // Define the actual stats page content as a JSX element
-  const statsContent = (
-    <div>
-      <h1>{user?.username}'s stats </h1>
-      <p>subsctription: {userData?.subscriptionStatus}</p>
-      <p>id: {userData?._id}</p>
-      <p>clerkId: {userData?.clerkId}</p>
-      <p>StripeId: {userData?.stripeCustomerId}</p>
-      <SubscriptionButton
-        subscriptionStatus={userData?.subscriptionStatus}
-        stripeCustomerId={userData?.stripeCustomerId}
-      />
-    </div>
-  );
-
-  // Display PromoteSubscription for non-active user
-  if (!isActiveUser) {
-    return (
-      <main>
-        <PromoteSubscription />
-      </main>
-    );
-  }
-
   // Display tabs and stats for active user
   return (
     <main>
@@ -108,7 +99,7 @@ export default function Stats() {
 
         {/* Display stats component */}
         <div>
-          {activeTab === "personal" && <StatsPage />}
+          {activeTab === "personal" && <StatsPage isRestricted={isRestricted} />}
           {activeTab === "group" && <GroupStatsPage />}
         </div>
       </div>

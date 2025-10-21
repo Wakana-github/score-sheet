@@ -25,7 +25,7 @@ const GroupSchema = new Schema({
     trim: true,
     maxlength:MAX_GROUP_NAME_LENGTH
   },
-  members: [{ // オブジェクトの配列であることを示す
+  members: [{ // object array
             memberId: { 
                 type: String, 
                 required: true 

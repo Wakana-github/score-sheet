@@ -1,5 +1,14 @@
 "use client";
 
+/*
+* GroupStatsPage: Displays the aggregated and per-player statistics for a selected group.
+* Key Features:
+* Data Fetching: Fetches the list of available groups from /api/groups on load.
+* Dynamic Fetching: Fetches detailed statistics from /api/stats/group/[id] based on the selected group and game.
+* State Management: Manages selection state for the Group ID and specific Game Title.
+* Data Display: Shows overall group stats (Total Plays, Top Players) and detailed player stats for a selected game.
+*  */
+
 import StatCard from "@/components/statCard";
 import RankCard from "@/components/rankCard";
 import { useEffect, useState, useMemo } from "react";
@@ -7,6 +16,8 @@ import Select from 'react-select';
 import ReturnHomeBtn from "@/components/returnToHomeBtn";
 import { fadeInVariants, itemsVariants, gameDetailVariants, detailItemVariants } from '../../lib/variants'
 import { motion, AnimatePresence } from "motion/react"
+import PromoteSubscription from "@/components/promoteSubscription";
+import LoadingPage from "@/components/loadingPage";
 
 interface Group {
   _id: string;
@@ -40,6 +51,7 @@ interface GroupStats {
     ranks: { first: number; second: number; third: number };
     playerDetails: GamePlayerDetail[]; 
   } | null;
+  isRestricted?: boolean;
 }
 
 
@@ -49,28 +61,51 @@ export default function GroupStatsPage() {
   const [selectedGroup, setSelectedGroup] = useState<string>("");
   const [selectedGame, setSelectedGame] = useState<string>("");
   const [stats, setStats] = useState<GroupStats | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [isLoadingInitial, setIsLoadingInitial] = useState(true);
+  const [isUserRestricted, setIsUserRestricted] = useState(false);
 
-  // Load Group List
+  //showSubscriptionPrompt \is depending on isUserRestricted
+  const showSubscriptionPrompt = isUserRestricted || stats?.isRestricted;
+
+  // Load Group List & Check Initial Restriction Status
   useEffect(() => {
-  const fetchGroups = async () => {
+  const initialLoad = async () => {
+    setError(null);
+    setIsLoadingInitial(true);
     try {
-      const res = await fetch("/api/groups", {
-        credentials: "include", // Send Clerk authentication Cookie
-      });
-      if (!res.ok) throw new Error(`Failed to fetch groups: ${res.status}`);
-      const data = await res.json();
-      setGroups(data || []);
-    } catch (err) {
-      console.error(err);
-    }
-    };
-    fetchGroups();
-  }, []);
+        // Fetch user subscription status from userSatus
+        const userRes = await fetch("/api/user-status", { credentials: "include" });
+        if (!userRes.ok) throw new Error(`Failed to fetch user status: ${userRes.status}`);
+        const userData = await userRes.json();
+                
+            // Skip fetch when it's restricted
+            if (userData.isRestricted) {
+                setIsUserRestricted(true);
+            } else {
+                // Fetch Groups only when there is no restriction
+                const groupRes = await fetch("/api/groups", { credentials: "include" });
+                if (!groupRes.ok) throw new Error(`Failed to fetch groups: ${groupRes.status}`);
+                const groupData = await groupRes.json();
+                setGroups(groupData || []);
+            }
+            
+        } catch (err) {
+            console.error("Initial load failed");
+            setError(err as Error);
+        } finally {
+            setIsLoadingInitial(false);
+        }
+      };
+      initialLoad();
+    }, []);
 
   // Fetch stats when a group or game is selected
   useEffect(() => {
   if (!selectedGroup) return;
     const fetchStats = async () => {
+      setError(null);
+      setStats(null);
       try {
         let url = `/api/stats/group/${selectedGroup}`;
         // Add query parameter only if selectedGame is set
@@ -81,14 +116,17 @@ export default function GroupStatsPage() {
         const data = await res.json();
         setStats(data);
       } catch (err) {
-        console.error(err);
+        console.error('Failed to fetch stats');
+        setError(err as Error);
       }
     };
     fetchStats();
   }, [selectedGroup, selectedGame]);
 
+  if (error) {
+    return <div className="text-red-600">Error: {error.message}</div>;
+  }
 
-  
   // Set group options for react select component
   const groupOptions = useMemo(() => {
     if (groups.length === 0) return [];
@@ -124,13 +162,43 @@ export default function GroupStatsPage() {
       `Player's Stats for ${selectedGame}` : 
       'Player Stats for all games';
 
+  if (isLoadingInitial) {
+      return  <LoadingPage/>
+  }
+
+  if(isUserRestricted){
+    return (<div>
+        <PromoteSubscription />
+    </div>);
+  }
+  if (groups.length === 0) {
+    return (
+        <motion.div variants={fadeInVariants} className="p-6 space-y-4">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 hand_font">Group Statistics</h1>
+            <p className="text-xl">You have no groups yet. Please create a group to view statistics.</p>
+            <ReturnHomeBtn/>
+        </motion.div>
+    );
+}
+
+if (stats && stats.isRestricted) {
+    return (
+        <div className="p-6 md:p-12 flex flex-col items-center justify-center min-h-[calc(100vh-80px)]">
+            <h2 className="text-3xl font-semibold mb-6">{stats.groupName}</h2>
+            <PromoteSubscription />
+            <div className="mt-12">
+                <ReturnHomeBtn/>
+            </div>
+        </div>
+    );
+}
 
   return (
     <motion.div variants={fadeInVariants}
                           initial="hidden" 
                           whileInView="show"
                           animate="show"
-                          className="p-6 space-y-4"
+                          className="p-6 space-y-4 "
     >
       <motion.h1 variants={itemsVariants}
                 className="text-3xl md:text-4xl font-bold mb-4 hand_font"
@@ -151,6 +219,7 @@ export default function GroupStatsPage() {
               setSelectedGroup(""); //// Clear group when selection is cleared
             }
             setSelectedGame(""); //reset game selection when group selection is changed.
+             setStats(null); //reset stats while fetching new data
           }}
           placeholder="-- Choose a Group --"
           className="w-full md:w-1/2"
@@ -181,7 +250,7 @@ export default function GroupStatsPage() {
             <motion.div variants={detailItemVariants} className="mt-8">
                 <h2 className="text-2xl md:text-3xl font-bold hand_font mb-3 md:mb-4">Group Rankings </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                    {stats.playerDetails
+                    {[...stats.playerDetails]
                         .sort((a, b) => b.ranks.first - a.ranks.first)
                         .slice(0, 3) 
                         .map((player, index) => {
@@ -280,7 +349,7 @@ export default function GroupStatsPage() {
                 exit="exit"
                 className="space-y-4 md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-3 ">
                   {/* Player Details */}
-                  {playerDetails
+                  {[...playerDetails]
                       .sort((a, b) => b.totalPlays - a.totalPlays) 
                       .map((p, index) => (
                           <motion.div  
@@ -326,7 +395,7 @@ export default function GroupStatsPage() {
     )}
     <div className="mt-20 my-5">
             <ReturnHomeBtn/>
-          </div>
+    </div>
     </motion.div>
   );
 }

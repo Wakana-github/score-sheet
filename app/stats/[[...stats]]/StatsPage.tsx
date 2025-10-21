@@ -1,4 +1,13 @@
 "use client";
+
+/*
+* Personal StatsPage: Displays the user's personal statistics (Personal Stats).
+* Key Feature:
+* Data Fetching: Fetching personal stats data from api/stats/personal when the user is signed in.
+* State Management: Manages loading status, the retrieved statistics data, and the currently selected game for detail view.
+* User Display: Shows the user's name and their total gaming statistics.
+* Interactive Details: Allows the user to select a specific game via a dropdown to view detailed stats.
+*/
 import React, { useEffect, useState } from "react";
 import LoadingPage from "@/components/loadingPage";
 import { useUser } from "@clerk/nextjs";
@@ -8,6 +17,7 @@ import Select from "react-select";
 import ReturnHomeBtn from "@/components/returnToHomeBtn";
 import { fadeInVariants, itemsVariants, gameDetailVariants, detailItemVariants } from '../../lib/variants'
 import { motion, AnimatePresence } from "motion/react"
+import PromoteSubscription from "@/components/promoteSubscription";
 
 //define stats types
 interface GameStats {
@@ -32,19 +42,30 @@ interface PersonalStats {
     third: number;
   };
   gameDetails: GameStats[];
+  isRestricted: boolean;
 }
 
-export default function StatsPage() {
+interface StatsPageProps {
+  isRestricted: boolean;
+}
+
+export default function StatsPage({ isRestricted }: StatsPageProps) {
   const { isLoaded, isSignedIn, user } = useUser();
   const [stats, setStats] = useState<PersonalStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedGame, setSelectedGame] = useState<GameStats | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
+  // Fetching the user's personal statistics data from the server and initializing the component for display.
   useEffect(() => {
     const fetchStats = async () => {
+      //Exit the function if Clerk hasn't finished loading user data or if the user is not signed in.
       if (!isLoaded || !isSignedIn) return;
 
+      // Start loading state to display the LoadingPage component.
       setLoading(true);
+      setError(null);
+
       try {
         const response = await fetch("/api/stats/personal");
         if (!response.ok) throw new Error("Failed to fetch stats");
@@ -53,14 +74,18 @@ export default function StatsPage() {
         if (data.gameDetails.length > 0) {
           setSelectedGame(data.gameDetails[0]); // select first game as default
         }
-      } catch (error) {
-        console.error("Error:", error);
+      } catch (err) {
+        setError(err as Error);
       } finally {
         setLoading(false);
       }
     };
     fetchStats();
   }, [isLoaded, isSignedIn]);
+
+  if (error) {
+        throw error; 
+    }
 
   // Game title options - Calculate options only when stats change
   const gameOptions = React.useMemo(() => {
@@ -75,31 +100,40 @@ export default function StatsPage() {
   if (loading || !isLoaded) {
     return <LoadingPage />;
   }
-
+  //check is user is signed in
   if (!isSignedIn) {
     return <div>Please sign in to view your stats.</div>;
   }
 
+  // Determine if the subscription prompt should be displayed
+  const showSubscriptionPrompt = isRestricted || stats?.isRestricted;
+
   // Display message when there are no records
   if (!stats || stats.totalPlays === 0) {
-    return (
-      <div className="p-4 md:p-8">
-        No records found. Please save some scores to view your stats.
-      </div>
-    );
+      if (showSubscriptionPrompt) {
+        //// Continue rendering the UI when there is no record and is restricted
+      } else {
+          // Display message: No records found (user is not restricted)
+          return (
+              <div className="p-4 md:p-8">
+                  No records found. Please save some scores to view your stats.
+              </div>
+          );
+      }
   }
 
   // Find most played game details for display with play count
-  const mostPlayedGameDetails = stats.gameDetails.find(
-    (g) => g.gameTitle === stats.mostPlayedGame
+  const mostPlayedGameDetails = stats?.gameDetails.find(
+    (g) => g.gameTitle === stats?.mostPlayedGame
   );
 
+  //Main content
   return (
     <motion.div variants={fadeInVariants}
                       initial="hidden" 
                       whileInView="show"
                       animate="show" 
-                      className="mt-4 p-4 md:p-8">
+                      className="mt-4 p-4 md:p-8 relative">
       {/* title */}
       <motion.h1 variants={itemsVariants}
                  className="text-3xl md:text-4xl font-bold mb-4 hand_font"
@@ -125,7 +159,7 @@ export default function StatsPage() {
           value={
             mostPlayedGameDetails
               ? `${mostPlayedGameDetails.gameTitle} (${mostPlayedGameDetails.plays} plays)`
-              : stats.mostPlayedGame
+              : stats?.mostPlayedGame?? 'N/A'
           }
         />
       </motion.div>
@@ -272,6 +306,11 @@ export default function StatsPage() {
       <div className="my-8">
         <ReturnHomeBtn/>
       </div>
+      {showSubscriptionPrompt && (
+          <div>
+              <PromoteSubscription />
+          </div>
+      )}
     </motion.div>
   );
 }

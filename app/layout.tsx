@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Delicious_Handrawn } from "next/font/google";
 import "./globals.css";
-
-import {
-  ClerkLoaded,
-  ClerkLoading,
-  ClerkProvider,
-} from "@clerk/nextjs";
+import { ClerkLoaded, ClerkLoading, ClerkProvider } from "@clerk/nextjs";
 import Header from "./header/page";
+import LoadingPage from "@/components/loadingPage";
+
+/*
+* RootLayout Component
+* This is the root-level layout for the entire Next.js application (App Router).
+* It wraps all pages, setting up the necessary HTML structure, global styles, metadata,and essential providers like Clerk.
+* It ensures the Header is present on all pages and handles the loading state for the Clerk authentication.
+*/
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,20 +54,18 @@ export default function RootLayout({
           className={` ${geistMono.variable} ${geistSans.variable} ${deliciousHandrawn.variable} antialiased `}
         >
           <ClerkLoading>
-            <div className="flex justify-center h-screen items-center">
-              LOADING...
-            </div>
+            <LoadingPage />
           </ClerkLoading>
           <ClerkLoaded>
-          {/* display main contents from the top when mobile screen */}
-          <div className="relative w-full h16">
+            {/* display main contents from the top when mobile screen */}
+            <div className="relative w-full h16">
               <Header />
-            <div className="pt-8 md:pt-16">
-              <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-                {children}
+              <div className="pt-8 md:pt-16">
+                <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+                  {children}
+                </div>
               </div>
             </div>
-          </div>
           </ClerkLoaded>
         </body>
       </html>

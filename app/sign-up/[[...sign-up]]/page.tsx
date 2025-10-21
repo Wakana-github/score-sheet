@@ -1,5 +1,6 @@
 import { SignUp } from '@clerk/nextjs'
 
+//Clerk signup page
 export default function Page() {
 
   return (
