@@ -35,7 +35,7 @@ const router = express.Router();
 //constants : must be same as lib/constatns.ts
 const MAX_TITLE_LENGTH = 35;
 const MAX_NAME_LENGTH = 30;
-const MAX_FREE_RECORDS = 5;
+const MAX_FREE_RECORDS =10;
 const MAX_ACTIVE_RECORDS = 500;
 const PAGENATION_LIMIT = 10;
 const MAX_PLAYERS = 10;

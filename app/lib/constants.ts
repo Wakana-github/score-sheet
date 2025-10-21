@@ -14,7 +14,7 @@
   export const allowedGroupRegex = /^[a-zA-Z0-9Ａ-Ｚａ-ｚ０-９\sぁ-んァ-ヶ一-龠ー\-_\.\/\(\)]*$/; 
 
 // Record limit (records.ts)
-  export const MAX_FREE_RECORDS = 5;
+  export const MAX_FREE_RECORDS = 10;
   export const MAX_ACTIVE_RECORDS = 500;
   export const PAGENATION_LIMIT = 10;
 
