@@ -21,13 +21,13 @@ export async function POST(request: NextRequest) {
       process.env.STRIPE_WEBHOOK_SECRET as string
     );
   } catch (error) {
-    console.error("Webhook signature verification failed.", error);
-    return new NextResponse("Webhook signature verification failed.", {
+      console.error("Stripe Webhook signature verification failed.");
+      return new NextResponse("Webhook signature verification failed.", {
       status: 400,
     });
   }
 
-    // List of allowed Stripe price IDs for subscriptions
+  // List of allowed Stripe price IDs for subscriptions
   const allowedPriceIds = [
     process.env.NEXT_PUBLIC_STRIPE_BETA_SIXMONTH_PRICE_ID,
     process.env.NEXT_PUBLIC_STRIPE_BETA_YEAR_PRICE_ID,
@@ -35,10 +35,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const eventType = event.type;
-    console.log(`Received event: ${eventType}`);
+    console.log(`Received Stripe event: ${eventType}`);
 
     switch (eventType) {
-      // Handle completed checkout session
+      // ------ Handle completed checkout session ---------
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
 
@@ -65,22 +65,21 @@ export async function POST(request: NextRequest) {
           }
         )) as Stripe.Subscription;
 
+
         const item = subscription.items.data[0];
+        const priceId = item.price.id || "";
 
          // Safely get the plan name
-        let planName = "Unknown Plan";
-        if (
-          typeof item.price.product !== "string" &&
-          item.price.product &&
-          "name" in item.price.product
-        ) {
-          planName = item.price.product.name;
-        }
+        const planName =
+          typeof item.price.product !== "string" && item.price.product && "name" in item.price.product
+            ? item.price.product.name
+            : "Unknown Plan";
 
+        
         const subscriptionEndsAt = item.current_period_end
           ? new Date(item.current_period_end * 1000)
           : new Date();
-        const priceId = item.price.id || "";
+        
 
          // Check if priceId is allowed
         if (!allowedPriceIds.includes(priceId)) {
@@ -88,21 +87,27 @@ export async function POST(request: NextRequest) {
           return new NextResponse("Price ID does not match", { status: 400 });
         }
 
+        // Map subscription status
+        const dbStatus = ["active", "trialing", "past_due", "unpaid"].includes(subscription.status)
+          ? subscription.status
+          : subscription.status === "canceled" ? "canceled" : "inactive";
+
         // Update or create user in database with subscription info
         const updatedUser = await User.findOneAndUpdate(
           { clerkId: userId },
           {
-            subscriptionStatus: subscription.status,
+            subscriptionStatus: dbStatus,
             stripeCustomerId: customerId,
             stripeSubscriptionId: subscription.id,
             stripePriceId: priceId,
             planName,
             subscriptionEndsAt,
           },
-          { new: true, upsert: true }
+          { new: true, upsert: true  } //create record even if clark Id is not found
         );
 
         if (!updatedUser) {
+          console.error(`User not found for update`);
           return new NextResponse("User not found", { status: 400 });
         }
 
@@ -110,88 +115,92 @@ export async function POST(request: NextRequest) {
         return new NextResponse("Checkout completed", { status: 200 });
       }
 
-      // Handle subscription updates
-      case "customer.subscription.updated": {
-         const subscriptionId = (event.data.object as Stripe.Subscription).id;
 
-         // Retrieve subscription details from Stripe with product info expanded
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
-    expand: ["items.data.price.product"]
-  });
-        
-        
-        const item = subscription.items.data[0];
+      // ----Handle subscription creation (API direct) and updates (Recurring)--------
+      case "customer.subscription.created":
+      case "customer.subscription.updated": {
+        const subscription = event.data.object as Stripe.Subscription;
+        const subscriptionId = (event.data.object as Stripe.Subscription).id;
+        const stripeCustomerId = subscription.customer as string;
+
+        // Retrieve subscription details from Stripe with product info expanded
+        const fullSubscription = await stripe.subscriptions.retrieve(subscriptionId, {
+            expand: ["items.data.price.product"]
+        });
+        const item = fullSubscription.items.data[0];
 
         // Safely get the plan name
-        let planName = "Unknown Plan";
-        if (
-          typeof item.price.product !== "string" &&
-          item.price.product &&
-          "name" in item.price.product
-        ) {
-          planName = item.price.product.name;
-        }
+        const planName =
+          typeof item.price.product !== "string" && item.price.product && "name" in item.price.product
+            ? item.price.product.name
+            : "Unknown Plan";
         
+        const priceId = item.price.id || "";
+
         // Calculate subscription end date
         const subscriptionEndsAt = item.current_period_end
           ? new Date(item.current_period_end * 1000)
           : new Date();
-        const priceId = item.price.id || "";
+        
 
 
         // Map Stripe subscription status to DB status
         const stripeStatus = subscription.status;
-        let dbStatus: "active" | "trialing" | "canceled" | "inactive" =
-          "inactive";
-        switch (stripeStatus) {
-          case "active":
-          case "trialing":
-            dbStatus = stripeStatus;
-            break;
-          case "canceled":
-            dbStatus = "canceled";
-            break;
-          default:
-            dbStatus = "inactive";
+        const dbStatus = ["active", "trialing", "past_due", "unpaid"].includes(stripeStatus)
+          ? stripeStatus
+          : stripeStatus === "canceled" ? "canceled" : "inactive";
+
+
+        let findQuery: any = { stripeCustomerId };
+        // IF there is no Stripe Customer ID in DB (first creation through Stripe API(Dashbord/manual input))
+        if (eventType === "customer.subscription.created") {
+            // Fetch customer data from Stripe
+            const customer = await stripe.customers.retrieve(stripeCustomerId);
+
+            if (customer.deleted || !("email" in customer) || !customer.email) {
+                console.error(`Customer ${stripeCustomerId} not found or missing email for initial sync.`);
+                return new NextResponse("Customer data missing.", { status: 400 });
+            }
+            //Search customer with email
+            findQuery = { email: customer.email };
         }
 
-        // Update user subscription info in the database
-        const updatedUser = await User.findOneAndUpdate(
-          { stripeCustomerId: subscription.customer as string },
-          {
+        //Data to update
+        const updateData = {
             subscriptionStatus: dbStatus,
             stripeSubscriptionId: subscription.id,
             stripePriceId: priceId,
             planName,
             subscriptionEndsAt,
-          },
-          { new: true, upsert: true }
-        );
+        };
 
-        console.log("updateUser:", updatedUser);
-        return new NextResponse("Subscription updated and user status synced", {
-          status: 200,
-        });
+        //Update stripeCustomerId whem first created
+        if (eventType === "customer.subscription.created") {
+            (updateData as any).stripeCustomerId = stripeCustomerId;
+        }
+
+        // Update user subscription info in the database 
+        const updatedUser = await User.findOneAndUpdate(
+          findQuery,
+          updateData,
+          { new: true}
+        );
+        
+        if (!updatedUser) {
+            console.error(`User not found for update/create`);
+            return new NextResponse("Upfdate failed", { status: 400 });
+        }
+
+        console.log("updateUser:");
+        return new NextResponse("Subscription updated.", {status: 200});
       }
 
-      // Handle subscription deletion
+      // --- Handle subscription deletion ---
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
         
-         const stripeStatus = subscription.status;
-        let dbStatus: "active" | "trialing" | "canceled" | "inactive" =
-          "inactive";
-        switch (stripeStatus) {
-          case "active":
-          case "trialing":
-            dbStatus = stripeStatus;
-            break;
-          case "canceled":
-            dbStatus = "canceled";
-            break;
-          default:
-            dbStatus = "inactive";
-        }
+        //SET stripe status as inactive  
+        const dbStatus = "inactive";
 
         // Clear user's subscription info in DB
         const updatedUser = await User.findOneAndUpdate(
@@ -206,13 +215,13 @@ export async function POST(request: NextRequest) {
           },
           { new: true }
         );
-        return new NextResponse("Subscription deleted and user status synced", {
+        return new NextResponse("Subscription removed", {
           status: 200,
         });
       }
 
       default:
-        console.log(`Unhandled event type ${eventType}`);
+        console.log(`Ignoredevent type ${eventType}`);
         break;
     }
 
@@ -221,7 +230,7 @@ export async function POST(request: NextRequest) {
     revalidatePath("/", "layout");
     return new NextResponse("Webhook received", { status: 200 });
   } catch (err) {
-    console.error("Error processing webhook event:", err);
+    console.error("Error processing webhook event:");
     return new NextResponse("Internal server error", { status: 500 });
   }
 }

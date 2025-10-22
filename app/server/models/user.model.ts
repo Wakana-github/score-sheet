@@ -42,7 +42,7 @@ const UserSchema = new Schema({
   },
   subscriptionStatus: {
     type: String,
-    enum: ['active', 'trialing', 'canceled', 'inactive'],
+    enum: ['active', 'trialing', 'canceled', 'inactive',"past_due","unpaid"],
     default: 'inactive',
   },
   stripeSubscriptionId: {
