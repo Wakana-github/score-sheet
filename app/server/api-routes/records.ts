@@ -257,11 +257,18 @@ router.get(
           .skip(skip)
           .limit(limit);
       } else {
-        // Apply standard pagination for inactive users
-        records = await ScoreRecord.find(baseQuery)
+        //Set  pagination for non active user
+        const queryLimit = Math.min(limit, MAX_FREE_RECORDS - skip);
+        if (skip >= MAX_FREE_RECORDS) { 
+            records = []; // no record exist after max limmit
+        }else{
+          // Apply standard pagination for inactive users
+          records = await ScoreRecord.find(baseQuery)
           .sort({ lastSavedAt: -1 })
           .skip(skip) 
-          .limit(limit);
+          .limit(queryLimit)
+        }
+        ;
       }
 
       const sanitizedRecords = records.map(record => ({
@@ -274,9 +281,14 @@ router.get(
         scoreItemNames: record.scoreItemNames.map(name => domPurify.sanitize(name)),
       }));
 
+      const effectiveTotalRecords = isActiveUser
+       ? totalFilteredRecords
+       : Math.min(totalFilteredRecords, MAX_FREE_RECORDS); // return total records number depend on subscription status 
+
+
       res.status(200).json({
       records: sanitizedRecords,
-      totalRecords: totalFilteredRecords, // Returns the total count after filtering
+      totalRecords: effectiveTotalRecords, // Returns the total count after filtering
       currentPage: page,
       limit,
       isActiveUser,
