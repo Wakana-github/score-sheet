@@ -77,15 +77,15 @@ export default function SetNicknamePage() {
     <div className="w-full max-w-lg">
       <h1 className="text-3xl lg:text-5xl hand_font font-bold mb-4">Set Your Nickname</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <label htmlFor="nickname" className="text-lg lg:text-3xl">
-          Current Nickname: {user.publicMetadata?.nickname as string || user.username || "Not set"}
+        <label htmlFor="nickname" className="text-lg lg:text-2xl">
+          Nickname: {user.publicMetadata?.nickname as string || user.username || "Not set"}
         </label>
         <input
           type="text"
           id="nickname"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
-          className="border p-2 rounded-md"
+          className="border p-2 rounded-md text-lg"
           placeholder="Enter new nickname"
         />
         <button
@@ -96,7 +96,7 @@ export default function SetNicknamePage() {
           {isSubmitting ? "Saving..." : "Save Nickname"}
         </button>
       </form>
-      {message && <p className="mt-4 text-red-500">{message}</p>}
+      {message && <p className="mt-4 text-red-500 text-base lg:text-lg">{message}</p>}
     </div>
 </div>
   );

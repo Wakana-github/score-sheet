@@ -31,7 +31,7 @@ process.on('unhandledRejection', (reason) => {
 // CORS setting
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://ddb1e9e326ce.ngrok-free.app',
+  'https://69f38105c0ec.ngrok-free.app',
 ];
 
 const corsOptions = {

@@ -27,6 +27,11 @@ export default function SubscriptionButton({ subscriptionStatus, stripeCustomerI
     if (!isSignedIn) {
       throw new Error("User is not signed in");
     }
+  
+  const priceId = process.env.NEXT_PUBLIC_STRIPE_BETA_SIXMONTH_PRICE_ID;
+  if (!priceId) {
+    throw new Error("SIXMONTH_PRICE_ID is not set.");
+  }
 
     
     const url = await subscribe({
