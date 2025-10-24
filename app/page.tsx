@@ -37,8 +37,7 @@ export default function Home() {
 
   // Fetch game data from API
   useEffect(() => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    fetch(`${baseUrl}/games`)
+    fetch("/api/games")
       .then((response) => response.json())
       .then((data: GameData[]) => {
         setGames(data);

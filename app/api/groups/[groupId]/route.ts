@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import mongoose from "mongoose";
 import Group from "../../../server/models/group";
+import { applyRateLimit} from "../../../lib/rateLimit";
 import connectDB from "../../../server/helper/score-sheet-db";
 import { sanitizeAndValidateString, handleServerError } from "../../../lib/sanitizeHelper";
-import { MAX_GROUP_NAME_LENGTH, MAX_NAME_LENGTH, MAX_NUM_MEMBERS } from "../../../lib/constants";
+import { 
+    MAX_GROUP_NAME_LENGTH, 
+    MAX_NAME_LENGTH, 
+    MAX_NUM_MEMBERS,
+    allowedGroupRegex,
+    allowedNameRegex,
+} from "../../../lib/constants";
+import { isValidMemberId } from "@/app/lib/memberIdCheck";
 
 /*
 This API Route (app/api/groups/[groupId]/route.ts) handles operations on a single Group resource.
@@ -20,6 +29,12 @@ interface MemberInput {
     name: string;
 }
 
+interface Params {
+  params: { groupId: string };
+}
+
+const isValidMongoId = (id: string): boolean => mongoose.Types.ObjectId.isValid(id);
+
 //-----------------------------------------------------
 // GET: Fetches a specific group (Corresponds to client's fetchGroupData)
 //-----------------------------------------------------
@@ -27,6 +42,18 @@ export async function GET(
   request: Request,
   { params }: { params: { groupId: string } } // Get dynamic segment [groupId] as params
 ) {
+
+    // Authentication Check
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+    // Ratew limit
+    const ip = userId ?? request.headers.get("x-forwarded-for") ?? "anonymous";
+    const isAllowed = await applyRateLimit(ip, 'read');
+    if (!isAllowed) {
+        return NextResponse.json({ message: "Too many requests, please try again later." }, { status: 429 });
+    }
+
   // Establish DB Connection
   try {
     await connectDB();
@@ -34,19 +61,24 @@ export async function GET(
     return handleServerError("DB Connection (GET)", error, 503);
   }
 
-  // Authentication Check
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
 
   try {
-    const groupId = params.groupId;
+    const { groupId } = await params;
+
+    // Validate id type
+        if (!isValidMongoId(groupId)) {
+            return NextResponse.json({ message: "Invalid group ID format." }, { status: 400 });
+        }
     
     // Find the group, verifying ownership (userId)
-    const group = await Group.findOne({ _id: groupId, userId }).lean();
+    const group = await Group.findOne({ _id: groupId, userId })
+    .select("_id groupName members userId createdAt")
+    .lean();
 
     if (!group) {
       // Return 404 if the group ID is not found or user does not own it
-      return NextResponse.json({ message: "Group not found or unauthorized access" }, { status: 404 });
+      return NextResponse.json({ message: "Group not found or access denied" }, { status: 404 });
     }
     
     return NextResponse.json(group); 
@@ -62,6 +94,18 @@ export async function PUT(
   request: Request,
   { params }: { params: { groupId: string } }
 ) {
+
+    // Authentication Check
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+    // rate limit
+    const ip = userId?? request.headers.get("x-forwarded-for") ?? "anonymous";
+    const isAllowed = await applyRateLimit(ip, 'write');
+    if (!isAllowed) {
+        return NextResponse.json({ message: "Too many requests, please try again later." }, { status: 429 });
+    }
+
   // Establish DB Connection
   try {
     await connectDB();
@@ -69,18 +113,20 @@ export async function PUT(
     return handleServerError("DB Connection (PUT)", error, 503);
   }
 
-  // Authentication Check
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  
 
   try {
-    const groupId = params.groupId;
+    const { groupId } = await params;
+    // validate id type
+        if (!isValidMongoId(groupId)) {
+            return NextResponse.json({ message: "Invalid group ID format." }, { status: 400 });
+        }
     const body = await request.json(); // Data sent from the client
     const { groupName, members } = body;
 
     // Validate and sanitize groupName
     const sanitizedGroupNameResult = sanitizeAndValidateString(
-        groupName, MAX_GROUP_NAME_LENGTH, "groupName",);
+        groupName, MAX_GROUP_NAME_LENGTH, "groupName",allowedGroupRegex);
     if (sanitizedGroupNameResult.error) {
         return NextResponse.json({ message: sanitizedGroupNameResult.error }, { status: 400 });
     }
@@ -91,6 +137,7 @@ export async function PUT(
         return NextResponse.json({ message: `Members count must be 1-${MAX_NUM_MEMBERS}.` }, { status: 400 });
     }
 
+    //Validate and sanitise each member
     const memberIdSet = new Set<string>();
     const finalMembers: MemberInput[] = [];
 
@@ -103,16 +150,21 @@ export async function PUT(
           ) {
               return NextResponse.json({ message: "Invalid member structure." }, { status: 400 });
           }
+
+          if (!isValidMemberId(member.memberId)) {
+                return NextResponse.json({ message: `Invalid memberId format: ${member.memberId}` }, { status: 400 });
+              }
           
           // Duplicate check
           if (memberIdSet.has(member.memberId)) {
               return NextResponse.json({ message: `Duplicate member ID found.` }, { status: 400 });
           }
+
           memberIdSet.add(member.memberId);
           
           // Validate and sanitize member name
           const sanitizedNameResult = sanitizeAndValidateString(
-              member.name, MAX_NAME_LENGTH, "memberName", 
+              member.name, MAX_NAME_LENGTH, "memberName", allowedNameRegex
           );
           if (sanitizedNameResult.error) {
               return NextResponse.json({ message: sanitizedNameResult.error }, { status: 400 });
@@ -131,8 +183,8 @@ export async function PUT(
             groupName: finalGroupName, 
             members: finalMembers,     
         },
-        { new: true } 
-    );
+        { new: true, runValidators: true } 
+    ).select('_id groupName members userId createdAt').lean();
 
     if (!updatedGroup) {
       return NextResponse.json({ message: "Group not found or unauthorized to update" }, { status: 404 });
@@ -152,20 +204,34 @@ export async function DELETE(
   { params }: { params: { groupId: string } }
 ) {
 
-  //Establish DB Connection
-  try{
-    await connectDB();
-  } catch (error: unknown) {
-    return handleServerError("DB Connection (DELETE)", error, 503);
-  }
     // Authentication Check
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+  // Rate limit
+    const ip = userId?? request.headers.get("x-forwarded-for") ?? "anonymous";
+    const isAllowed = await applyRateLimit(ip, 'write');
+    if (!isAllowed) {
+        return NextResponse.json({ message: "Too many requests, please try again later." }, { status: 429 });
+    }
+
+  //Establish DB Connection
+  try{
+    await connectDB();
+  } catch (error: unknown) {
+    return handleServerError("DB Connection (DELETE)", error, 503);
+  }
+    
+
   try {
-    const groupId = params.groupId;
+    const { groupId } = await params;
+
+    // validate id type
+        if (!isValidMongoId(groupId)) {
+            return NextResponse.json({ message: "Invalid group ID format." }, { status: 400 });
+        }
 
     // Delete group, verifying ownership
     const deletedGroup = await Group.findOneAndDelete({ _id: groupId, userId });

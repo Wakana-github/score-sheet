@@ -3,8 +3,8 @@ import cors from 'cors';
 import connectDB from './helper/score-sheet-db.ts'; 
 import { ClerkExpressWithAuth } from '@clerk/clerk-sdk-node';
 import scoreRoutes from './api-routes/index.ts';
-import gameRoutes from './api-routes/games.ts';
-import groupsRouter from './api-routes/groups.ts';
+// import gameRoutes from './api-routes/games.ts';
+// import groupsRouter from './api-routes/groups.ts';
 
 /* Server Entry Point (app.ts)
 * This is the main entry point for the Express backend server.
@@ -52,9 +52,9 @@ app.use(express.json());
 // app.use(ClerkExpressWithAuth()); 
 
 //API route
-app.use('/api/games', gameRoutes);
+// app.use('/api/games', gameRoutes);
 app.use('/api/scores',ClerkExpressWithAuth(), scoreRoutes);
-app.use('/api/groups',ClerkExpressWithAuth(), groupsRouter);
+// app.use('/api/groups',ClerkExpressWithAuth(), groupsRouter);
 
 
 //undefine route

@@ -37,7 +37,8 @@ export const sanitizePlainText = (input: string): string => {
 export const sanitizeAndValidateString = (
   input: unknown,
   maxLength: number,
-  fieldName: string
+  fieldName: string,
+  regex: RegExp
 ): SanitizeResult => {
   if (typeof input !== "string" || input.trim() === "") {
     return { error: `${fieldName} cannot be empty.` };
@@ -53,6 +54,10 @@ export const sanitizeAndValidateString = (
     return { error: `${fieldName} cannot exceed ${maxLength} characters.` };
   }
 
+  if (!regex.test(trimmed)) {
+        return { error: `${fieldName} contains invalid characters.` };
+    }
+
   // Strict sanitize: remove all tags and attributes
   const sanitized = sanitizePlainText(trimmed);
 
@@ -66,7 +71,14 @@ export const sanitizeAndValidateString = (
 //Logs server details but returns generic messages to clients.
 
 export const handleServerError = (context: string, error: unknown, status: number = 500) => {
+  let clientMessage = "An unexpected server error occurred.";
+  let finalStatus = status;
+
   if (error instanceof Error) {
+    if ('name' in error && error.name === 'ValidationError') {
+            clientMessage = "Validation failed. Please check your input data.";
+            finalStatus = 400; // 400 Bad Request
+    }
     console.error(`${context}:`, error.message);
   } else {
     console.error(`${context}:`, error);

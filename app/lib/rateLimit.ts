@@ -1,5 +1,6 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { NextResponse } from "next/server";
 
 /* 
 * This module provides server-side rate limiting and unified error handling for API routes in the app.
@@ -9,36 +10,60 @@ import { Redis } from "@upstash/redis";
 */
 
 
-
-
 // ======= Upstash Rate-limit setup =======
-const ratelimit = new Ratelimit({
+const WRITE_LIMIT = 2;
+const WRITE_WINDOW = "10 s"; 
+const READ_LIMIT = 50;
+const READ_WINDOW = "60 s";
+
+const MEMORY_WRITE_LIMIT = 2; 
+const MEMORY_READ_LIMIT = 20; 
+const MEMORY_WINDOW_MS = 10_000;
+
+//POST and PUT request
+const writeRatelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(2, "10 s"), //2 requests per 10 seconds per user.
+  limiter: Ratelimit.slidingWindow(WRITE_LIMIT, WRITE_WINDOW), //2 requests per 10 seconds per user.
   analytics: true,
-  timeout: 10000,
+  timeout: 50000,
 });
 
+//Reading limit
+const readRatelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(READ_LIMIT, READ_WINDOW), //2 requests per 10 seconds per user.
+  analytics: true,
+  timeout: 50000,
+});
+
+
 // ======= In-memory fallback =======
-const memoryRateLimit: Record<string, { count: number; firstRequest: number }> = {};
-const MEMORY_LIMIT = 2;
-const MEMORY_WINDOW_MS = 10_000; // 10秒
+const memoryRateLimit: Record<string, { 
+  write: { count: number; firstRequest: number },
+  read: { count: number; firstRequest: number }
+}> = {};
 
-function checkMemoryRateLimit(identifier: string): boolean {
+
+function checkMemoryRateLimit(identifier: string, operationType: 'write' | 'read'): boolean {
   const now = Date.now();
-  const record = memoryRateLimit[identifier];
+  const limit = operationType === 'write' ? MEMORY_WRITE_LIMIT : MEMORY_READ_LIMIT;
+ 
+  if (!memoryRateLimit[identifier]) {
+     memoryRateLimit[identifier] = { 
+        write: { count: 0, firstRequest: now },
+        read: { count: 0, firstRequest: now }
+    };
+  }
+  const record = memoryRateLimit[identifier][operationType];
 
-  if (!record) {
-    memoryRateLimit[identifier] = { count: 1, firstRequest: now };
+if (now - record.firstRequest > MEMORY_WINDOW_MS) {
+    // when window reset
+    record.count = 1;
+    record.firstRequest = now;
     return true;
   }
 
-  if (now - record.firstRequest > MEMORY_WINDOW_MS) {
-    memoryRateLimit[identifier] = { count: 1, firstRequest: now };
-    return true;
-  }
-
-  if (record.count >= MEMORY_LIMIT) {
+  if (record.count >= limit) {
     return false;
   }
 
@@ -47,24 +72,30 @@ function checkMemoryRateLimit(identifier: string): boolean {
 }
 
 // ======= Unified Rate-limit handler =======
-export async function applyRateLimit(identifier: string): Promise<boolean> {
+export async function applyRateLimit(
+  identifier: string, 
+  operationType: 'write' | 'read' = 'write'
+): Promise<boolean> {
   try {
-    const { success } = await ratelimit.limit(identifier);
+    const limiter = operationType === 'read' ? readRatelimit : writeRatelimit;
+    const { success } = await limiter.limit(identifier);
     return success;
   } catch (err) {
     console.warn(`[RateLimit] Redis unavailable. Using memory fallback.`);
-    return checkMemoryRateLimit(identifier);
+    return checkMemoryRateLimit(identifier, operationType);
   }
 }
 
 // ======= Unified error handler =======
-export function handleServerError(endpoint: string, error: unknown): void {
+export function handleServerError(endpoint: string, error: unknown, status: number = 500){
   let logMessage = `[${endpoint}] Server Error: `;
+  let clientMessage = "An unexpected error occurred.";
+  
   if (error instanceof Error) {
-    logMessage += error.message;
-    console.error(logMessage, { stack: error.stack });
-  } else {
-    logMessage += "Unknown/Non-Error object caught.";
     console.error(logMessage, error);
+  } else {
+     console.error(logMessage, error);
   }
+
+    return NextResponse.json({ message: clientMessage }, { status });
 }

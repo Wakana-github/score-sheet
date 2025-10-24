@@ -44,10 +44,14 @@ const GroupListPage: React.FC = () => {
  useEffect(() => {
     async function fetchGroups() {
       //check if Clerk is loaded and user is signed in
-      if (!isLoaded || !isSignedIn) {
-        setLoading(false);
-        return;
-      }
+      if (!isLoaded) {
+            return; 
+        }
+      if (!isSignedIn) {
+            setLoading(false); 
+            return;
+        }
+
 
       setLoading(true);
       try {
@@ -70,7 +74,8 @@ const GroupListPage: React.FC = () => {
           throw new Error(`Failed to fetch groups`);
         }
 
-        const data: Group[] = await res.json();
+        const resJson = await res.json();
+        const data: Group[] = resJson.data;
         const decodedGroups = data.map((group: Group) => ({
           ...group,
           groupName: he.decode(group.groupName),
