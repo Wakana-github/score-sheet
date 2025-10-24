@@ -10,7 +10,8 @@
     "lint": "next lint",
     "dev:api": "nodemon --watch app/server --ext ts --exec node --loader ts-node/esm app/server/app.ts",
     "stripe:listen": "stripe listen --- localhost:3000/api/webhooks/stripe",
-    "ngrok:open": "ngrok http http://localhost:3000"
+    "ngrok:open": "ngrok http http://localhost:3000",
+    "ngrok:api-open": "ngrok http http://localhost:8080"
   },
   "dependencies": {
     "@clerk/clerk-sdk-node": "^5.1.6",

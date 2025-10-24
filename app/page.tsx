@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { SignedIn, SignedOut, SignInButton, SignUpButton } from '@clerk/clerk-react';
 import Select from 'react-select'; 
+import Link from 'next/link';
 
 /**
  * Home Component (Landing Page) - the root page (/) of the application. 
@@ -159,6 +160,22 @@ export default function Home() {
                 </button>
               </SignUpButton>
             </SignedOut>
+          </div>
+          {/* Privacy and Terms of Service */}
+          <div className="flex justify-center gap-6 text-gray-700 mt-10">
+              <Link
+                href="/privacy"
+                className="hover:text-blue-600 hover:underline transition-colors"
+              >
+                Privacy Policy
+              </Link>
+              <span className="text-gray-400">|</span>
+              <Link
+                href="/terms"
+                className="hover:text-blue-600 hover:underline transition-colors"
+              >
+                Terms of Service
+              </Link>
           </div>
         </div>
      </div>
