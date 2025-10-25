@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import  { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { SignedIn, SignedOut, SignInButton, SignUpButton } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, SignInButton, SignUpButton } from '@clerk/nextjs';
 import Select from 'react-select'; 
 import Link from 'next/link';
+import LoadingPage from '@/components/loadingPage';
 
 /**
  * Home Component (Landing Page) - the root page (/) of the application. 
@@ -75,12 +77,8 @@ export default function Home() {
   // while loading data
   if (games.length === 0) {
     return (
-      <main className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <p className="text-3xl hand_font">Loading games...</p>
-        </div>
-      </main>
-    );
+      <LoadingPage/>
+    )
   }
   const sortedGames = [...games].sort((a, b) => a.title.localeCompare(b.title));
   

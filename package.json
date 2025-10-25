@@ -14,6 +14,7 @@
     "ngrok:api-open": "ngrok http http://localhost:8080"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.53.3",
     "@clerk/clerk-sdk-node": "^5.1.6",
     "@clerk/express": "^1.7.20",
     "@clerk/nextjs": "^6.31.6",
@@ -45,14 +46,16 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/body-parser": "^1.19.6",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/he": "^1.2.3",
     "@types/jsdom": "^21.1.7",
-    "@types/node": "^20",
+    "@types/node": "^20.19.23",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/sanitize-html": "^2.16.0",
+    "@types/uuid": "^10.0.0",
     "autoprefixer": "^10.4.21",
     "dotenv-cli": "^10.0.0",
     "eslint": "^9",

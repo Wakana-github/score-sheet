@@ -70,10 +70,10 @@ async function connectDB(): Promise<MongooseType> {
 
    // cache prmise 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((_mongoose) => {
-      console.log("MongoDB Connected successfully!");
+      console.log("DB Connected successfully!");
       return _mongoose;
     }).catch((err) => {
-      console.error("MongoDB connection error:", err);
+      console.error("DB connection error:", err);
       cached.promise = null; // reset for retry
       throw err;
     });

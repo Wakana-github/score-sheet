@@ -31,7 +31,7 @@ import {
 
 // Helper function to validate MongoDB ObjectId format
 const isValidMongoId = (id: string): boolean => {
-  return mongoose.Types.ObjectId.isValid(id);
+  return (mongoose.Types.ObjectId as any).isValid(id);
 };
 
 type RouteContext = {

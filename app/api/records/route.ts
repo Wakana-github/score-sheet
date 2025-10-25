@@ -23,7 +23,7 @@ import { allowedNameRegex, MAX_TITLE_LENGTH, MAX_NAME_LENGTH, MAX_PLAYERS, allow
 
 // Helper function to validate MongoDB ObjectId format
 const isValidMongoId = (id: string): boolean => {
-    return mongoose.Types.ObjectId.isValid(id);
+    return (mongoose.Types.ObjectId as any).isValid(id);
 };
 
 // const API_BASE_URL = process.env.INTERNAL_API_BASE_URL;
