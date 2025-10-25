@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IGame extends Document {
   id: number;
@@ -18,4 +18,7 @@ const GameSchema: Schema = new Schema({
   score_items: { type: [String], required: true },
 });
 
-export default mongoose.model<IGame>('Game', GameSchema);
+const GameModel: Model<IGame> = (mongoose.models.Game as Model<IGame>) || 
+                                 mongoose.model<IGame>('Game', GameSchema);
+
+export default GameModel;

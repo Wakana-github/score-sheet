@@ -3,7 +3,7 @@ import User from "@/app/server/models/user.model";
 import { NextResponse, NextRequest } from "next/server";
 import Stripe from "stripe";
 import { revalidatePath } from "next/cache";
-import connectDB from "@/app/server/helper/score-sheet-db";
+import connectDB from "@/app/lib/db/score-sheet-db";
 
 export const runtime = "nodejs";
 

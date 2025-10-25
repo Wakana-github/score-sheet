@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { auth } from "@clerk/nextjs/server";
-import ScoreRecord, { IScoreRecord } from '../../../../server/models/score-record.ts';
-import Group, { IGroup } from '../../../../server/models/group.ts'; // Import Group model
-import { isValidMongoId } from '../../../../lib/utils.ts'; // Import MongoDB ID validation function
+import ScoreRecord, { IScoreRecord } from '@/app/lib/db/models/score-record.ts';
+import Group, { IGroup } from '@/app/lib/db/models/group.ts'; // Import Group model
+import { isValidMongoId } from '@/app/lib/utils.ts'; // Import MongoDB ID validation function
 import { fetchUserRecord } from '../../../../actions/user.action.ts'; 
+import { applyRateLimit } from '@/app/lib/rateLimit.ts';
 
 /*
 *　GET API route to fetch and calculatet comprehensive statistics for a specific group,
@@ -81,6 +82,15 @@ export async function GET(
 {
     const { userId } = await auth();
     if (!userId) return new NextResponse('Unauthorized', { status: 401 });
+
+    //check rate limit
+    try {
+    const allowed = await applyRateLimit(userId, 'read');
+    if (!allowed) return NextResponse.json({ message: 'Too many requests. Try later.' }, { status: 429 });
+    } catch (rateErr) {
+    console.error('Rate limit error (GET):', rateErr);
+     return NextResponse.json({ message: 'Too many requests. Try later.' }, { status: 429 });
+    }
 
     try {
 

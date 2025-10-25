@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from "@clerk/nextjs/server";
-import ScoreRecord, { IScoreRecord } from '../../../server/models/score-record.ts';
-import { fetchUserRecord } from '../../../actions/user.action.ts'; 
+import ScoreRecord, { IScoreRecord } from '@/app/lib/db/models/score-record.ts';
+import { fetchUserRecord } from '@/app/actions/user.action.ts'; 
+import { applyRateLimit } from '@/app/lib/rateLimit';
 /*
 * GET API route to fetch and calculate a user's personal game statistics for displaying the "Personal Stats" page.
 * It Only returns data associated with the currently logged-in user (userId)
@@ -21,7 +22,16 @@ export async function GET(request: Request) {
   if (!userId) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
-  
+
+  //check rate limit
+    try {
+      const allowed = await applyRateLimit(userId, 'read');
+      if (!allowed) return NextResponse.json({ message: 'Too many requests. Try later.' }, { status: 429 });
+    } catch (rateErr) {
+      console.error('Rate limit error (GET):', rateErr);
+      return NextResponse.json({ message: 'Too many requests. Try later.' }, { status: 429 });
+    }
+
 
   try {
     //Fetch user data

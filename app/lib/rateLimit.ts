@@ -1,4 +1,4 @@
-import { Ratelimit } from "@upstash/ratelimit";
+import { Ratelimit, Duration } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { NextResponse } from "next/server";
 
@@ -11,19 +11,20 @@ import { NextResponse } from "next/server";
 
 
 // ======= Upstash Rate-limit setup =======
-const WRITE_LIMIT = 2;
-const WRITE_WINDOW = "10 s"; 
-const READ_LIMIT = 50;
-const READ_WINDOW = "60 s";
+const WRITE_LIMIT = parseInt(process.env.RATE_LIMIT_WRITE_LIMIT || '2', 10);
+const WRITE_WINDOW = (process.env.RATE_LIMIT_WRITE_WINDOW || "10 s") as Duration;
+const READ_LIMIT = parseInt(process.env.RATE_LIMIT_READ_LIMIT || '50', 10);
+const READ_WINDOW = (process.env.RATE_LIMIT_READ_WINDOW || "60 s") as Duration;;
 
-const MEMORY_WRITE_LIMIT = 2; 
-const MEMORY_READ_LIMIT = 20; 
-const MEMORY_WINDOW_MS = 10_000;
+// MEMORY RATE LIMIT
+const MEMORY_WRITE_LIMIT = parseInt(process.env.RATE_LIMIT_MEMORY_WRITE_LIMIT || '2', 10); 
+const MEMORY_READ_LIMIT = parseInt(process.env.RATE_LIMIT_MEMORY_READ_LIMIT || '20', 10); 
+const MEMORY_WINDOW_MS = parseInt(process.env.RATE_LIMIT_MEMORY_WINDOW_MS || '10000', 10);
 
 //POST and PUT request
 const writeRatelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(WRITE_LIMIT, WRITE_WINDOW), //2 requests per 10 seconds per user.
+  limiter: Ratelimit.slidingWindow(WRITE_LIMIT, WRITE_WINDOW), 
   analytics: true,
   timeout: 50000,
 });
@@ -31,7 +32,7 @@ const writeRatelimit = new Ratelimit({
 //Reading limit
 const readRatelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(READ_LIMIT, READ_WINDOW), //2 requests per 10 seconds per user.
+  limiter: Ratelimit.slidingWindow(READ_LIMIT, READ_WINDOW), 
   analytics: true,
   timeout: 50000,
 });

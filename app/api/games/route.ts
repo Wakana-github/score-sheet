@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import connectDB from "../../server/helper/score-sheet-db";
-import Game from "../../server/models/game";
+import connectDB from "../../lib/db/score-sheet-db";
+import Game from "../../lib/db/models/game";
 
 // GET /api/games
 export async function GET() {

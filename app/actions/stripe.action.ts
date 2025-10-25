@@ -7,7 +7,7 @@
  */
 
 import { auth } from "@clerk/nextjs/server";
-import { updateUser  } from '../server/lib/db/user.ts';
+import { updateUser  } from '../lib/db/user.ts';
 import { fetchUserRecord } from "./user.action"; 
 import { stripe } from "../lib/stripe.ts";
 

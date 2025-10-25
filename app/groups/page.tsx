@@ -38,6 +38,24 @@ const GroupListPage: React.FC = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const { isLoaded, isSignedIn, getToken } = useAuth(); 
+  const [csrfToken, setCsrfToken] = useState("");
+
+  //Read token
+  useEffect(() => {
+  async function fetchCsrfToken() {
+    try {
+      const res = await fetch("/api/csrf-token",{
+        credentials: "include", 
+      });
+      if (!res.ok) throw new Error("Failed to fetch CSRF token");
+      const data = await res.json();
+      setCsrfToken(data.token);  //srore token 
+    } catch (err) {
+      console.error("Error fetching CSRF token:");
+    }
+  }
+  fetchCsrfToken();
+}, []);
 
 // useEffect hook to fetch user groups from the backend API.
 // Runs once when the component mounts and whenever auth state changes.
@@ -103,10 +121,13 @@ const GroupListPage: React.FC = () => {
       alert("You must be signed in to delete a group.");
       return;
     }
+    if (!csrfToken) {
+    alert("Security token missing. Please refresh the page and try again.");
+    return;
+    }
     //Confirmation dialog
     if (confirm('Are you sure you want to delete this group?')) {
       try {
-
         // get the JWT for API authorization
         const token = await getToken();
         if (!token) {
@@ -117,8 +138,10 @@ const GroupListPage: React.FC = () => {
         const res = await fetch(`${API_BASE_URL}/${groupId}`, {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            'x-csrf-token': csrfToken,
           },
+          credentials: 'include',
         });
 
         if (!res.ok) {

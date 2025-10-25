@@ -7,7 +7,7 @@
 */
 
 import { useUser } from "@clerk/nextjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import LoadingPage from "@/components/loadingPage";
 
@@ -16,8 +16,26 @@ export default function SetNicknamePage() {
   const [nickname, setNickname] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [csrfToken, setCsrfToken] = useState("");
   const router = useRouter();
 
+  //Read token
+    useEffect(() => {
+    async function fetchCsrfToken() {
+      try {
+        const res = await fetch("/api/csrf-token",{
+          credentials: "include", 
+        });
+        if (!res.ok) throw new Error("Failed to fetch CSRF token");
+        const data = await res.json();
+        setCsrfToken(data.token);  //srore token 
+      } catch (err) {
+        console.error("Error fetching CSRF token:");
+      }
+    }
+    fetchCsrfToken();
+  }, []);
+  
   if (!isLoaded) {
     return <LoadingPage />;
   }
@@ -39,12 +57,18 @@ export default function SetNicknamePage() {
     }
 
     try {
+      //Check token
+      if (!csrfToken) {
+           throw new Error("CSRF token not loaded. Please wait and try again.");
+         }
       const response = await fetch("/api/nickname", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-csrf-token": csrfToken,
         },
         body: JSON.stringify({ nickname }),
+        credentials: 'include',
       });
 
       if (response.ok) {

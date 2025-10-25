@@ -7,7 +7,7 @@
  */
 
 import { auth } from "@clerk/nextjs/server";
-import { getUser } from "../server/lib/db/user.ts";
+import { getUser } from "@/app/lib/db/user";
 
 
 export async function fetchUserRecord() {

@@ -8,11 +8,11 @@
 
 import { NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
-import { updateUser } from '@/app/server/lib/db/user';
+import { updateUser } from '../../lib/db/user';
 import { applyRateLimit } from '../../lib/rateLimit'; 
 import { sanitizePlainText, handleServerError } from '../../lib/sanitizeHelper';
 import {allowedNameRegex, MAX_NAME_LENGTH} from '../../lib/constants'
-
+import { verifyRequestOrigin, verifyCsrfToken } from "@/app/lib/security";
 
 
 export async function POST(req: Request) {
@@ -24,6 +24,12 @@ export async function POST(req: Request) {
         return new NextResponse('Unauthorized', { status: 401 });
       }
 
+      // Check CSRF Token and Origin
+        const originError = verifyRequestOrigin(req);
+        if (originError) return originError;
+        const csrfError = await verifyCsrfToken(req);
+        if (csrfError) return csrfError;
+
       // apply rate limit
       let rateLimitOk = false;
       try {
@@ -34,9 +40,15 @@ export async function POST(req: Request) {
       }
       if (!rateLimitOk) return new NextResponse('Too many requests. Please try again later.', { status: 429 });
 
-      
       //fetch request body
-      const { nickname: rawNickname} = await req.json();
+      let body;
+      try {
+        body = await req.json();
+      } catch {
+        return NextResponse.json({ success: false, message: 'Invalid JSON format.' }, { status: 400 });
+      }
+      
+      const rawNickname = body.nickname?.trim();
 
       if (!rawNickname || typeof rawNickname !== 'string') {
           return NextResponse.json({ success: false, message: 'Nickname is required.' },{ status: 400 });

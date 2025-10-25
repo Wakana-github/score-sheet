@@ -8,7 +8,7 @@ import {
   allowedGroupRegex,
   MAX_GROUP_NAME_LENGTH,
   MAX_NAME_LENGTH,
-} from "../../lib/constants";
+} from "@/app/lib/constants";
 import { useAuth, useUser } from "@clerk/nextjs";
 import he from "he";
 import LoadingPage from "@/components/loadingPage";
@@ -51,6 +51,27 @@ const segmenter = new Intl.Segmenter("ja", { granularity: "grapheme" });
   const [numMembers, setNumMembers] = useState(2);
   const [members, setMembers] = useState<MemberData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [csrfToken, setCsrfToken] = useState("");
+
+
+  //------------------------------------
+  // Get CSRF token
+  //------------------------------------
+  useEffect(() => {
+    async function fetchCsrfToken() {
+      try {
+        const res = await fetch("/api/csrf-token", {
+        credentials: "include",  
+      });
+        if (!res.ok) throw new Error("Failed to fetch CSRF token");
+        const data = await res.json();
+        setCsrfToken(data.token); // save token as the state
+      } catch (err) {
+        console.error("Error fetching CSRF token:", err);
+      }
+    }
+    fetchCsrfToken();
+  }, []); // only read once when page is loaded
 
   //------------------------------------
   // Data initialization process
@@ -259,8 +280,10 @@ const segmenter = new Intl.Segmenter("ja", { granularity: "grapheme" });
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          "x-csrf-token": csrfToken,
         },
         body: JSON.stringify(body),
+        credentials: 'include',
       });
 
       if (!res.ok) {

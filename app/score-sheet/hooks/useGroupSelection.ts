@@ -15,7 +15,7 @@ import { GroupData } from '../score-types.ts';
 
 
 // API endpoint URL for group operations
-const GROUP_API_BASE_URL = process.env.NEXT_PUBLIC_GROUP_API_BASE_URL  || "http://localhost:8080/api/groups";
+const GROUP_API_BASE_URL = process.env.NEXT_PUBLIC_GROUP_API_BASE_URL  || "http://localhost:3000/api/groups";
 
 
 export default function useGroupSelection() {

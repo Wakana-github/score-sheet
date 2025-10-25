@@ -1,8 +1,8 @@
 import { applyRateLimit } from '../../lib/rateLimit'; 
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import Group from "../../server/models/group";
-import connectDB from "../../server/helper/score-sheet-db"
+import Group from "../../lib/db/models/group";
+import connectDB from "../../lib/db/score-sheet-db"
 import { sanitizeAndValidateString, handleServerError } from "../../lib/sanitizeHelper";
 import { 
     MAX_GROUP_NAME_LENGTH, 
@@ -13,7 +13,7 @@ import {
     allowedNameRegex,
 } from "../../lib/constants";
 import { isValidMemberId } from '@/app/lib/memberIdCheck';
-
+import { verifyRequestOrigin, verifyCsrfToken } from "@/app/lib/security"; 
 /*
 This API Route (app/api/groups/route.ts) handles operations on the entire Group collection.
 GET: Fetches a list of all groups belonging to the authenticated user.
@@ -69,10 +69,15 @@ export async function GET(req: Request) {
 
 /*----- POST:" Create new groiup record -----------------*/
 export async function POST(req: Request) {
+  // Verify request origin
+  const originError = verifyRequestOrigin(req);
+  if (originError) return originError;
+  // Verify CSRF token
+  const csrfError = await verifyCsrfToken(req);
+  if (csrfError) return csrfError;
   // Authentication check
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
   //Rate Limit
   const ip = userId?? req.headers.get("x-forwarded-for") ?? "unknown";
   const isAllowed = await applyRateLimit(ip, 'write');

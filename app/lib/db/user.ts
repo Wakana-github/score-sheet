@@ -1,6 +1,6 @@
 
-import User, {UserCreationType, UserUpdateType} from "../../models/user.model.ts";
-import connectDB from '../../helper/score-sheet-db.ts'; 
+import User, {UserCreationType, UserUpdateType} from "./models/user.model";
+import connectDB from './score-sheet-db'; 
 
 /*
 * This file provides database helper functions to manage user data　in the MongoDB "User" collection. 

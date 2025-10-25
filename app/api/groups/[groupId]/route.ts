@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import mongoose from "mongoose";
-import Group from "../../../server/models/group";
+import Group from "../../../lib/db/models/group";
 import { applyRateLimit} from "../../../lib/rateLimit";
-import connectDB from "../../../server/helper/score-sheet-db";
+import connectDB from "../../../lib/db/score-sheet-db";
 import { sanitizeAndValidateString, handleServerError } from "../../../lib/sanitizeHelper";
 import { 
     MAX_GROUP_NAME_LENGTH, 
@@ -11,8 +11,9 @@ import {
     MAX_NUM_MEMBERS,
     allowedGroupRegex,
     allowedNameRegex,
-} from "../../../lib/constants";
+} from "@/app/lib/constants";
 import { isValidMemberId } from "@/app/lib/memberIdCheck";
+import { verifyRequestOrigin, verifyCsrfToken } from "@/app/lib/security";
 
 /*
 This API Route (app/api/groups/[groupId]/route.ts) handles operations on a single Group resource.
@@ -81,7 +82,7 @@ export async function GET(
       return NextResponse.json({ message: "Group not found or access denied" }, { status: 404 });
     }
     
-    return NextResponse.json(group); 
+    return NextResponse.json({ message: "Group updated successfully" });
   } catch (error: unknown) {
     return handleServerError("GET /api/groups/[groupId]", error, 500);
   }
@@ -98,6 +99,11 @@ export async function PUT(
     // Authentication Check
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    // Check CSRF Token and Origin
+    const originError = verifyRequestOrigin(request);
+    if (originError) return originError;
+    const csrfError = await verifyCsrfToken(request);
+    if (csrfError) return csrfError;
 
     // rate limit
     const ip = userId?? request.headers.get("x-forwarded-for") ?? "anonymous";
@@ -209,6 +215,11 @@ export async function DELETE(
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+    // Check CSRF Roken and Origin
+    const originError = verifyRequestOrigin(request);
+    if (originError) return originError;
+    const csrfError = await verifyCsrfToken(request);
+    if (csrfError) return csrfError;
 
   // Rate limit
     const ip = userId?? request.headers.get("x-forwarded-for") ?? "anonymous";
