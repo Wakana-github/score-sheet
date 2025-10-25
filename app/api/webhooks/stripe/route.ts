@@ -1,5 +1,5 @@
 import { stripe } from "@/app/lib/stripe";
-import User from "@/app/server/models/user.model";
+import User from "@/app/lib/db/models/user.model";
 import { NextResponse, NextRequest } from "next/server";
 import Stripe from "stripe";
 import { revalidatePath } from "next/cache";

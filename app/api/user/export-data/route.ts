@@ -1,11 +1,15 @@
 // import { auth } from "@clerk/nextjs/server";
 // import { NextResponse } from "next/server";
-// import dbConnect from "../../../server/helper/score-sheet-db";
-// import type { UserCreationType } from "../../../server/models/user.model"; // ← typeとしてインポート
-// import User from "../../../server/models/user.model";  
-// import ScoreRecord from "../../../server/models/score-record";
-// import Group from "../../../server/models/group";
+// import dbConnect from "@/app/lib/db//score-sheet-db";
+// import type { UserCreationType } from "@/app/lib/db//models/user.model"; 
+// import User from "@/app/lib/db//models/user.model";  
+// import ScoreRecord from "@/app/lib/db/models/score-record";
+// import Group from "@/app/lib/db/models/group";
 
+export async function DELETE() {
+  const any= 1;
+
+}
 // // GDPR / CCPA / APPs - Right to Access (Data Portability)
 // export async function GET() {
 //   try {
