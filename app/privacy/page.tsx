@@ -2,11 +2,12 @@
 
 import { PrivacyPolicyLinks } from "@/components/policyLinks";
 import PrivacyActions from "@/components/privacyAction";
+import ReturnHomeBtn from "@/components/returnToHomeBtn";
 import React from "react";
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="max-w-3xl mx-auto px-6 py-10 bg-gray-50 rounded-xl">
+    <div className="max-w-3xl mx-auto px-6 py-10 mb-8 bg-gray-50 rounded-xl">
       <h1 className="text-3xl font-bold mb-4">Privacy Policy</h1>
       <p className="text-sm text-gray-500 mb-8">Last Updated: October 22, 2025</p>
 
@@ -120,6 +121,9 @@ export default function PrivacyPolicyPage() {
         <br />
         <strong>Email:</strong> [Your Email Address]
       </p>
+      <div className="mt-10">
+        <ReturnHomeBtn/>
+      </div>
     </div>
   );
 }
