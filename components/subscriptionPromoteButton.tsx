@@ -19,9 +19,15 @@ interface SubscriptionButtonProps {
   stripeCustomerId?: string;
   priceId?: string; 
   buttonText?: string; 
+  buttonClassName?: string;
 }
 
-export default function SubscriptionPtomoteButton({ subscriptionStatus, stripeCustomerId, priceId, buttonText }: SubscriptionButtonProps) {
+export default function SubscriptionPtomoteButton({ 
+  subscriptionStatus, 
+  stripeCustomerId, 
+  priceId, 
+  buttonText, 
+  buttonClassName }: SubscriptionButtonProps) {
   const { isSignedIn, user } = useUser();
   const router = useRouter();
 
@@ -59,7 +65,7 @@ export default function SubscriptionPtomoteButton({ subscriptionStatus, stripeCu
     return (
       <button
         onClick={editPaymentDetails}
-        className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
+        className={buttonClassName}
       >
         Edit payment details
       </button>
@@ -68,7 +74,7 @@ export default function SubscriptionPtomoteButton({ subscriptionStatus, stripeCu
     return (
       <button
         onClick={handleClickSubscribeButton}
-        className=""
+        className={buttonClassName}
       >
         {buttonText} {/* Display buttonText */}
       </button>

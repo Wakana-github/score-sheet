@@ -14,7 +14,7 @@ interface PromoteSubscriptionProps {
   onClose?: () => void; // optional
 }
 
-export default function PromoteSubscription({ onClose }: PromoteSubscriptionProps) {
+export default function PromoteSubscription({ onClose }: PromoteSubscriptionProps,) {
   return (
     <div className={styles.subscriptionOverlay}>
       <div className={styles.overlayContent}>
@@ -32,20 +32,22 @@ export default function PromoteSubscription({ onClose }: PromoteSubscriptionProp
           <li> Unlock premium statistics features.</li>
         </ul>
         <div className={styles.subscribeButtonsWrapper}>
-          <div className={styles.subscribeButton}>
+          <div className={styles.subscriptionBtnLayout }>
             <SubscriptionPromoteButton
               priceId={
                 process.env.NEXT_PUBLIC_STRIPE_BETA_SIXMONTH_PRICE_ID as string
               }
               buttonText="Subscribe for 6 months"
+              buttonClassName={styles.subscribeButton}
             />
           </div>
-          <div className={styles.subscribeButton}>
+          <div className={styles.subscriptionBtnLayout}>
             <SubscriptionPromoteButton
               priceId={
                 process.env.NEXT_PUBLIC_STRIPE_BETA_YEAR_PRICE_ID as string
               }
               buttonText="Subscribe for 12 months"
+              buttonClassName={styles.subscribeButton}
             />
           </div>
         </div>

@@ -76,7 +76,7 @@ export type UserCreationType = {
   username: string | null;
   nickname?: string | null; 
   stripeCustomerId?: string;
-  subscriptionStatus?: 'active' | 'trialing' | 'canceled' | 'inactive';
+  subscriptionStatus?: 'active' | 'trialing' | 'canceled' | 'inactive'|"past_due"|"unpaid";
    stripeSubscriptionId?: string;
   stripePriceId?: string;
   planName?: string;
@@ -88,7 +88,7 @@ export type UserUpdateType = {
     email?: string;
     nickname?: string | null; 
     stripeCustomerId?: string;
-    subscriptionStatus?: 'active' | 'trialing' | 'canceled' | 'inactive';
+    subscriptionStatus?: 'active' | 'trialing' | 'canceled' | 'inactive'|"past_due"|"unpaid";
     stripeSubscriptionId?: string;
     stripePriceId?: string;
     planName?: string;

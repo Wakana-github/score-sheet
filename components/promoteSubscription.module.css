@@ -137,10 +137,13 @@
     justify-content: center;
   }}
 
-.subscribeButton {
+.subscriptionBtnLayout {
   display: block;
   width: 100%; /* Take full width of the parent container */
-  background-image: linear-gradient(to top, #182d55 5%, #1e3c72 10, #1861ff 100%);
+  }
+
+.subscribeButton {
+  background-image: linear-gradient(to top, #182d55 5%, #1e3c72 10%, #1861ff 100%);
   color: #fff;
   border: none;
   padding: 10px 8px;
@@ -154,7 +157,7 @@
 }
 
 .subscribeButton:hover {
-  background-color: #0056b3;
+  background-color: #03274e;
   transform: translateY(-2px); /* Slight lift effect on hover */
 }
 
