@@ -23,12 +23,16 @@ import { motion } from "motion/react"
 //Use URL stored in Proxity 
 const PROXY_API_PATH = '/api/records';
 
+interface PlayerNameRecord {
+    memberId: string;
+    name: string;
+}
 
 // ScoreRecord interface (must match score-sheet/page.tsx)
 interface ScoreRecord {
   _id: string; // Unique ID (e.g., timestamp)
   gameTitle: string; // Corresponds to score.title
-  playerNames: string[];
+  playerNames: PlayerNameRecord[];
   scoreItemNames: string[]; // Not used for display, but included in type
   scores: number[][]; // scores is a 2D array of numbers
   numPlayers: number;
@@ -66,6 +70,7 @@ export default function RecordsPage() {
   const [isActiveUser, setIsActiveUser] = useState(false);
   const limit = PAGENATION_LIMIT;  // limit of records per page(constant)
   const totalPages = Math.ceil(totalRecords / limit); 
+  const [csrfToken, setCsrfToken] = useState("");
 
   // Debounce effect: Monitors inputValue and updates filterKeyword after a delay.
   useEffect(() => {
@@ -78,8 +83,24 @@ export default function RecordsPage() {
       };
   }, [inputValue]);
 
-  // Effect to fetch records from the API whenever page or filter keyword changes
-  useEffect(() => {
+   // Get CSRF token
+    useEffect(() => {
+      async function fetchCsrfToken() {
+        try {
+          const res = await fetch("/api/csrf-token", {
+          credentials: "include",  
+        });
+          if (!res.ok) throw new Error("Failed to fetch CSRF token");
+          const data = await res.json();
+          setCsrfToken(data.token); // save token as the state
+        } catch (err) {
+          console.error("Error fetching CSRF token:", err);
+        }
+      }
+      fetchCsrfToken();
+    }, []); // only read once when page is loaded
+
+  // Fetch records from the API 
    async function fetchRecords(){
 
     if (!isLoaded || !isSignedIn) {
@@ -90,11 +111,15 @@ export default function RecordsPage() {
 
       setLoading(true);
       try {
-
+        const token = await getToken(); //Clerk token
         // Prepare the keyword query parameter for filtering
         const keywordQuery = filterKeyword ? `&keyword=${encodeURIComponent(filterKeyword.trim())}` : '';
         // Fetch paginated records from the API endpoint
-        const response = await fetch(`${PROXY_API_PATH}?page=${currentPage}${keywordQuery}`);
+        const response = await fetch(`${PROXY_API_PATH}?page=${currentPage}${keywordQuery}`, {
+          headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
         // Handle error
         if (!response.ok) {
@@ -131,7 +156,8 @@ export default function RecordsPage() {
             return;
         }
       }
-
+  //Set fetch records to render whenever page or filter keyword changes
+  useEffect(() => {
     fetchRecords();
   },  [isLoaded, isSignedIn, getToken, currentPage, filterKeyword]); 
 
@@ -148,8 +174,13 @@ export default function RecordsPage() {
     if (confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
       try {
         // Call DELETE API
+        const token = await getToken(); 
         const response = await fetch(`${PROXY_API_PATH}/${recordId}`, {
           method: 'DELETE',
+          headers: {
+          Authorization: `Bearer ${token}`,
+          "x-csrf-token": csrfToken,
+        },
         });
 
         if (!response.ok) {
@@ -158,7 +189,7 @@ export default function RecordsPage() {
         }
 
        // On successful deletion, reset to page 1 to trigger a full re-fetch    
-       setCurrentPage(1);
+       await fetchRecords();
         alert('Record deleted successfully!');
       } catch (error) {
         console.error('Error deleting record:', error);
@@ -276,7 +307,7 @@ export default function RecordsPage() {
                 variants={itemsVariants}
                 className="p-3 border-b border-gray-400 flex justify-between items-center group hover:bg-gray-50 transition-colors duration-200"
               >
-                <div onClick={() => handleRecordClick(record._id)} className="cursor-pointer flex-grow grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 items-center">
+                <div onClick={() => handleRecordClick(record._id)} className="cursor-pointer grow grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 items-center">
                   {/* Game Name*/}
                   <div className="col-span-2 font-bold text-base lg:text-lg text-dark-green truncate">
                     {record.gameTitle}

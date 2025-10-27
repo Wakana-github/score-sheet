@@ -115,9 +115,14 @@ export default function StatsPage({ isRestricted }: StatsPageProps) {
       } else {
           // Display message: No records found (user is not restricted)
           return (
+            <div>
               <div className="p-4 md:p-8">
                   No records found. Please save some scores to view your stats.
               </div>
+               <div className="my-8">
+                  <ReturnHomeBtn/>
+              </div>
+            </div>
           );
       }
   }

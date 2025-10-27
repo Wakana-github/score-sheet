@@ -82,7 +82,7 @@ export async function GET(
       return NextResponse.json({ message: "Group not found or access denied" }, { status: 404 });
     }
     
-    return NextResponse.json({ message: "Group updated successfully" });
+    return NextResponse.json({ message: "Group updated successfully", data: group });
   } catch (error: unknown) {
     return handleServerError("GET /api/groups/[groupId]", error, 500);
   }

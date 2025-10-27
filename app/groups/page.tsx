@@ -225,7 +225,7 @@ const GroupListPage: React.FC = () => {
                 </div>
 
                 {/* Edit and Delete buttons container */}
-                <div className="space-x-1 flex-shrink-0">
+                <div className="space-x-1 shrink-0">
                   <button
                     onClick={() => handleEdit(group._id)}
                     className="px-3 py-1 m-1 text-base lg:text-lg bg-yellow-600 text-white rounded-md hover:bg-yellow-800"

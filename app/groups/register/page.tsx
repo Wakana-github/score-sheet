@@ -160,7 +160,8 @@ const segmenter = new Intl.Segmenter("ja", { granularity: "grapheme" });
       });
 
       if (!res.ok) throw new Error("Failed to fetch group data");
-       const data: Group = await res.json();
+      const json = await res.json();
+      const data: Group = json.data;
 
       // Set component state using fetched data, decoding names for safety (XSS prevention)
       setGroupName(he.decode(data.groupName));

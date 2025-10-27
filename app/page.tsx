@@ -161,14 +161,14 @@ export default function Home() {
           {/* Privacy and Terms of Service */}
           <div className="flex justify-center gap-6 text-gray-700 mt-10">
               <Link
-                href="/privacy"
+                href="/privacy/policy"
                 className="hover:text-blue-600 hover:underline transition-colors"
               >
                 Privacy Policy
               </Link>
               <span className="text-gray-400">|</span>
               <Link
-                href="/terms"
+                href="/privacy/terms"
                 className="hover:text-blue-600 hover:underline transition-colors"
               >
                 Terms of Service

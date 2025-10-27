@@ -15,6 +15,8 @@ const isPublicRoute = createRouteMatcher([
   '/custom-sheet',
   '/api/webhooks(.*)',
   '/api/games',
+  '/privacy/terms',
+  '/privacy/policy'
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

@@ -110,7 +110,7 @@ export default function ScoreSheetPage() {
         <div className="flex flex-col justify-center items-center  mt-[-30]">
           <button
             onClick={handleToggleTotal}
-            className="py-1 px-5 rounded-lg hand_font text-lg lg:text-2xl bg-[#4A4A46] hover:bg-gray-400 text-white w-auto whitespace-nowrap"
+            className="py-1 px-8 rounded-lg hand_font text-lg lg:text-2xl bg-[#b43d06] hover:bg-[#c77047] text-white w-auto whitespace-nowrap"
           >
             {showTotal ? "Hide Total" : "Show Total"}
           </button>

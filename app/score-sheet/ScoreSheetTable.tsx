@@ -284,7 +284,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
               <thead className="sticky top-0 z-0">
                 <tr>
                   {/* score items' header) */}
-                  <th className="table_green py-1 lg:py-2 text-center hand_font uppercase tracking-wider border-r border-gray-400 w-[80px] max-w-[100px] lg:w-[110px] lg:max-w-[110px] sticky left-0 z-0">
+                  <th className="table_green py-1 lg:py-2 text-center hand_font uppercase tracking-wider border-r border-gray-400 w-20 max-w-[100px] lg:w-[110px] lg:max-w-[110px] sticky left-0 z-0">
                     Score Items
                   </th>
                   {/* Player's header */}
@@ -292,7 +292,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                     .map((_, i) => (
                       <th
                         key={i}
-                        className={`table_green px-1 py-1 hand_font border-r border-gray-400 text-center min-w-[80px] max-w-[80px] lg:min-w-[80px] 
+                        className={`table_green px-1 py-1 hand_font border-r border-gray-400 text-center min-w-20 max-w-20 lg:min-w-20
                       ${getRankBackgroundColor(i)}`}
                       >
                         <input
@@ -329,7 +329,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                   .map((itemName: string, rowIdx: number) => (
                     <tr key={rowIdx}>
                       {/* Score Items */}
-                      <td className="px-1 py-1 lg:py-2 border-r hand_font border-gray-400 w-24 text-center text-black min-w-[80px] max-w-[100px] sticky left-0 z-0 bg-[#f1e9e1]">
+                      <td className="px-1 py-1 lg:py-2 border-r hand_font border-gray-400 w-24 text-center text-black min-w-20 max-w-[100px] sticky left-0 z-0 bg-[#f1e9e1]">
                         <input
                           type="text"
                           value={he.decode(scoreData.scoreItemNames[rowIdx])}
@@ -357,7 +357,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                         (_, colIdx) => (
                           <td
                             key={colIdx}
-                            className="px-1 border-r hand_font border-gray-400 text-center text-black min-w-[60px] max-w-[80px] lg:min-w-[80px]"
+                            className="px-1 border-r hand_font border-gray-400 text-center text-black min-w-[60px] max-w-20 lg:min-w-20"
                           >
                             <input
                               type="text"
@@ -418,7 +418,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                     .map((total: number, i: number) => (
                       <td
                         key={`total-${i}`}
-                        className={`px-1 py-0.5 border-r hand_font border-gray-400 text-center min-w-[60px] max-w-[80px] ${getRankBackgroundColor(
+                        className={`px-1 py-0.5 border-r hand_font border-gray-400 text-center min-w-[60px] max-w-20 ${getRankBackgroundColor(
                           i
                         )}`}
                       >

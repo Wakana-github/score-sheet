@@ -18,6 +18,8 @@ import { fadeInVariants, itemsVariants, gameDetailVariants, detailItemVariants }
 import { motion, AnimatePresence } from "motion/react"
 import PromoteSubscription from "@/components/promoteSubscription";
 import LoadingPage from "@/components/loadingPage";
+import Link from "next/link";
+
 
 interface Group {
   _id: string;
@@ -87,7 +89,7 @@ export default function GroupStatsPage() {
                 const groupRes = await fetch("/api/groups", { credentials: "include" });
                 if (!groupRes.ok) throw new Error(`Failed to fetch groups: ${groupRes.status}`);
                 const groupData = await groupRes.json();
-                setGroups(groupData || []);
+                setGroups(groupData.data || []);
             }
             
         } catch (err) {
@@ -175,8 +177,15 @@ export default function GroupStatsPage() {
     return (
         <motion.div variants={fadeInVariants} className="p-6 space-y-4">
             <h1 className="text-3xl md:text-4xl font-bold mb-4 hand_font">Group Statistics</h1>
-            <p className="text-xl">You have no groups yet. Please create a group to view statistics.</p>
-            <ReturnHomeBtn/>
+            <p className="text-lg md:text-xl">You have no groups yet. Please create a group to view statistics.</p>
+            <Link href="/groups/register" passHref>
+              <button className="bg-gray-600 hover:bg-gray-700 hand_font text-white py-1 px-4 rounded-lg text-lg lg:text-2xl">
+                Create Group
+              </button>
+            </Link>
+            <div className="mt-3">
+              <ReturnHomeBtn/>
+            </div>
         </motion.div>
     );
 }

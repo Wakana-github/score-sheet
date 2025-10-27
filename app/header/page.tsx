@@ -41,10 +41,22 @@ export default function Header() {
     closeMenu();
   };
 
+  // Close the menu when outsite of the mobile menu is clicked
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (isMenuOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        closeMenu();
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [isMenuOpen]);
+
+  
+
 //Retreive user data
   useEffect(() => {
     const fetchUserData = async () => {
-
       if (isSignedIn && user) {
         setIsLoadingUserData(true);
         const fetchedData = await fetchUserRecord();
@@ -58,9 +70,12 @@ export default function Header() {
     fetchUserData();
   }, [isSignedIn, user]);
 
+
+
+
   return (
     <header className="h-16 bg-white shadow-xl fixed top-0 w-full header-styles z-10">
-      <div className="max-w-screen-xl mx-auto flex justify-between items-center h-full px-4">
+      <div className="max-w-7xl mx-auto flex justify-between items-center h-full px-4">
         <div className="left-section flex items-center gap-3">
 
           {/* Mobile menu open icon (visible only on mobile) */}
@@ -108,6 +123,13 @@ export default function Header() {
         </div>
         
 
+        {/* Overlay when Mobile menu */}
+        {isMenuOpen && (
+          <div
+            className="fixed inset-0 bg-gray-300 opacity-30 z-80"
+            onClick={closeMenu}
+          />
+        )}
         {/* Main Navigation Menu (slides in from right on mobile) */}
         <ul ref={menuRef} className={`main-nav-ul ${isMenuOpen ? "open" : ""}`}>
           <FaTimes
@@ -203,7 +225,7 @@ export default function Header() {
         </ul>
 
         {/* Right section: Clerk authentication buttons (Desktop only) */}
-        <div className="right-section hidden lg:flex items-center gap-2 mx-3 flex-grow justify-end">
+        <div className="right-section hidden lg:flex items-center gap-2 mx-3 grow justify-end">
         {/*  Display the sign in/up button if signed in */}
           <SignedOut>
             <SignInButton />

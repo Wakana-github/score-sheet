@@ -165,6 +165,7 @@ export default function CustomSheetPage() {
                 value={scoreItemsCount === null ? "" : scoreItemsCount}
                 onChange={handleScoreItemsCountChange}
                 min="1"
+                max={MAX_SCORE_ITEMS}
                 placeholder="5"
                 className="text-lg p-2 rounded-md focus:outline-none focus:ring-1 focus:dark_green outline-none border-none ring-0 shadow-none text-center w-24 bg-white"
               />
@@ -184,6 +185,7 @@ export default function CustomSheetPage() {
                 value={playersCount === null ? "" : playersCount}
                 onChange={handlePlayersCountChange}
                 min="1"
+                max={MAX_PLAYERS}
                 placeholder="5"
                 className="text-lg bg-white p-2 rounded-md focus:outline-none focus:ring-1 focus:dark_green outline-none border-none ring-0 shadow-none text-center w-24"
               />
@@ -196,7 +198,7 @@ export default function CustomSheetPage() {
           {/* Use this sheet button  */}
           <button
             onClick={handleUseThisSheet}
-            className="dark_green font-bold hand_font py-2 lg:py-3 px-6 rounded-lg text-2xl lg:text-4xl mt-3 lg:mt-4 w-[100%] max-w-xs"
+            className="dark_green font-bold hand_font py-2 lg:py-3 px-6 rounded-lg text-2xl lg:text-4xl mt-3 lg:mt-4 w-full max-w-xs"
           >
             Use This Sheet
           </button>

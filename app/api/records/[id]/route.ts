@@ -39,10 +39,7 @@ type RouteContext = {
 };
 
 //GET:Fetch a single record by ID
-export async function GET(
-  request: Request,
-  context: { params: { id: string } }
-) {
+export async function GET(request: Request, context: { params: { id: string } }) {
   const { userId } = await auth();
   const { id } = await context.params;
   if (!userId) {
