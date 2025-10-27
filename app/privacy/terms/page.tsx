@@ -1,5 +1,6 @@
 "use client";
 import ReturnHomeBtn from "@/components/returnToHomeBtn";
+import TestCredentials from "@/components/TestCredencial";
 import React from "react";
 
 
@@ -63,11 +64,7 @@ export default function TermsOfUsePage() {
         </li>
         <li>
           You can try the app using the following test credentials:
-          <ul className="list-none pl-6 mt-2">
-            <li>Username: testuser</li>
-            <li>Password: scoreapptestuser1</li>
-            <li>Test credit card: 4242 4242 4242 4242</li>
-          </ul>
+          <TestCredentials/>
         </li>
       </ul>
 

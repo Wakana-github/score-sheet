@@ -10,6 +10,7 @@ import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import LoadingPage from "@/components/loadingPage";
+import ReturnHomeBtn from "@/components/returnToHomeBtn";
 
 export default function SetNicknamePage() {
   const { user, isLoaded } = useUser();
@@ -97,31 +98,37 @@ export default function SetNicknamePage() {
   };
 
   return (
-    <div className="container mx-auto p-4 flex justify-center lg:my-12">
-    <div className="w-full max-w-lg">
-      <h1 className="text-3xl lg:text-5xl hand_font font-bold mb-4">Set Your Nickname</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <label htmlFor="nickname" className="text-lg lg:text-2xl">
-          Nickname: {user.publicMetadata?.nickname as string || user.username || "Not set"}
-        </label>
-        <input
-          type="text"
-          id="nickname"
-          value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
-          className="border p-2 rounded-md text-lg"
-          placeholder="Enter new nickname"
-        />
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="bg-[#535f0c] text-lg text-white p-2 rounded-md hover:bg-[#6f8012] disabled:bg-gray-400"
-        >
-          {isSubmitting ? "Saving..." : "Save Nickname"}
-        </button>
-      </form>
-      {message && <p className="mt-4 text-red-500 text-base lg:text-lg">{message}</p>}
+    <div className="container mx-auto p-4 ">
+      <div className="flex justify-center lg:my-12">
+        <div className="w-full max-w-lg">
+          <h1 className="text-3xl lg:text-5xl hand_font font-bold mb-4">Set Your Nickname</h1>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <label htmlFor="nickname" className="text-lg lg:text-2xl">
+              Nickname: {user.publicMetadata?.nickname as string || user.username || "Not set"}
+            </label>
+            <input
+              type="text"
+              id="nickname"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              className="border p-2 rounded-md text-lg"
+              placeholder="Enter new nickname"
+            />
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-[#535f0c] text-lg text-white p-2 rounded-md hover:bg-[#6f8012] disabled:bg-gray-400"
+            >
+              {isSubmitting ? "Saving..." : "Save Nickname"}
+            </button>
+          </form>
+          {message && <p className="mt-4 text-red-500 text-base lg:text-lg">{message}</p>}
+        </div>
+      </div>
+      <div className="my-10 ml-4">
+        <ReturnHomeBtn/>
+      </div>
     </div>
-</div>
+
   );
 }

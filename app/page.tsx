@@ -136,30 +136,44 @@ export default function Home() {
          <div className="my-2 lg:my-4 flex justify-center items-center gap-4 text-lg lg:text-2xl"> {/* flex, justify-center, items-center, gap-4 を追加してボタンを中央に並べる */}
             <SignedOut>
               {/* Sign-in button*/}
-              <SignInButton
+              {/* <SignInButton
                 mode="modal" // Opens the sign-in form in a modal
               >
                 {/* log in button */}
+                {/* <button className="bg-transparent border-none  cursor-pointer p-0"> */}
+                  {/* <span className=" hand_font underline">log in</span>
+                </button> */}
+              {/* </SignInButton> */} 
+
+              <Link href="/sign-in">
                 <button className="bg-transparent border-none  cursor-pointer p-0">
-                  <span className=" hand_font underline">log in</span>
+                  <span className="hand_font underline">log in</span>
                 </button>
-              </SignInButton>
+              </Link>
 
               {/* Separator */}
               <span> / </span>
 
               {/* Sign-up button */}
               {/* Opens the sign-up form in a modal */}
-              <SignUpButton mode="modal">
+              {/* <SignUpButton mode="modal">
                 {/* sign up button */}
-                <button className="bg-[#a81010] rounded-full border-none  cursor-pointer px-3 py-1"> 
+                {/* <button className="bg-[#a81010] rounded-full border-none  cursor-pointer px-3 py-1">  */}
+                  {/* <span className="text-white hand_font">sign up</span> */}
+                {/* </button> */}
+              {/* </SignUpButton> */} 
+
+              <Link href="/sign-in">
+                <button className="bg-[#a81010] rounded-full border-none cursor-pointer px-3 py-1">
                   <span className="text-white hand_font">sign up</span>
                 </button>
-              </SignUpButton>
+              </Link>
+
             </SignedOut>
           </div>
+
           {/* Privacy and Terms of Service */}
-          <div className="flex justify-center gap-6 text-gray-700 mt-10">
+          <div className="flex justify-center gap-6 text-gray-700 mt-5">
               <Link
                 href="/privacy/policy"
                 className="hover:text-blue-600 hover:underline transition-colors"

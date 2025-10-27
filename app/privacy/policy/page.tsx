@@ -3,6 +3,7 @@
 import { PrivacyPolicyLinks } from "@/components/policyLinks";
 import PrivacyActions from "@/components/privacyAction";
 import ReturnHomeBtn from "@/components/returnToHomeBtn";
+import TestCredentials from "@/components/TestCredencial";
 import React from "react";
 
 export default function PrivacyPolicyPage() {
@@ -14,11 +15,7 @@ export default function PrivacyPolicyPage() {
       {/* Test Credentials Block */}
       <h3 className="font-semibold mb-2 text-lg">Test Credentials for App Trial:</h3>
       <div className="p-4 border border-dashed border-gray-400 rounded-md">
-        <ul className="list-none ml-0 space-y-0.5">
-          <li><strong>Username:</strong> testuser</li>
-          <li><strong>Password:</strong> scoreapptestuser1</li>
-          <li><strong>Test Credit Card:</strong> 4242 4242 4242 4242</li>
-        </ul>
+        <TestCredentials/>
       </div>
       <p className="mt-2 text-gray-600 mb-8">You can use this test account to explore all features, including the Stripe payment gateway in test mode.</p>
 

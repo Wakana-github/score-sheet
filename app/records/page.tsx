@@ -232,6 +232,7 @@ export default function RecordsPage() {
                     key={number}
                     onClick={() => setCurrentPage(number)}
                     className={`mx-1 px-3 py-1 rounded-lg ${currentPage === number ? 'bg-gray-600 text-white' : 'bg-gray-300 hover:bg-gray-800 hover:text-white'}`}
+                    aria-current={currentPage === number ? "page" : undefined}
                 >
                     {number}
                 </button>
@@ -307,7 +308,10 @@ export default function RecordsPage() {
                 variants={itemsVariants}
                 className="p-3 border-b border-gray-400 flex justify-between items-center group hover:bg-gray-50 transition-colors duration-200"
               >
-                <div onClick={() => handleRecordClick(record._id)} className="cursor-pointer grow grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 items-center">
+                <a href={`/score-sheet?recordId=${record._id}`}
+                  className="cursor-pointer grow grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 items-center"
+                  aria-label={`Open record for ${record.gameTitle}`}
+                >
                   {/* Game Name*/}
                   <div className="col-span-2 font-bold text-base lg:text-lg text-dark-green truncate">
                     {record.gameTitle}
@@ -328,11 +332,12 @@ export default function RecordsPage() {
                       onClick={(e) => { e.stopPropagation(); handleDeleteRecord(record._id); }} // Prevent parent click
                       className="bg-gray-300 hover:bg-gray-500 font-bold py-1 px-2 rounded-md text-sm sm:text-lg group-hover:opacity-100 transition-opacity duration-200"
                       title="Delete Record"
+                      aria-label="Delete Record"
                     >
                       <RiDeleteBinLine/>
                     </button>
                   </div>
-                </div>
+                </a>
               </motion.div>
             ))}
           </motion.div>

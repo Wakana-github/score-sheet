@@ -5,6 +5,7 @@ import Link from "next/link";
 import LoadingPage from "@/components/loadingPage";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
+import TestCredentials from "@/components/TestCredencial";
 
 // Get page title from URL path
 const getPageTitleFromUrl = (urlPath: string) => {
@@ -52,6 +53,13 @@ export default function Page() {
         Sign in to See: {pageTitle}
       </h1>
 
+      {/* Warning and Test credencials */}
+      <div className="mb-6">
+          <p className="text-xl mt-3">Please<span className="text-red-700 font-semibold"> do Not</span>  use your personal information.</p>
+          <Link href="./privacy/policy" className="text-base">(Read Privacy Policy)</Link>
+          <h2 className ="text-xl font-bold">Test Credencials:</h2>
+          <TestCredentials/>
+      </div>
       {/* Clerk SignIn */}
       <div className="w-full flex items-center justify-center normal_font">
         <SignIn fallbackRedirectUrl={"/"} />
