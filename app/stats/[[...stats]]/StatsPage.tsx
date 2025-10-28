@@ -150,7 +150,7 @@ export default function StatsPage({ isRestricted }: StatsPageProps) {
             <PromoteSubscription />
         </div>
       )}
-      
+
       {/* title */}
       <motion.h1 variants={itemsVariants}
                  className="text-3xl md:text-4xl font-bold mb-4 hand_font"
@@ -237,14 +237,14 @@ export default function StatsPage({ isRestricted }: StatsPageProps) {
 
       {/* Stats for selected game */}
       {selectedGame && (
-      <AnimatePresence mode="wait" initial={true}> 
+      <AnimatePresence mode="wait" initial={false}> 
         <motion.div 
             // Reruns animation when the game changes
             key={selectedGame.gameTitle} 
             variants={gameDetailVariants} // parent variants
             initial="initial"
             animate="animate"
-            exit="exit" // Enable exit animation
+            exit="exit" // Enable exit animation  
             layout
         >
           <motion.h2 variants={detailItemVariants} 

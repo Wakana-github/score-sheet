@@ -31,18 +31,15 @@ export  const itemsVariants = {
 //---------- stats page ---------------
   // Variants for independent game detail section 
   export const gameDetailVariants: Variants = {
-    initial: { 
-        opacity: 0, 
-        y: -20 
-    },
-    animate: {
-        opacity: 1,
-        y: 0,
+    initial: { opacity: 0, y: -20},
+    animate: {opacity: 1, y: 0,
         transition: {
             // Stagger settings to create a delay between title and cards 
-            staggerChildren: 0.1, 
+            staggerChildren: 0.2, 
             delayChildren: 0.1,
             duration: 0.3,
+            delay: 1.5,
+            
         } as Transition,
     },
     // Settings for the old element to fade out when the game changes
@@ -57,15 +54,12 @@ export  const itemsVariants = {
 
 // For child elements within gameDetailVariants (stats pages)
 export const detailItemVariants: Variants = {
-    initial: { 
-        opacity: 0, 
-        y: -20 
-    },
-    animate: { 
-        opacity: 1, 
-        y: 0,
+    initial: { opacity: 0, y: -20},
+    animate: { opacity: 1, y: 0,
         transition: {
-            duration: 0.3
+            delay: 0.3,
+            staggerChildren: 0.2,
+            duration: 0.3,
         } as Transition,
     },
     exit: {
