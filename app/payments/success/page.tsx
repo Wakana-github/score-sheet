@@ -33,7 +33,7 @@ const SuccessPayment = () => {
           Payment Successful!
         </h1>
         <p className="text-lg text-green-600 font-semibold mb-4">
-          Thank you for your purchase.
+          Thank you for subscribing.
         </p>
         
         {/* Details */}
