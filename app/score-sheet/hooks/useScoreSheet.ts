@@ -121,8 +121,10 @@ export default function useScoreSheet() {
         console.error("Error fetching CSRF token:");
       }
     }
-    fetchCsrfToken();
-  }, []);
+    if (isSignedIn) {
+       fetchCsrfToken();
+   }
+  }, [isSignedIn]);
 
   //Ref for max scores to retain data.
   const allScores = useRef<string[][]>(
