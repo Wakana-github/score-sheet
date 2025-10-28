@@ -21,7 +21,7 @@
 /* Subscription Overlay */
 .subscriptionOverlay {
   position: fixed;
-  top: 0;
+  top: 60px;
   left: 0;
   right: 0;
   bottom: 0;
@@ -48,7 +48,7 @@
   border-radius: 10px;
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6); /* Strong shadow for a floating look */
   max-width: 500px;
-  margin: 30px auto;
+  margin: 10px auto;
   max-height: calc(100vh - 60px);
   overflow-y: auto;
   color: black; 
@@ -125,6 +125,7 @@
   border: none;
   padding: 10px 10px;
   border-radius: 5px;
+  margin-top:20px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
@@ -158,6 +159,12 @@
 .subscribeButton:hover {
   background-color: #03274e;
   transform: translateY(-2px); /* Slight lift effect on hover */
+}
+
+@media (max-width: 1024px) {
+  .subscriptionOverlay {
+    top: 0px;
+  }
 }
 
 

@@ -62,9 +62,15 @@ export default function StatsPage({ isRestricted }: StatsPageProps) {
       //Exit the function if Clerk hasn't finished loading user data or if the user is not signed in.
       if (!isLoaded || !isSignedIn) return;
 
+      //If the access is restricted
+      if (isRestricted) {
+          setLoading(false); 
+          return;
+      }
       // Start loading state to display the LoadingPage component.
       setLoading(true);
       setError(null);
+      
 
       try {
         const response = await fetch("/api/stats/personal");
@@ -81,7 +87,7 @@ export default function StatsPage({ isRestricted }: StatsPageProps) {
       }
     };
     fetchStats();
-  }, [isLoaded, isSignedIn]);
+  }, [isLoaded, isSignedIn,isRestricted]);
 
   if (error) {
         throw error; 
@@ -139,6 +145,12 @@ export default function StatsPage({ isRestricted }: StatsPageProps) {
                       whileInView="show"
                       animate="show" 
                       className="mt-4 p-4 md:p-8 relative">
+      {showSubscriptionPrompt && (
+        <div>
+            <PromoteSubscription />
+        </div>
+      )}
+      
       {/* title */}
       <motion.h1 variants={itemsVariants}
                  className="text-3xl md:text-4xl font-bold mb-4 hand_font"
@@ -311,11 +323,7 @@ export default function StatsPage({ isRestricted }: StatsPageProps) {
       <div className="my-8">
         <ReturnHomeBtn/>
       </div>
-      {showSubscriptionPrompt && (
-          <div>
-              <PromoteSubscription />
-          </div>
-      )}
+
     </motion.div>
   );
 }
