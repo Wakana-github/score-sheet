@@ -97,11 +97,9 @@ export async function generateCsrfToken() {
 //-----------Validate CSRF Token------------------
 export async function verifyCsrfToken(request: Request) {
   if (request.method === "GET") return null;
-
   const cookieStore = await cookies();
   const storedToken = cookieStore.get("csrf_token")?.value;
   const headerToken = request.headers.get("x-csrf-token");
-
   if (!storedToken || !headerToken || storedToken !== headerToken) {
     return NextResponse.json({ message: "Invalid CSRF token." }, { status: 403 });
   }

@@ -69,29 +69,23 @@ const GroupListPage: React.FC = () => {
             setLoading(false); 
             return;
         }
-
-
       setLoading(true);
       try {
-
         // get the JWT for API authorization
         const token = await getToken();
         if (!token) {
           throw new Error('No authentication token found.');
         }
-
         // Fetch groups owned by the current user
         const res = await fetch(API_BASE_URL, {
           headers: {
             'Authorization': `Bearer ${token}`
           },
         });
-
         if (!res.ok) {
           const errorData = await res.json();
           throw new Error(`Failed to fetch groups`);
         }
-
         const resJson = await res.json();
         const data: Group[] = resJson.data;
         const decodedGroups = data.map((group: Group) => ({

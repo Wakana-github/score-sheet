@@ -49,7 +49,7 @@ export const sanitizeAndValidateString = (
   // Measure visible length (multi-byte safe)
   const segmenter = new Intl.Segmenter("ja", { granularity: "grapheme" });
   const realLength = [...segmenter.segment(trimmed)].length;
-
+  //Check input length
   if (realLength > maxLength) {
     return { error: `${fieldName} cannot exceed ${maxLength} characters.` };
   }

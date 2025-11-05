@@ -546,8 +546,7 @@ export default function useScoreSheet() {
       return;
     }
     const normalizedTitle = newTitle.trim().normalize("NFC"); // normalise
-    const length = [...segmenter.segment(normalizedTitle)].length; // count per grapheme
-
+    const length = [...segmenter.segment(normalizedTitle)].length; // count per graphemeX
     if (length > MAX_TITLE_LENGTH) {
       alert(`Game title cannot exceed ${MAX_TITLE_LENGTH} characters.`);
       return;
@@ -563,17 +562,14 @@ export default function useScoreSheet() {
         alert("Cannot change player names while a group is selected.");
         return;
       }
-
       if (!allowedNameRegex.test(newName)) {
         alert(
           "Player names can only contain letters, numbers, Japanese characters, and some emojis."
         );
         return;
       }
-
       const normalizedName = newName.trim().normalize("NFC");
       const length = [...segmenter.segment(normalizedName)].length;
-
       if (length > MAX_NAME_LENGTH) {
         alert(`Player name cannot exceed ${MAX_NAME_LENGTH} characters.`);
         return;

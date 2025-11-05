@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     description: "Portfolio: Track and manage your board game scores easily.",
     images: ["/score-sheet.png"],
     site: "https://score-sheet-idq6.vercel.app",
-    creator: "waka G", 
+    creator: "@wakana_g", 
   },
 };
 export const viewport: Viewport = {
