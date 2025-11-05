@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     url: "https://score-sheet-idq6.vercel.app",
     images: [
       {
-        url: "/score-sheet.png",
+        url: "https://score-sheet-idq6.vercel.app/app_img.png",
         width: 1200,
         height: 630,
         alt: "Score Sheet App Preview",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",   //large img
     title: "Score Sheet App",
     description: "Portfolio: Track and manage your board game scores easily.",
-    images: ["/score-sheet.png"],
+    images: ["https://score-sheet-idq6.vercel.app/app_img.png"],
     site: "https://score-sheet-idq6.vercel.app",
     creator: "@wakana_g", 
   },
