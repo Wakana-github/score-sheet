@@ -306,7 +306,7 @@ export default function RecordsPage() {
               <motion.div
                 key={record._id}
                 variants={itemsVariants}
-                className="p-3 border-b border-gray-400 flex justify-between items-center group hover:bg-gray-50 transition-colors duration-200"
+                className="p-3 border-b border-gray-400 flex justify-between items-center group hover:bg-gray-50 hover:text-black transition-colors duration-200"
               >
                 <a href={`/score-sheet?recordId=${record._id}`}
                   className="cursor-pointer grow grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 items-center"
@@ -321,7 +321,7 @@ export default function RecordsPage() {
                     {record.numPlayers}
                   </div>
                   {/* Last Saved Date/Time - Using normal_font for record content */}
-                  <div className="col-span-1 md:col-span-2 text-center text-gray-800 text-sm lg:text-base dark:text-white"> 
+                  <div className="col-span-1 md:col-span-2 text-center  text-sm lg:text-base"> 
                     {new Date(record.lastSavedAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     {' '}
                     {new Date(record.lastSavedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

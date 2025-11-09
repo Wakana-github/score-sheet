@@ -198,7 +198,7 @@ export default function CustomSheetPage() {
           {/* Use this sheet button  */}
           <button
             onClick={handleUseThisSheet}
-            className="dark_green font-bold hand_font py-2 lg:py-3 px-6 rounded-lg text-2xl lg:text-4xl mt-3 lg:mt-4 w-full max-w-xs dark:border dark:border-gray-300"
+            className="dark_green font-bold hand_font py-2 lg:py-3 px-6 rounded-lg text-2xl lg:text-4xl mt-3 lg:mt-4 w-full max-w-xs dark:border dark:border-gray-300 hover:scale-105"
           >
             Use This Sheet
           </button>
