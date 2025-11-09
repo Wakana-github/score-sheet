@@ -6,9 +6,9 @@ import React from "react";
 
 export default function TermsOfUsePage() {
   return (
-    <div className="max-w-3xl mx-auto px-6 py-10 mb-8 bg-gray-50 rounded-xl">
+    <div className="max-w-3xl mx-auto px-6 py-10 mb-8 bg-gray-50 rounded-xl dark:bg-gray-800">
       <h1 className="text-3xl font-bold mb-4">Terms of Use</h1>
-      <p className="text-sm text-gray-500 mb-8">Last Updated: October 26, 2025</p>
+      <p className="text-sm text-gray-500 mb-8 dark:text-gray-300">Last Updated: October 26, 2025</p>
 
       <h2 className="text-2xl font-semibold mt-8 mb-3">1. Purpose of This Terms</h2>
       <ul className="list-disc pl-6 mb-6 space-y-2">

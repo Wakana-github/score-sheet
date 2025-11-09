@@ -59,7 +59,7 @@ export default function PrivacyAction() {
       <button
         onClick={handleExportData}
         disabled={loading === "export"}
-        className=" text-sm px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:bg-gray-400"
+        className=" text-sm px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:bg-gray-400 dark:border dark:border-gray-300"
       >
         {loading === "export" ? "Exporting..." : "Export My Data"}
       </button>

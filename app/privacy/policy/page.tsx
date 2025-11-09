@@ -8,16 +8,16 @@ import React from "react";
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="max-w-3xl mx-auto px-6 py-10 mb-8 bg-gray-50 rounded-xl">
+    <div className="max-w-3xl mx-auto px-6 py-10 mb-8 bg-gray-50 rounded-xl dark:bg-gray-800">
       <h1 className="text-3xl font-bold mb-4">Privacy Policy</h1>
-      <p className="text-sm text-gray-500 mb-8">Last Updated: October 22, 2025</p>
+      <p className="text-sm text-gray-500 mb-8 dark:text-gray-300">Last Updated: October 22, 2025</p>
 
       {/* Test Credentials Block */}
       <h3 className="font-semibold mb-2 text-lg">Test Credentials for App Trial:</h3>
       <div className="p-4 border border-dashed border-gray-400 rounded-md">
         <TestCredentials/>
       </div>
-      <p className="mt-2 text-gray-600 mb-8">You can use this test account to explore all features, including the Stripe payment gateway in test mode.</p>
+      <p className="mt-2 text-gray-600 mb-8 dark:text-gray-300">You can use this test account to explore all features, including the Stripe payment gateway in test mode.</p>
 
       {/* Warning */}
       <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-900 p-4 mb-6 rounded-md">
@@ -125,12 +125,12 @@ export default function PrivacyPolicyPage() {
         {/* <li>You have the right to access, correct, delete, or restrict the use of your personal data.</li> */}
           <li><strong>a. Right to Data Portability (Feature not yet active):</strong> 
           You have the right to receive your personal data in a structured, commonly used, and machine-readable format. 
-          <span className="text-red-600"> **This functionality is being developed for a future release.**</span>
+          <span className="text-red-600 dark:text-yellow-200"> **This functionality is being developed for a future release.**</span>
         </li>
         {/* <li>Through the data export feature located on the app's "Privacy" page, you can download all of your data held by us, including information managed and referenced by us through our third-party partners, in a machine-readable format.</li> */}
         <li><strong>b. Right to Erasure (Feature not yet active):</strong> 
           You have the right to request the deletion of your personal data under certain circumstances.
-          <span className="text-red-600"> **The dedicated in-app deletion feature is not available in this test phase.**</span></li>
+          <span className="text-red-600 dark:text-yellow-200"> **The dedicated in-app deletion feature is not available in this test phase.**</span></li>
         <li>Upon request made through the in-app account deletion feature, we will proceed with the deletion of your personal data from our databases and from associated third-party services.</li>
         {/* <li><strong>Retention of Transaction History:</strong> Please note that financial services, such as Stripe, are required to retain past payment and billing records for a certain period based on legal obligations (e.g., tax laws, financial regulations).</li>
         <li>For detailed logs or information processed and retained by our third-party partners for their own purposes, which is not managed by us, please refer to the partners' privacy policies below or contact them directly to exercise your rights.</li>
