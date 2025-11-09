@@ -82,13 +82,13 @@ export default function CustomSheetPage() {
       setGameNameError('Please enter a game name.');
       hasError = true;
     } else if (!allowedTitleRegex .test(gameName)) {
-      setGameNameError('Game names can only use alphanumeric characters, Japanese characters, and the symbols -, _, and .');
+      setGameNameError('Invalid input');
       hasError = true;
     }
 
     // Score Items Count Validation
     if (scoreItemsCount === null || scoreItemsCount < 1) {
-      setScoreItemsError('Must be 1 or greater.'); // Set inline error
+      setScoreItemsError('Must be 1 or greater'); // Set inline error
       hasError = true;
     }
     if (scoreItemsCount! > MAX_SCORE_ITEMS) {
@@ -133,21 +133,21 @@ export default function CustomSheetPage() {
 
           {/* Game name Input Section*/}
           <div className="mt-3 lg:mt-5">
-            <label htmlFor="gameName" className="text-2xl hand_font block md:text-3xl">
+            <label htmlFor="gameName" className="text-2xl hand_font block md:text-3xl ">
               Game Name:{" "}
             </label>
-            <div className="flex justify-center">
+            <div className="flex justify-center dark:text-black">
               <input
                 type="text"
                 id="gameName"
                 value={gameName}
                 onChange={handleGameNameChange}
                 placeholder="My original game"
-                className=" text-lg bg-white p-3 rounded-md focus:outline-none focus:ring-1 focus:dark_green outline-none border-none ring-0 shadow-none text-center w-auto"
+                className=" text-lg bg-white p-3 rounded-md focus:outline-none focus:ring-1 focus:dark_green outline-none border-none ring-0 shadow-none text-center w-auto "
               />
             </div>
             {gameNameError && (
-              <p className=" text-red-500 text-xs mt-1">{gameNameError}</p>
+              <p className=" text-red-500 text-xs lg:text-base mt-1 dark:text-yellow-200">{gameNameError}</p>
             )}
           </div>
 
@@ -167,10 +167,10 @@ export default function CustomSheetPage() {
                 min="1"
                 max={MAX_SCORE_ITEMS}
                 placeholder="5"
-                className="text-lg p-2 rounded-md focus:outline-none focus:ring-1 focus:dark_green outline-none border-none ring-0 shadow-none text-center w-24 bg-white"
+                className="text-lg p-2 rounded-md focus:outline-none focus:ring-1 focus:dark_green outline-none border-none ring-0 shadow-none text-center w-24 bg-white dark:text-black"
               />
                {scoreItemsError && (
-                <p className=" text-red-500 text-xs lg:text-base  mt-1">{scoreItemsError}</p>
+                <p className=" text-red-500 text-xs lg:text-base  mt-1 dark:text-yellow-200">{scoreItemsError}</p>
               )}
             </div>
 
@@ -187,10 +187,10 @@ export default function CustomSheetPage() {
                 min="1"
                 max={MAX_PLAYERS}
                 placeholder="5"
-                className="text-lg bg-white p-2 rounded-md focus:outline-none focus:ring-1 focus:dark_green outline-none border-none ring-0 shadow-none text-center w-24"
+                className="text-lg bg-white p-2 rounded-md focus:outline-none focus:ring-1 focus:dark_green outline-none border-none ring-0 shadow-none text-center w-24 dark:text-black"
               />
                {playersError && (
-                <p className="text-red-500 text-xs lg:text-base mt-1">{playersError}</p>
+                <p className="text-red-500 text-xs lg:text-base mt-1 dark:text-yellow-200">{playersError}</p>
               )}
             </div>
           </div>
@@ -198,7 +198,7 @@ export default function CustomSheetPage() {
           {/* Use this sheet button  */}
           <button
             onClick={handleUseThisSheet}
-            className="dark_green font-bold hand_font py-2 lg:py-3 px-6 rounded-lg text-2xl lg:text-4xl mt-3 lg:mt-4 w-full max-w-xs"
+            className="dark_green font-bold hand_font py-2 lg:py-3 px-6 rounded-lg text-2xl lg:text-4xl mt-3 lg:mt-4 w-full max-w-xs dark:border dark:border-gray-300"
           >
             Use This Sheet
           </button>

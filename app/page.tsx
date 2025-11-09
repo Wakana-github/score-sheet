@@ -98,15 +98,15 @@ export default function Home() {
           <h1 className=" hand_font text-4xl lg:text-6xl font-bold">Score Sheet</h1>
 
           {/* game select form */}
-          <div className="dark_green lg:py-2 my-4 lg:my-10 px-3 flex items-center rounded-lg">
-            <label htmlFor="game" className="hand_font text-2xl lg:text-4xl">Choose a game: </label>
+          <div className="dark_green lg:py-2 my-4 lg:my-10 px-3 flex items-center rounded-lg dark:border dark:border-gray-300">
+            <label htmlFor="game" className="hand_font text-2xl lg:text-4xl ">Choose a game: </label>
             <Select
               id="game"
               name="gamelist"
               form="gameform"
               value={gameOptions.find(option => option.value === selectedGameId) || null}// set null when the game hass not selected
               onChange={handleGameChange}
-              className="text-sm md:text-base lg:text-xl py-2 ml-2" 
+              className="text-sm md:text-base lg:text-xl py-2 ml-2 dark:text-black" 
               placeholder="Choose game"
               options={gameOptions}
               isSearchable={true}
@@ -117,7 +117,7 @@ export default function Home() {
           <button
             // call handleGoToCustomSheet when selectedGameId = null、otherwise call handleGoToScoreSheet
             onClick={selectedGameId === null ? handleGoToCustomSheet : handleGoToScoreSheet}
-            className="dark_green py-2 lg:py-3 px-6 lg:px-8 rounded-lg "
+            className="dark_green py-2 lg:py-3 px-6 lg:px-8 rounded-lg hover:scale-105 dark:border dark:border-gray-300"
           >
             <span className="hand_font text-2xl lg:text-4xl">
               {/* display Custom Sheet when selectedGameId = nul、otherwise display Go to the Score Sheet */}
@@ -127,7 +127,7 @@ export default function Home() {
 
           {/* my record button */}
           <div className="mt-2 lg:my-8">
-            <button onClick={handleViewRecords} className="hand_font text-2xl lg:text-4xl">
+            <button onClick={handleViewRecords} className="hand_font text-2xl lg:text-4xl hover:scale-105">
             My Record
           </button>
           </div>
@@ -135,7 +135,7 @@ export default function Home() {
           {/* login / signin button */}
          <div className="my-2 lg:my-4 flex justify-center items-center gap-4 text-lg lg:text-2xl"> {/* flex, justify-center, items-center, gap-4 を追加してボタンを中央に並べる */}
             <SignedOut>
-              {/* Sign-in button*/}
+              {/* Sign-in button - production*/}
               {/* <SignInButton
                 mode="modal" // Opens the sign-in form in a modal
               >
@@ -146,7 +146,7 @@ export default function Home() {
               {/* </SignInButton> */} 
 
               <Link href="/sign-in">
-                <button className="bg-transparent border-none  cursor-pointer p-0">
+                <button className="bg-transparent border-none  cursor-pointer p-0 hover:scale-105">
                   <span className="hand_font underline">log in</span>
                 </button>
               </Link>
@@ -154,7 +154,7 @@ export default function Home() {
               {/* Separator */}
               <span> / </span>
 
-              {/* Sign-up button */}
+              {/* Sign-up button - production*/}
               {/* Opens the sign-up form in a modal */}
               {/* <SignUpButton mode="modal">
                 {/* sign up button */}
@@ -164,7 +164,7 @@ export default function Home() {
               {/* </SignUpButton> */} 
 
               <Link href="/sign-in">
-                <button className="bg-[#a81010] rounded-full border-none cursor-pointer px-3 py-1">
+                <button className="bg-[#a81010] rounded-full border-none cursor-pointer px-3 py-1 hover:scale-105">
                   <span className="text-white hand_font">sign up</span>
                 </button>
               </Link>
@@ -173,7 +173,7 @@ export default function Home() {
           </div>
 
           {/* Privacy and Terms of Service */}
-          <div className="flex justify-center gap-6 text-gray-700 mt-5">
+          <div className="flex justify-center gap-6 text-gray-700 mt-5 dark:text-white">
               <Link
                 href="/privacy/policy"
                 className="hover:text-blue-600 hover:underline transition-colors"

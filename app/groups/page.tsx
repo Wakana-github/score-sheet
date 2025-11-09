@@ -185,7 +185,7 @@ const GroupListPage: React.FC = () => {
       {/* Button to navigate to the group creation page */}
       <button
         onClick={() => router.push('/groups/register')}
-        className={`mb-4 px-4 py-2 hand_font rounded-md text-white text-xl lg:text-2xl ${
+        className={`mb-4 px-4 py-2 hand_font rounded-md text-white text-xl lg:text-2xl dark:border dark:border-gray-300 ${
           canCreateGroup ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-400 cursor-not-allowed'
         }`}
         disabled={!canCreateGroup}
@@ -195,7 +195,7 @@ const GroupListPage: React.FC = () => {
       
       {/* Warning message if the max group limit is reached */}
       {!canCreateGroup && (
-        <p className="text-black mb-4">{`You have reached the maximum number of groups (${MAX_GROUPS}).`}</p>
+        <p className="text-black mb-4 ">{`You have reached the maximum number of groups (${MAX_GROUPS}).`}</p>
       )}
 
       {/* Conditional rendering based on whether groups exist */}
@@ -213,9 +213,9 @@ const GroupListPage: React.FC = () => {
                          key={group._id} 
                          className="dark_green text-base text-black px-3 py-1 rounded-md shadow-sm flex justify-between items-center"
               >
-                <div className="min-w-0 mx-1">
+                <div className="min-w-0 mx-1 dark:text-white">
                   <h2 className="text-lg lg:text-xl font-semibold ">{group.groupName}</h2>
-                  <p className="text-black">Members: {group.members.length}</p>
+                  <p className="text-black dark:text-white">Members: {group.members.length}</p>
                 </div>
 
                 {/* Edit and Delete buttons container */}

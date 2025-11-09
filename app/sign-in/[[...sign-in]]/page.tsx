@@ -49,13 +49,13 @@ export default function Page() {
       </ClerkLoading>
 
       {/* Title */}
-      <h1 className="p-3 text-2xl hand_font text-gray-800">
+      <h1 className="p-3 text-2xl hand_font text-gray-800 dark:text-white">
         Sign in to See: {pageTitle}
       </h1>
 
       {/* Warning and Test credencials */}
       <div className="mb-6">
-          <p className="text-xl mt-3">Please<span className="text-red-700 font-semibold"> do Not</span>  use your personal information.</p>
+          <p className="text-xl mt-3">Please<span className="text-red-700 font-semibold dark:text-yellow-300"> do Not</span>  use your personal information.</p>
           <Link href="./privacy/policy" className="text-base">(Read Privacy Policy)</Link>
           <h2 className ="text-xl font-bold">Test Credencials:</h2>
           <TestCredentials/>

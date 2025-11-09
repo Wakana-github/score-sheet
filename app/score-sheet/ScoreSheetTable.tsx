@@ -170,7 +170,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
     <div className="flex flex-col items-center justify-start py-3 px-2 bg-cover bg-center bg-no-repeat">
       <div className="flex flex-wrap justify-center items-center px-2">
         {/* Game Title */}
-        <h1 className="text-xl font-bold hand_font mb-2 w-full text-center ">
+        <h1 className="text-xl font-bold hand_font mb-2 w-full text-cente">
           <input
             type="text"
             value={he.decode(scoreData.gameTitle)}
@@ -187,7 +187,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                 "Game titles can only contain allowed characters."
               )
             }
-            className="w-full lg:text-4xl text-center bg-transparent border-b-2 border-gray-400 focus:outline-none focus:border-blue-500 text-black font-bold text-2xl py-1 lg:pt-5 lg:pb-3 px-1"
+            className="w-full lg:text-4xl text-center bg-transparent border-b-2 border-gray-400 focus:outline-none focus:border-blue-500 text-black font-bold text-2xl py-1 lg:pt-5 lg:pb-3 px-1 dark:text-white"
           />
         </h1>
 
@@ -196,7 +196,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
           {/* group selection*/}
           {groupOptions.length > 0 && (
             <>
-              <div className="w-full flex justify-end items-center mb-1 text-lg lg:text-xl sm:w-auto sm:justify-start sm:px-3 hand_font text-gray-700">
+              <div className="w-full flex justify-end items-center mb-1 text-lg lg:text-xl sm:w-auto sm:justify-start sm:px-3 hand_font text-gray-700 dark:text-white">
                 <label htmlFor="groupSelect" className="mr-2 whitespace-nowrap">
                   Group:
                 </label>
@@ -221,7 +221,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
             </>
           )}
 
-          <div className="w-full flex justify-end items-center mb-1  text-lg lg:text-xl hand_font text-gray-700">
+          <div className="w-full flex justify-end items-center mb-1  text-lg lg:text-xl hand_font text-gray-700 dark:text-white">
             {/* Score Item selection */}
             <label
               htmlFor="numScoreItems" className="mr-2 ml-3 whitespace-nowrap">
@@ -400,7 +400,7 @@ const ScoreSheetTable: React.FC<ScoreSheetTableProps> = ({
                                   "Scores can only contain half-width digits and hyphens."
                                 )
                               }
-                              className="w-full text-center text-lg lg:text-2xl font-bold bg-transparent rounded focus:outline-none focus:ring-1 focus:ring-grey-100 text-black"
+                              className="w-full text-center text-xl md:text-2xl lg:text-3xl font-bold bg-transparent rounded focus:outline-none focus:ring-1 focus:ring-grey-100 text-black dark:text-white"
                               placeholder="0"
                             />
                           </td>

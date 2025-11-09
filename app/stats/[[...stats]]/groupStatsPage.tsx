@@ -69,6 +69,7 @@ export default function GroupStatsPage() {
 
   //showSubscriptionPrompt \is depending on isUserRestricted
   const showSubscriptionPrompt = isUserRestricted || stats?.isRestricted;
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
 
   // Load Group List & Check Initial Restriction Status
   useEffect(() => {
@@ -108,6 +109,7 @@ export default function GroupStatsPage() {
     const fetchStats = async () => {
       setError(null);
       setStats(null);
+      setIsLoadingStats(true);
       try {
         let url = `/api/stats/group/${selectedGroup}`;
         // Add query parameter only if selectedGame is set
@@ -120,7 +122,9 @@ export default function GroupStatsPage() {
       } catch (err) {
         console.error('Failed to fetch stats');
         setError(err as Error);
-      }
+      }finally {
+      setIsLoadingStats(false); 
+    }
     };
     fetchStats();
   }, [selectedGroup, selectedGame]);
@@ -166,6 +170,10 @@ export default function GroupStatsPage() {
 
   if (isLoadingInitial) {
       return  <LoadingPage/>
+  }
+
+  if (isLoadingStats) {
+    return <LoadingPage />;
   }
 
   if(isUserRestricted){
@@ -231,7 +239,7 @@ if (stats && stats.isRestricted) {
              setStats(null); //reset stats while fetching new data
           }}
           placeholder="-- Choose a Group --"
-          className="w-full md:w-1/2"
+          className="w-full md:w-1/2 dark:text-black"
         />
       </motion.div>
 
@@ -244,7 +252,7 @@ if (stats && stats.isRestricted) {
               animate="animate"
               exit="exit">
             <motion.h2 variants={detailItemVariants} 
-                      className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2 "
+                      className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2 dark:text-[#d8f03c]"
             >
                 {stats.groupName}
             </motion.h2>
@@ -310,7 +318,7 @@ if (stats && stats.isRestricted) {
                   setSelectedGame(selectedOption ? selectedOption.value : ""); //set selected game as selectedgame 
               }}
               placeholder="-- Choose a Game --"
-              className="w-full md:w-1/2"
+              className="w-full md:w-1/2 dark:text-black"
             />
           </motion.div>
         </AnimatePresence>
@@ -332,7 +340,7 @@ if (stats && stats.isRestricted) {
                 className="mt-4"
               >
                 <motion.h2 variants={detailItemVariants}
-                          className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2"
+                          className="text-4xl md:text-5xl hand_font text-[#41490e] mb-2 dark:text-[#d8f03c]"
                 >
                 {stats.selectedGameStats.gameTitle} 
                 </motion.h2>

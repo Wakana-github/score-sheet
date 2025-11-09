@@ -17,20 +17,11 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   background-size: cover;   
   background-image:url("/paper_bg.jpg");
-  background-repeat: no-repeat;    
-  background-attachment: fixed;
   background-repeat: no-repeat;    
   background-attachment: fixed;
 }
@@ -46,7 +37,6 @@ body {
   background-image:url("/paper_bg.jpg");
 }
 
-
 .dark_green{
   background-color: var(--dark_green);
 }
@@ -60,29 +50,42 @@ body {
   background-color: var(--stats_green);
 }
 
-/* .first-color{
-  background-color: #B6A014;
-} */
+/************** Ranking background *******************************/
 .first-color{
    background: linear-gradient(45deg, #917E0F 25%, #B6A014  70%, #D1AD64 75%, #B6A014  80%, #917E0F 100%) !important; 
 }
-/* .second-color{
-  background-color: #AFAFB0;
-} */
+
 .second-color{ 
    background: linear-gradient(45deg, #757575 25%, #9C9A9A 70%, #C2BCBC 75%, #9C9A9A 80%, #757575 90% 100%) !important;
 }
-/* .third-color{
-  background-color: #8F6939;
-} */
+
 .third-color{
   background: linear-gradient(45deg, #735532 25%, #8F6939, #A87B3E 75%, #8F6939 80%, #735532 90% 100%) !important;
 }
-/* .total-btn-color{
-  background-color: #4A4A46;
-}
- */
 
+
+
+ @media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #fff;
+    --dark_green: rgb(96, 112, 2);
+    --table_green: rgb(74, 83, 12);
+  }
+   body::before {
+    content: "";
+    position: fixed;
+    inset: 0; 
+    background: rgba(0, 0, 0, 0.8); 
+    pointer-events: none; 
+    z-index: -1; /* on bg, below contents */
+  }
+
+
+}
+
+
+/*********** Home bounce animation *****************************/
 @keyframes bounceIn  {
   	0%, 20%, 50%, 80%, 100% {
     transform: translateY(0);

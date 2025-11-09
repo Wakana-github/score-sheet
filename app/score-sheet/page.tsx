@@ -100,7 +100,7 @@ export default function ScoreSheetPage() {
           <div className="flex justify-center items-center">
             <button
               onClick={handleSaveSheet}
-              className="py-1 px-6 text-lg lg:text-2xl rounded-full hand_font bg-red-800 hover:bg-red-700 text-white shadow-md"
+              className="py-1 px-6 text-lg lg:text-2xl rounded-full hand_font bg-red-800 hover:bg-red-700 text-white shadow-md dark:border dark:border-gray-300"
             >
               Save
             </button>
@@ -110,7 +110,7 @@ export default function ScoreSheetPage() {
         <div className="flex flex-col justify-center items-center  mt-[-30]">
           <button
             onClick={handleToggleTotal}
-            className="py-1 px-8 rounded-lg hand_font text-lg lg:text-2xl bg-[#b43d06] hover:bg-[#c77047] text-white w-auto whitespace-nowrap"
+            className="py-1 px-8 rounded-lg hand_font text-lg lg:text-2xl bg-[#b43d06] hover:bg-[#c77047] text-white w-auto whitespace-nowrap dark:border dark:border-gray-300"
           >
             {showTotal ? "Hide Total" : "Show Total"}
           </button>
@@ -120,7 +120,7 @@ export default function ScoreSheetPage() {
         <div className="flex flex-col items-center mt-4">
           <button
             onClick={() => router.push("/records")}
-            className="bg-gray-600 hover:bg-gray-700 hand_font text-white py-1 px-4 rounded-lg text-lg lg:text-2xl"
+            className="bg-gray-600 hover:bg-gray-700 hand_font text-white py-1 px-4 rounded-lg text-lg lg:text-2xl dark:border dark:border-gray-300"
           >
             ← Go to My Records
           </button>

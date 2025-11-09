@@ -157,7 +157,7 @@ export default function StatsPage({ isRestricted }: StatsPageProps) {
       >
         Personal Stats for
         <br />
-        <span className="text-4xl md:text-5xl text-[#41490e]">
+        <span className="text-4xl md:text-5xl text-[#41490e] dark:text-[#d8f03c]">
           
           {user?.publicMetadata?.nickname &&
           typeof user.publicMetadata.nickname === "string"
@@ -230,7 +230,7 @@ export default function StatsPage({ isRestricted }: StatsPageProps) {
             ) || null
           }
           placeholder="Select a Game..."
-          className="w-full md:w-1/2" // Set width for the wrapper
+          className="w-full md:w-1/2 dark:text-black" // Set width for the wrapper
           isClearable
         />
       </motion.div>
@@ -248,7 +248,7 @@ export default function StatsPage({ isRestricted }: StatsPageProps) {
             layout
         >
           <motion.h2 variants={detailItemVariants} 
-                      className="text-4xl md:text-5xl hand_font font-bold text-[#41490e] pt-4 mb-2"
+                      className="text-4xl md:text-5xl hand_font font-bold text-[#41490e] pt-4 mb-2 dark:text-[#d8f03c]"
           >
             {selectedGame.gameTitle}
           </motion.h2>

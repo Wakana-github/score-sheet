@@ -671,7 +671,7 @@ export default function useScoreSheet() {
 
       if (parsedValue > MAX_SCORE_VALUE || parsedValue < MIN_SCORE_VALUE) {
         alert(
-          `Score must be between ${MIN_SCORE_VALUE} and ${MAX_SCORE_VALUE}.`
+          `Score must be between ${MIN_SCORE_VALUE} and ${MAX_SCORE_VALUE}`
         );
         return;
       }

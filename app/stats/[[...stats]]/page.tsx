@@ -74,10 +74,10 @@ export default function Stats() {
               onClick={() => setActiveTab("personal")}
               className={`
                 ${activeTab === "personal"? 
-                  "border-[#41490e] text-[#41490e]"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  "border-[#41490e] text-[#41490e] dark:border-[#d8f03c] dark:text-[#d8f03c]"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-300"
                 }
-                whitespace-nowrap py-3 px-1 border-b-2 font-bold text-2xl md:text-3xl hand_font
+                whitespace-nowrap py-3 px-1 border-b-2 font-bold text-2xl md:text-3xl hand_font 
               `}
             >
               Personal Stats
@@ -86,10 +86,10 @@ export default function Stats() {
               onClick={() => setActiveTab("group")}
               className={`
                 ${activeTab === "group"
-                  ? "border-[#41490e] text-[#41490e]"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-[#41490e] text-[#41490e] dark:border-[#d8f03c] dark:text-[#d8f03c]"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-300"
                 }
-                whitespace-nowrap py-3 px-1 border-b-2 font-bold text-2xl md:text-3xl hand_font
+                whitespace-nowrap py-3 px-1 border-b-2 font-bold text-2xl md:text-3xl hand_font 
               `}
             >
               Group Stats

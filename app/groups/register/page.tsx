@@ -389,7 +389,7 @@ const segmenter = new Intl.Segmenter("ja", { granularity: "grapheme" });
          {/* Submit Button */}
         <button
           type="submit"
-          className="px-4 py-2 lg:mt-6 bg-gray-600 hover:bg-gray-700 text-white rounded-md "
+          className="px-4 py-2 lg:mt-6 bg-gray-600 hover:bg-gray-700 text-white rounded-md dark:border dark:border-gray-300"
         >
           {groupId ? "Update Group" : "Register Group"}
         </button>

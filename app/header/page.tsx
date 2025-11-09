@@ -74,7 +74,7 @@ export default function Header() {
 
 
   return (
-    <header className="h-16 bg-white shadow-xl fixed top-0 w-full header-styles z-10">
+    <header className="h-16 bg-white shadow-xl fixed top-0 w-full header-styles z-10 dark:bg-black ">
       <div className="max-w-7xl mx-auto flex justify-between items-center h-full px-4">
         <div className="left-section flex items-center gap-3">
 
@@ -83,9 +83,9 @@ export default function Header() {
             {!isMenuOpen && (
               <FaBars
                 onClick={openMenu}
-                className="mobile-hamburger-icon"
+                className="mobile-hamburger-icon "
                 size={30}
-                color="#333"
+                color="#333 dark:white"
               />
             )}
           </div>
@@ -95,27 +95,27 @@ export default function Header() {
             {" "}
             {/* Hidden by default, flex on large screens and up */}
             <Link href="/" passHref>
-              <button className=" hover:text-blue-800  font-medium px-1 py-2 rounded-md transition-colors duration-200">
+              <button className=" hover:text-blue-300  font-medium px-1 py-2 rounded-md transition-colors duration-200">
                 <span className="hand_font">Home</span>
               </button>
             </Link>
             <Link href="/custom-sheet" passHref>
-              <button className=" hover:text-blue-800  font-medium px-1 py-2 rounded-md transition-colors duration-200">
+              <button className=" hover:text-blue-300  font-medium px-1 py-2 rounded-md transition-colors duration-200">
                 <span className="hand_font">Custom Sheet</span>
               </button>
             </Link>
             <Link href="/groups" passHref>
-              <button className=" hover:text-blue-800 font-medium px-1 py-2 rounded-md transition-colors duration-200">
+              <button className=" hover:text-blue-300 font-medium px-1 py-2 rounded-md transition-colors duration-200">
                 <span className="hand_font">Group</span>
               </button>
             </Link>
             <Link href="/records" passHref>
-              <button className=" hover:text-blue-800 font-medium px-1 py-2 rounded-md transition-colors duration-200">
+              <button className=" hover:text-blue-300 font-medium px-1 py-2 rounded-md transition-colors duration-200">
                 <span className="hand_font">Records</span>
               </button>
             </Link>
             <Link href="/stats" passHref>
-              <button className=" hover:text-blue-800 font-medium px-1 py-2 rounded-md transition-colors duration-200">
+              <button className=" hover:text-blue-300 font-medium px-1 py-2 rounded-md transition-colors duration-200">
                 <span className="hand_font">Statistics</span>
               </button>
             </Link>
@@ -230,7 +230,7 @@ export default function Header() {
           <SignedOut>
             <SignInButton />
             <SignUpButton>
-              <button className="bg-[#b8abee] text-ceramic-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer ">
+              <button className="bg-[#b8abee] dark:text-black text-ceramic-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer ">
                 Sign Up
               </button>
             </SignUpButton>

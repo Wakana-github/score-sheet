@@ -117,12 +117,12 @@ export default function SetNicknamePage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-[#535f0c] text-lg text-white p-2 rounded-md hover:bg-[#6f8012] disabled:bg-gray-400"
+              className="bg-[#535f0c] text-lg text-white p-2 rounded-md hover:bg-[#6f8012] disabled:bg-gray-400 dark:border dark:border-gray-300"
             >
               {isSubmitting ? "Saving..." : "Save Nickname"}
             </button>
           </form>
-          {message && <p className="mt-4 text-red-500 text-base lg:text-lg">{message}</p>}
+          {message && <p className="mt-4 text-red-500 text-base lg:text-lg dark:text-yellow-200">{message}</p>}
         </div>
       </div>
       <div className="my-10 ml-4">

@@ -219,11 +219,11 @@ export default function RecordsPage() {
         pageNumbers.push(i);
     }
      return (
-        <div className="flex justify-center items-center my-4 normal_font text-sm lg:text-lg text-black">
+        <div className="flex justify-center items-center my-4 normal_font text-sm lg:text-lg text-black ">
             <button
                 onClick={() => setCurrentPage(prev => prev - 1)}
                 disabled={currentPage === 1}
-                className="mx-1 px-3 py-1 border border-gray-400 rounded-lg disabled:opacity-50"
+                className="mx-1 px-3 py-1 border border-gray-400 rounded-lg disabled:opacity-50 dark:border-white"
             >
                 Previous
             </button>
@@ -240,7 +240,7 @@ export default function RecordsPage() {
             <button
                 onClick={() => setCurrentPage(prev => prev + 1)}
                 disabled={currentPage === totalPages}
-                className="mx-1 px-3 py-1 border border-gray-400 rounded-lg disabled:opacity-50"
+                className="mx-1 px-3 py-1 border border-gray-400 rounded-lg disabled:opacity-50 dark:border-white"
             >
                 Next
             </button>
@@ -274,12 +274,12 @@ export default function RecordsPage() {
           value={inputValue} 
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="Enter game title keyword..."
-          className="w-full max-w-sm p-2 border border-gray-700 rounded-md focus:outline-none focus:ring-2 text-gray-800" 
+          className="w-full max-w-sm p-2 border border-gray-700 rounded-md focus:outline-none focus:ring-2 text-gray-800 dark:border-white dark:text-white" 
         />
       </div>
 
       {/* Saved Records count - Using default font */}
-      <div className="mb-4 lg:mb-8 text-lg lg:text-xl text-gray-700">
+      <div className="mb-4 lg:mb-8 text-lg lg:text-xl text-gray-700 dark:text-white">
         {`Saved Records: ${totalRecords} / ${maxRecords}(${isActiveUser ? ' ' : 'Free Plan '}Max)`}
       </div>
 
@@ -321,7 +321,7 @@ export default function RecordsPage() {
                     {record.numPlayers}
                   </div>
                   {/* Last Saved Date/Time - Using normal_font for record content */}
-                  <div className="col-span-1 md:col-span-2 text-center text-gray-800 text-sm lg:text-base"> 
+                  <div className="col-span-1 md:col-span-2 text-center text-gray-800 text-sm lg:text-base dark:text-white"> 
                     {new Date(record.lastSavedAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     {' '}
                     {new Date(record.lastSavedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -330,7 +330,7 @@ export default function RecordsPage() {
                     {/* Delete button moves to the right */}
                     <button
                       onClick={(e) => { e.stopPropagation(); handleDeleteRecord(record._id); }} // Prevent parent click
-                      className="bg-gray-300 hover:bg-gray-500 font-bold py-1 px-2 rounded-md text-sm sm:text-lg group-hover:opacity-100 transition-opacity duration-200"
+                      className="bg-gray-300 hover:bg-gray-500 font-bold py-1 px-2 rounded-md text-sm sm:text-lg group-hover:opacity-100 transition-opacity duration-200 text-black"
                       title="Delete Record"
                       aria-label="Delete Record"
                     >
